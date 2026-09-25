@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¡Aprendamos inglés!</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <h1 id="titulo-hola">👋</h1>
+    <div class="topbar-actions">
+      <button type="button" data-lang-toggle>EN</button>
+      <button type="button" id="btn-logout" data-i18n="nav.logout">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <main>
+    <div class="card centrado">
+      <span style="font-size:3rem" id="avatar">🦊</span>
+      <div class="stat-row">
+        <div class="stat-tile azul">
+          <span class="valor" id="stat-nivel">1</span>
+          <span class="etiqueta" data-i18n="dash.level">Nivel</span>
+        </div>
+        <div class="stat-tile amarillo">
+          <span class="valor" id="stat-puntos">0</span>
+          <span class="etiqueta" data-i18n="dash.points">Puntos</span>
+        </div>
+        <div class="stat-tile naranja">
+          <span class="valor" id="stat-racha">🔥0</span>
+          <span class="etiqueta" data-i18n="dash.streak">Racha</span>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-bar-fill" id="barra-nivel" style="width:0%"></div></div>
+      <p class="hint" id="texto-siguiente-nivel"></p>
+      <button type="button" class="secundario" onclick="location.href='rewards.html'" data-i18n="dash.rewards_link">Mis premios</button>
+      <p class="hint oculto" id="mi-codigo" style="margin-top:1rem"><span data-i18n="dash.my_code">Tu código para entrar</span>: <strong id="mi-codigo-valor" style="letter-spacing:0.15em"></strong></p>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="dash.worlds">Elige un mundo para jugar</h2>
+      <div class="world-grid" id="mundos"></div>
+    </div>
+  </main>
+
+  <script type="module" src="js/pages/kid-dashboard.js"></script>
+</body>
+</html>

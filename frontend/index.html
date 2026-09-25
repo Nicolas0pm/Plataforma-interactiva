@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¡Aprendamos inglés!</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <h1 data-i18n="app.title">¡Aprendamos inglés!</h1>
+    <div class="topbar-actions">
+      <button type="button" data-lang-toggle>EN</button>
+    </div>
+  </div>
+
+  <main>
+    <p class="centrado hint" data-i18n="home.tagline">Aprende inglés y gana premios reales</p>
+
+    <div class="card centrado">
+      <h2 data-i18n="home.pick_role">¿Quién eres?</h2>
+      <div class="role-grid">
+        <button type="button" class="role-card nino" data-rol="estudiante">
+          <span class="emoji">🦊</span>
+          <span data-i18n="home.kid">Soy un niño</span>
+        </button>
+        <button type="button" class="role-card docente" data-rol="docente">
+          <span class="emoji">🍎</span>
+          <span data-i18n="home.teacher">Soy docente</span>
+        </button>
+        <button type="button" class="role-card padre" data-rol="padre">
+          <span class="emoji">👨‍👩‍👧</span>
+          <span data-i18n="home.parent">Soy padre o acudiente</span>
+        </button>
+      </div>
+    </div>
+    <p class="centrado hint"><a href="terminos.html" data-i18n="terms.footer">Términos de uso y privacidad</a></p>
+  </main>
+
+  <script type="module" src="js/pages/index.js"></script>
+</body>
+</html>

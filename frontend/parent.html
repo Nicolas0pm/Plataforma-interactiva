@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¡Aprendamos inglés!</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <h1 data-i18n="parent.title">Panel de padres</h1>
+    <div class="topbar-actions">
+      <button type="button" data-lang-toggle>EN</button>
+      <button type="button" id="btn-logout" data-i18n="nav.logout">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <main class="wide">
+    <div class="card">
+      <h2 data-i18n="parent.have_code_title"></h2>
+      <p class="hint" data-i18n="parent.have_code_hint"></p>
+      <form id="form-vincular">
+        <label for="vincular-codigo" data-i18n="kids.code_label">Código del niño</label>
+        <input id="vincular-codigo" type="text" autocomplete="off" maxlength="7" placeholder="K7M3QX" style="text-transform:uppercase" required />
+        <label for="vincular-pin" data-i18n="kids.pin_label">PIN del niño (4 números)</label>
+        <input id="vincular-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" required />
+        <button type="submit" data-i18n="kids.link_button">Agregar a mi panel</button>
+      </form>
+      <p class="error-msg" id="error-vincular"></p>
+      <p class="hint oculto" id="exito-vincular"></p>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="parent.new_title"></h2>
+      <p class="hint" data-i18n="parent.new_hint"></p>
+      <details>
+        <summary data-i18n="kids.register">Registrar niño</summary>
+        <form id="form-registrar">
+          <label for="nuevo-nombre" data-i18n="login.name">Nombre</label>
+          <input id="nuevo-nombre" type="text" required />
+          <label for="nuevo-edad" data-i18n="kids.age">Edad</label>
+          <input id="nuevo-edad" type="number" min="4" max="12" value="7" required />
+          <label for="nuevo-pin" data-i18n="teacher.pin_label">PIN (exactamente 4 números)</label>
+          <input id="nuevo-pin" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" required />
+          <p class="hint" data-i18n="teacher.pin_hint"></p>
+          <label class="casilla">
+            <input id="nuevo-autoriza" type="checkbox" required />
+            <span><span data-i18n="parent.consent">Autorizo</span>
+            <a href="terminos.html" target="_blank" data-i18n="terms.policy_link">Ver política de datos</a></span>
+          </label>
+          <button type="submit" data-i18n="kids.register">Registrar niño</button>
+        </form>
+        <p class="error-msg" id="error-registrar"></p>
+      </details>
+
+      <div class="oculto centrado" id="estudiante-creado" style="margin-top:1rem">
+        <h3 data-i18n="teacher.created_title">¡Registrado!</h3>
+        <p class="hint" data-i18n="teacher.created_body"></p>
+        <p><strong id="creado-nombre"></strong></p>
+        <p class="hint" data-i18n="teacher.code">Código</p>
+        <div class="codigo-grande" id="creado-codigo"></div>
+        <p class="hint">PIN</p>
+        <div class="codigo-grande" id="creado-pin"></div>
+      </div>
+    </div>
+
+    <h2 data-i18n="parent.my_children">Mis hijos</h2>
+    <div id="hijos"></div>
+    <p class="hint oculto" id="sin-hijos" data-i18n="parent.no_children">Todavía no tienes hijos vinculados.</p>
+  </main>
+
+  <script type="module" src="js/pages/parent.js"></script>
+</body>
+</html>

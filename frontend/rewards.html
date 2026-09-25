@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¡Aprendamos inglés!</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-actions">
+      <button type="button" onclick="location.href='kid-dashboard.html'" data-i18n="nav.back">Volver</button>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" data-lang-toggle>EN</button>
+    </div>
+  </div>
+
+  <main>
+    <div class="card">
+      <h2 data-i18n="rewards.title">Mis recompensas</h2>
+      <ul class="reward-list" id="lista-recompensas"></ul>
+      <p class="hint oculto" id="sin-recompensas" data-i18n="rewards.empty">Todavía no tienes recompensas. ¡Sigue jugando!</p>
+    </div>
+  </main>
+
+  <script type="module" src="js/pages/rewards.js"></script>
+</body>
+</html>

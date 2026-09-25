@@ -1,0 +1,27 @@
+# Secretos - NUNCA subir esto al repo
+backend/serviceAccountKey.json
+*firebase-adminsdk*.json
+backend/.env
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Documentos del trabajo de grado (binarios pesados, se entregan por aparte)
+docs/*.docx
+docs/*.pdf
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Firebase
+.firebase/
+firebase-debug.log
+*.log

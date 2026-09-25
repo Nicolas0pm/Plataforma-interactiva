@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¡Aprendamos inglés!</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-actions">
+      <button type="button" onclick="location.href='index.html'" data-i18n="nav.back">Volver</button>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" data-lang-toggle>EN</button>
+    </div>
+  </div>
+
+  <main>
+    <div class="card centrado">
+      <span style="font-size:3.5rem">🦊</span>
+      <h2 data-i18n="kidlogin.title">¡Hola! ¿Cuál es tu código?</h2>
+
+      <label for="codigo" data-i18n="kidlogin.code">Código de estudiante</label>
+      <input id="codigo" type="text" autocomplete="off" maxlength="7" placeholder="K7M3QX"
+        style="text-transform:uppercase; letter-spacing:0.2em; text-align:center; font-size:1.5rem" />
+
+      <p class="hint" data-i18n="kidlogin.pin_prompt">Ahora escribe tu PIN secreto</p>
+      <div class="pin-dots" id="pin-dots"></div>
+
+      <div class="pin-pad" id="pin-pad">
+        <button type="button" data-num="1">1</button>
+        <button type="button" data-num="2">2</button>
+        <button type="button" data-num="3">3</button>
+        <button type="button" data-num="4">4</button>
+        <button type="button" data-num="5">5</button>
+        <button type="button" data-num="6">6</button>
+        <button type="button" data-num="7">7</button>
+        <button type="button" data-num="8">8</button>
+        <button type="button" data-num="9">9</button>
+        <button type="button" class="borrar" id="btn-borrar" data-i18n="kidlogin.clear">Borrar</button>
+        <button type="button" data-num="0">0</button>
+        <div></div>
+      </div>
+
+      <p class="error-msg" id="error"></p>
+      <p class="hint" data-i18n="kidlogin.need_code">Pídele tu código de estudiante a tu profe o a tu familia.</p>
+    </div>
+  </main>
+
+  <script type="module" src="js/pages/kid-login.js"></script>
+</body>
+</html>

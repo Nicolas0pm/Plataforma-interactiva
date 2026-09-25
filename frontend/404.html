@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Página no encontrada</title>
+  <!-- Rutas absolutas: esta página se muestra en cualquier URL que no exista, incluso en subcarpetas. -->
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .perdido { font-size: 5rem; display: inline-block; animation: buscar 2.4s ease-in-out infinite; }
+    @keyframes buscar {
+      0%, 100% { transform: rotate(-8deg); }
+      50% { transform: rotate(8deg); }
+    }
+    .error-codigo { font-size: 3rem; font-weight: 800; letter-spacing: 0.3rem; color: var(--verde-hoja); margin: 0.5rem 0; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1 data-i18n="app.title">¡Aprendamos inglés!</h1>
+    <div class="topbar-actions">
+      <button type="button" data-lang-toggle>EN</button>
+    </div>
+  </div>
+
+  <main>
+    <div class="card centrado">
+      <span class="perdido">🦊🔍</span>
+      <p class="error-codigo">404</p>
+      <h2 data-i18n="notfound.title">¡Uy! Esta página se perdió</h2>
+      <p class="hint" data-i18n="notfound.body">El zorrito la buscó por todas partes, pero no existe o cambió de lugar.</p>
+      <button type="button" onclick="location.href='/index.html'" data-i18n="notfound.home">Volver al inicio</button>
+    </div>
+  </main>
+
+  <script type="module">
+    import { inicializarLangToggle } from "/js/i18n.js";
+    inicializarLangToggle();
+  </script>
+</body>
+</html>

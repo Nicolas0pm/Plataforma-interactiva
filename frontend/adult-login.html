@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¡Aprendamos inglés!</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-actions">
+      <button type="button" onclick="location.href='index.html'" data-i18n="nav.back">Volver</button>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" data-lang-toggle>EN</button>
+    </div>
+  </div>
+
+  <main>
+    <div class="card">
+      <h2 data-i18n="login.title">Iniciar sesión</h2>
+      <form id="form-login">
+        <label for="email" data-i18n="login.email">Correo</label>
+        <input id="email" type="email" required autocomplete="username" />
+        <label for="password" data-i18n="login.password">Contraseña</label>
+        <input id="password" type="password" required autocomplete="current-password" />
+        <button type="submit" data-i18n="login.submit">Entrar</button>
+      </form>
+      <p class="error-msg" id="error-login"></p>
+      <p class="hint" id="hint-firebase"></p>
+    </div>
+
+    <div class="card">
+      <h2 data-i18n="login.create_account">Crear cuenta</h2>
+      <form id="form-registro">
+        <label for="reg-nombre" data-i18n="login.name">Nombre</label>
+        <input id="reg-nombre" type="text" required />
+        <label for="reg-email" data-i18n="login.email">Correo</label>
+        <input id="reg-email" type="email" required autocomplete="username" />
+        <label for="reg-password" data-i18n="login.password">Contraseña</label>
+        <input id="reg-password" type="password" required minlength="6" autocomplete="new-password" />
+        <label class="casilla">
+          <input id="reg-terminos" type="checkbox" required />
+          <span><span data-i18n="terms.accept">He leído y acepto los</span>
+          <a href="terminos.html" target="_blank" data-i18n="terms.link">Términos de uso y la Política de datos</a>.</span>
+        </label>
+        <button type="submit" data-i18n="login.create_account">Crear cuenta</button>
+      </form>
+      <p class="error-msg" id="error-registro"></p>
+    </div>
+
+    <details class="card">
+      <summary data-i18n="login.dev_mode">Modo de prueba (sin Firebase)</summary>
+      <p class="hint" data-i18n="login.dev_hint">Solo funciona si el backend corre con USE_FAKE_DB=true.</p>
+
+      <form id="form-dev-login">
+        <label for="dev-id" data-i18n="login.dev_id">ID de usuario</label>
+        <input id="dev-id" type="text" required />
+        <button type="submit" data-i18n="login.dev_login">Entrar (prueba)</button>
+      </form>
+      <p class="error-msg" id="error-dev-login"></p>
+
+      <hr />
+
+      <form id="form-dev-registro">
+        <label for="dev-reg-nombre" data-i18n="login.name">Nombre</label>
+        <input id="dev-reg-nombre" type="text" required />
+        <button type="submit" class="secundario" data-i18n="login.dev_create">Crear cuenta de prueba</button>
+      </form>
+      <p class="hint" id="dev-registro-resultado"></p>
+    </details>
+  </main>
+
+  <script type="module" src="js/pages/adult-login.js"></script>
+</body>
+</html>

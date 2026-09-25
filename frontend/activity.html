@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¡Aprendamos inglés!</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-actions">
+      <button type="button" onclick="location.href='kid-dashboard.html'" data-i18n="activity.back_dashboard">Volver al mapa</button>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" data-lang-toggle>EN</button>
+    </div>
+  </div>
+
+  <main>
+    <div class="progress-bar"><div class="progress-bar-fill" id="barra-actividad" style="width:0%"></div></div>
+
+    <div class="card centrado" id="tarjeta-actividad">
+      <p data-i18n="activity.loading">Cargando actividad...</p>
+    </div>
+  </main>
+
+  <div class="overlay" id="overlay" hidden>
+    <div class="feedback-modal" id="modal-feedback">
+      <div class="emoji-grande" id="modal-emoji">⭐</div>
+      <h2 id="modal-titulo">¡Genial!</h2>
+      <p id="modal-extra"></p>
+      <button type="button" id="btn-continuar" data-i18n="activity.next">Siguiente</button>
+    </div>
+  </div>
+  <div class="confeti" id="confeti" hidden></div>
+
+  <script type="module" src="js/pages/activity.js"></script>
+</body>
+</html>
