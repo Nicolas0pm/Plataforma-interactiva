@@ -1,5 +1,6 @@
 import { apiFetch } from "../api.js";
 import { inicializarLangToggle, t } from "../i18n.js";
+import "../nav.js";
 import { exigirRol } from "../session.js";
 
 const sesion = exigirRol("estudiante");

@@ -123,7 +123,8 @@ def _token_de_desarrollo(base_url: str) -> str:
     docente = _post(
         base_url, "/api/usuarios",
         {"nombre": "Docente Semilla", "edad": 99, "rol": "docente",
-         "acudientes_ids": [], "docente_id": None, "email": "semilla@ejemplo.com"},
+         "acudientes_ids": [], "docente_id": None, "email": "semilla@ejemplo.com",
+         "acepta_terminos": True},
     )
     sesion = _post(base_url, "/api/usuarios/login-dev", {"id_usuario": docente["id_usuario"], "rol": "docente"})
     return sesion["token"]

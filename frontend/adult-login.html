@@ -2,14 +2,18 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <script>try{document.documentElement.dataset.tema=localStorage.getItem("pik_tema")||"auto"}catch(e){document.documentElement.dataset.tema="auto"}</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>¡Aprendamos inglés!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <div class="topbar">
     <div class="topbar-actions">
-      <button type="button" onclick="location.href='index.html'" data-i18n="nav.back">Volver</button>
+      <button type="button" class="btn-volver" data-volver="index.html" data-i18n="nav.back">Volver</button>
     </div>
     <div class="topbar-actions">
       <button type="button" data-lang-toggle>EN</button>

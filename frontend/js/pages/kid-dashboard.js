@@ -1,16 +1,14 @@
 import { apiFetch } from "../api.js";
 import { inicializarLangToggle, t } from "../i18n.js";
-import { cerrarSesion, exigirRol } from "../session.js";
+import "../nav.js";
+import { exigirRol, salir } from "../session.js";
 
 const sesion = exigirRol("estudiante");
 if (sesion) iniciar(sesion);
 
 inicializarLangToggle();
 
-document.getElementById("btn-logout").addEventListener("click", () => {
-  cerrarSesion();
-  window.location.href = "index.html";
-});
+document.getElementById("btn-logout").addEventListener("click", salir);
 
 // Debe reflejar app/config.py Settings.nivel_umbrales del backend.
 const NIVELES = [
@@ -62,7 +60,9 @@ async function iniciar(sesion) {
     div.innerHTML = `
       <span class="emoji">${desbloqueado ? mundo.emoji : "🔒"}</span>
       <h3>${t(mundo.clave)}</h3>
-      <button type="button" ${desbloqueado ? "" : "disabled"}>${desbloqueado ? t("dash.play") : ""}</button>
+      <button type="button" ${desbloqueado ? "" : "disabled"}>${
+        desbloqueado ? t("dash.play") : `⭐ ${mundo.umbral} ${t("dash.points").toLowerCase()}`
+      }</button>
     `;
     if (desbloqueado) {
       div.querySelector("button").addEventListener("click", () => {

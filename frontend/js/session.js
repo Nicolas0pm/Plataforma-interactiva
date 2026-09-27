@@ -24,10 +24,25 @@ export function cerrarSesion() {
 
 /** Redirige a index.html si no hay sesión o el rol no es uno de los permitidos. */
 export function exigirRol(...rolesPermitidos) {
-  const sesion = obtenerSesion();
-  if (!sesion || !rolesPermitidos.includes(sesion.rol)) {
-    window.location.href = "index.html";
+  const valida = () => {
+    const actual = obtenerSesion();
+    return actual && rolesPermitidos.includes(actual.rol) ? actual : null;
+  };
+  // Si se cerró sesión y luego se usa "atrás", el navegador puede mostrar esta página
+  // desde su caché (bfcache) sin volver a ejecutar el script: se revalida aquí.
+  window.addEventListener("pageshow", (evento) => {
+    if (evento.persisted && !valida()) window.location.replace("index.html");
+  });
+  const sesion = valida();
+  if (!sesion) {
+    window.location.replace("index.html");
     return null;
   }
   return sesion;
+}
+
+/** Cierra la sesión y vuelve al inicio sin dejar el panel en el historial. */
+export function salir() {
+  cerrarSesion();
+  window.location.replace("index.html");
 }

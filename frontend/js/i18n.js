@@ -10,6 +10,15 @@ const DICCIONARIO = {
     "home.tagline": "Aprende inglés y gana premios reales",
     "home.pick_role": "¿Quién eres?",
     "home.kid": "Soy un niño",
+    "theme.title": "Tema de colores",
+    "theme.auto": "Automático",
+    "theme.light": "Claro",
+    "theme.dark": "Oscuro",
+    "theme.purple": "Noche morada",
+    "theme.pink": "Rosa dulce",
+    "home.welcome_back": "¡Hola de nuevo,",
+    "home.continue": "Continuar",
+    "home.not_me": "No soy yo (cerrar sesión)",
     "home.teacher": "Soy docente",
     "home.parent": "Soy padre o acudiente",
 
@@ -27,8 +36,18 @@ const DICCIONARIO = {
     "login.dev_created": "Cuenta creada. Tu ID de usuario es:",
 
     "kidlogin.title": "¡Hola! ¿Cuál es tu código?",
-    "kidlogin.code": "Código de estudiante",
-    "kidlogin.pin_prompt": "Ahora escribe tu PIN secreto",
+    "kidlogin.code": "Código",
+    "kidlogin.pin_prompt": "Ahora tu PIN secreto",
+    "kidlogin.code_hint": "Son 6 letras y números.",
+    "kidlogin.code_invalid": "Tu código tiene 6 letras y números. ¡Revísalo!",
+    "kidlogin.next": "Siguiente",
+    "kidlogin.change": "Cambiar",
+    "kidlogin.pin_hint": "Son 4 números. ¡No se lo muestres a nadie!",
+    "kidlogin.locked": "Muchos intentos. Espera unos minutos y vuelve a intentar.",
+    "cred.code_title": "Código",
+    "cred.code_help": "Se escribe primero · letras y números",
+    "cred.pin_title": "PIN secreto",
+    "cred.pin_help": "Se marca después · solo 4 números",
     "kidlogin.clear": "Borrar",
     "kidlogin.wrong": "Código o PIN incorrecto, ¡inténtalo de nuevo!",
     "kidlogin.no_server": "No hay conexión con el servidor. Avísale a tu profe.",
@@ -126,6 +145,15 @@ const DICCIONARIO = {
     "home.tagline": "Learn English and win real prizes",
     "home.pick_role": "Who are you?",
     "home.kid": "I'm a kid",
+    "theme.title": "Color theme",
+    "theme.auto": "Automatic",
+    "theme.light": "Light",
+    "theme.dark": "Dark",
+    "theme.purple": "Purple night",
+    "theme.pink": "Sweet pink",
+    "home.welcome_back": "Welcome back,",
+    "home.continue": "Continue",
+    "home.not_me": "Not me (sign out)",
     "home.teacher": "I'm a teacher",
     "home.parent": "I'm a parent",
 
@@ -143,8 +171,18 @@ const DICCIONARIO = {
     "login.dev_created": "Account created. Your user ID is:",
 
     "kidlogin.title": "Hi! What's your code?",
-    "kidlogin.code": "Student code",
-    "kidlogin.pin_prompt": "Now type your secret PIN",
+    "kidlogin.code": "Code",
+    "kidlogin.pin_prompt": "Now your secret PIN",
+    "kidlogin.code_hint": "It has 6 letters and numbers.",
+    "kidlogin.code_invalid": "Your code has 6 letters and numbers. Check it!",
+    "kidlogin.next": "Next",
+    "kidlogin.change": "Change",
+    "kidlogin.pin_hint": "It has 4 numbers. Don't show it to anyone!",
+    "kidlogin.locked": "Too many tries. Wait a few minutes and try again.",
+    "cred.code_title": "Code",
+    "cred.code_help": "Typed first · letters and numbers",
+    "cred.pin_title": "Secret PIN",
+    "cred.pin_help": "Entered second · only 4 numbers",
     "kidlogin.clear": "Clear",
     "kidlogin.wrong": "Wrong code or PIN, try again!",
     "kidlogin.no_server": "Can't reach the server. Tell your teacher.",
@@ -250,6 +288,10 @@ export function t(clave) {
 export function aplicarIdioma() {
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    el.setAttribute("title", t(el.dataset.i18nTitle));
+    el.setAttribute("aria-label", t(el.dataset.i18nTitle));
   });
   document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
     el.setAttribute("placeholder", t(el.dataset.i18nPlaceholder));

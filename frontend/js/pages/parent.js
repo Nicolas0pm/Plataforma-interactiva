@@ -1,15 +1,13 @@
 import { apiFetch } from "../api.js";
 import { montarRegistrar, montarVincular } from "../estudiantes-ui.js";
 import { inicializarLangToggle, t } from "../i18n.js";
-import { cerrarSesion, exigirRol } from "../session.js";
+import "../nav.js";
+import { exigirRol, salir } from "../session.js";
 
 const sesion = exigirRol("padre", "admin");
 inicializarLangToggle();
 
-document.getElementById("btn-logout").addEventListener("click", () => {
-  cerrarSesion();
-  window.location.href = "index.html";
-});
+document.getElementById("btn-logout").addEventListener("click", salir);
 
 if (sesion) {
   cargar(sesion);
@@ -38,7 +36,7 @@ async function cargar(sesion) {
     tarjeta.innerHTML = `
       <div class="child-banner">
         <strong>🧒 ${hijo.nombre}</strong> — ${t("dash.level")} ${progreso.nivel_logrado}
-        ${hijo.codigo_acceso ? `<div>${t("teacher.code")}: <strong>${hijo.codigo_acceso}</strong></div>` : ""}
+        ${hijo.codigo_acceso ? `<div>🪪 ${t("teacher.code")}: <strong>${hijo.codigo_acceso}</strong></div>` : ""}
       </div>
       <div class="stat-row">
         <div class="stat-tile azul">

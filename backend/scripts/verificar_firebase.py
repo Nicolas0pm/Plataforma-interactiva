@@ -24,13 +24,19 @@ def _revisar_configuracion(settings) -> bool:
     if settings.use_fake_db:
         print(f"{FALLA} USE_FAKE_DB=true en .env: ponlo en false para usar Firebase real.")
         bien = False
-    if not os.path.isfile(settings.firebase_credentials_path):
-        print(f"{FALLA} No existe '{settings.firebase_credentials_path}'. Descarga la clave privada "
-              "(Configuración del proyecto → Cuentas de servicio) y guárdala en backend/.")
+    from app.services.firebase_service import cargar_credenciales
+
+    if not settings.firebase_credentials_json and not os.path.isfile(settings.firebase_credentials_path):
+        print(f"{FALLA} No existe '{settings.firebase_credentials_path}' ni FIREBASE_CREDENTIALS_JSON. "
+              "Descarga la clave privada (Configuración del proyecto → Cuentas de servicio) y guárdala en backend/.")
         return False
-    with open(settings.firebase_credentials_path, encoding="utf-8") as f:
-        proyecto_clave = json.load(f).get("project_id", "")
-    print(f"{OK} Clave de servicio encontrada (proyecto '{proyecto_clave}').")
+    credenciales = cargar_credenciales()
+    if isinstance(credenciales, str):
+        with open(credenciales, encoding="utf-8") as f:
+            credenciales = json.load(f)
+    proyecto_clave = credenciales.get("project_id", "")
+    origen = "FIREBASE_CREDENTIALS_JSON" if settings.firebase_credentials_json else settings.firebase_credentials_path
+    print(f"{OK} Clave de servicio encontrada en {origen} (proyecto '{proyecto_clave}').")
     if settings.firebase_project_id in ("", "tu-project-id"):
         print(f"{FALLA} FIREBASE_PROJECT_ID sin configurar en .env (debería ser '{proyecto_clave}').")
         bien = False

@@ -2,8 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <script>try{document.documentElement.dataset.tema=localStorage.getItem("pik_tema")||"auto"}catch(e){document.documentElement.dataset.tema="auto"}</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>¡Aprendamos inglés!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -20,10 +24,12 @@
       <h2 data-i18n="parent.have_code_title"></h2>
       <p class="hint" data-i18n="parent.have_code_hint"></p>
       <form id="form-vincular">
-        <label for="vincular-codigo" data-i18n="kids.code_label">Código del niño</label>
-        <input id="vincular-codigo" type="text" autocomplete="off" maxlength="7" placeholder="K7M3QX" style="text-transform:uppercase" required />
-        <label for="vincular-pin" data-i18n="kids.pin_label">PIN del niño (4 números)</label>
-        <input id="vincular-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" required />
+        <label for="vincular-codigo"><span aria-hidden="true">🪪</span> <span data-i18n="kids.code_label">Código del niño</span></label>
+        <input id="vincular-codigo" class="campo-codigo pequeno" type="text" autocomplete="off" autocapitalize="characters"
+          spellcheck="false" maxlength="7" placeholder="K7M3QX" required />
+        <p class="hint" data-i18n="cred.code_help">Se escribe primero · letras y números</p>
+        <label for="vincular-pin"><span aria-hidden="true">🔒</span> <span data-i18n="kids.pin_label">PIN del niño (4 números)</span></label>
+        <input id="vincular-pin" class="campo-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" placeholder="••••" required />
         <button type="submit" data-i18n="kids.link_button">Agregar a mi panel</button>
       </form>
       <p class="error-msg" id="error-vincular"></p>
@@ -40,8 +46,8 @@
           <input id="nuevo-nombre" type="text" required />
           <label for="nuevo-edad" data-i18n="kids.age">Edad</label>
           <input id="nuevo-edad" type="number" min="4" max="12" value="7" required />
-          <label for="nuevo-pin" data-i18n="teacher.pin_label">PIN (exactamente 4 números)</label>
-          <input id="nuevo-pin" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" required />
+          <label for="nuevo-pin"><span aria-hidden="true">🔒</span> <span data-i18n="teacher.pin_label">PIN (exactamente 4 números)</span></label>
+          <input id="nuevo-pin" class="campo-pin" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" placeholder="1234" required />
           <p class="hint" data-i18n="teacher.pin_hint"></p>
           <label class="casilla">
             <input id="nuevo-autoriza" type="checkbox" required />
@@ -57,10 +63,18 @@
         <h3 data-i18n="teacher.created_title">¡Registrado!</h3>
         <p class="hint" data-i18n="teacher.created_body"></p>
         <p><strong id="creado-nombre"></strong></p>
-        <p class="hint" data-i18n="teacher.code">Código</p>
-        <div class="codigo-grande" id="creado-codigo"></div>
-        <p class="hint">PIN</p>
-        <div class="codigo-grande" id="creado-pin"></div>
+        <div class="credenciales">
+          <div class="credencial codigo">
+            <span class="credencial-titulo"><span aria-hidden="true">🪪</span> <span data-i18n="cred.code_title">Código</span></span>
+            <strong id="creado-codigo"></strong>
+            <span class="credencial-ayuda" data-i18n="cred.code_help">Se escribe primero · letras y números</span>
+          </div>
+          <div class="credencial pin">
+            <span class="credencial-titulo"><span aria-hidden="true">🔒</span> <span data-i18n="cred.pin_title">PIN secreto</span></span>
+            <strong id="creado-pin"></strong>
+            <span class="credencial-ayuda" data-i18n="cred.pin_help">Se marca después · solo 4 números</span>
+          </div>
+        </div>
       </div>
     </div>
 

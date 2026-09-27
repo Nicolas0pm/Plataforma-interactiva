@@ -1,15 +1,13 @@
 import { apiFetch } from "../api.js";
 import { montarRegistrar, montarVincular } from "../estudiantes-ui.js";
 import { inicializarLangToggle, t } from "../i18n.js";
-import { cerrarSesion, exigirRol } from "../session.js";
+import "../nav.js";
+import { exigirRol, salir } from "../session.js";
 
 const sesion = exigirRol("docente", "admin");
 inicializarLangToggle();
 
-document.getElementById("btn-logout").addEventListener("click", () => {
-  cerrarSesion();
-  window.location.href = "index.html";
-});
+document.getElementById("btn-logout").addEventListener("click", salir);
 
 if (sesion) cargar(sesion);
 
@@ -46,7 +44,7 @@ async function cargar(sesion) {
       <span class="emoji">🧒</span>
       <div class="info">
         <strong>${estudiante.nombre}</strong> — ${t("dash.level")} ${progreso.nivel_logrado}
-        ${estudiante.codigo_acceso ? `<span class="pill">${t("teacher.code")}: ${estudiante.codigo_acceso}</span>` : ""}
+        ${estudiante.codigo_acceso ? `<span class="pill pill-codigo">🪪 ${estudiante.codigo_acceso}</span>` : ""}
         <div class="progress-bar"><div class="progress-bar-fill" style="width:${Math.min(100, progreso.puntaje_total)}%"></div></div>
       </div>
       ${idsConAyuda.has(estudiante.id_usuario) ? `<span class="pill alerta">${t("teacher.needs_help_badge")}</span>` : ""}

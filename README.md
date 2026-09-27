@@ -69,6 +69,9 @@ plataforma-ingles-kids/
    prueba (sin Firebase)" de la pantalla de login para crear cuentas sin configurar
    nada más.
 
+**Para publicarlo en internet** (frontend en Firebase Hosting y backend en Render, por
+separado), sigue [`docs/despliegue.md`](docs/despliegue.md).
+
 **Con un proyecto de Firebase real (para producción):**
 
 1. Configura Firebase siguiendo [`firebase/README_FIREBASE.md`](firebase/README_FIREBASE.md).

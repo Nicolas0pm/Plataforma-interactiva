@@ -2,8 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <script>try{document.documentElement.dataset.tema=localStorage.getItem("pik_tema")||"auto"}catch(e){document.documentElement.dataset.tema="auto"}</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>¡Aprendamos inglés!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -16,6 +20,12 @@
 
   <main>
     <p class="centrado hint" data-i18n="home.tagline">Aprende inglés y gana premios reales</p>
+
+    <div class="card centrado oculto" id="sesion-activa">
+      <h2><span data-i18n="home.welcome_back">¡Hola de nuevo!</span> <span id="sesion-nombre"></span>! 👋</h2>
+      <button type="button" id="btn-continuar" data-i18n="home.continue">Continuar</button>
+      <button type="button" class="secundario" id="btn-no-soy-yo" data-i18n="home.not_me">No soy yo (cerrar sesión)</button>
+    </div>
 
     <div class="card centrado">
       <h2 data-i18n="home.pick_role">¿Quién eres?</h2>

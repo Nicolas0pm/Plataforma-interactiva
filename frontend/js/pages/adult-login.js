@@ -6,7 +6,8 @@ import {
 } from "../firebase-config.js";
 import { apiFetch } from "../api.js";
 import { inicializarLangToggle, t } from "../i18n.js";
-import { guardarSesion } from "../session.js";
+import "../nav.js";
+import { guardarSesion, obtenerSesion } from "../session.js";
 
 inicializarLangToggle();
 
@@ -14,6 +15,10 @@ const params = new URLSearchParams(window.location.search);
 const rolElegido = params.get("rol") === "padre" ? "padre" : "docente";
 
 const DESTINO_POR_ROL = { docente: "teacher.html", padre: "parent.html", admin: "teacher.html" };
+
+// Un adulto con sesión abierta va directo a su panel en vez de ver el login otra vez.
+const sesionActual = obtenerSesion();
+if (sesionActual && DESTINO_POR_ROL[sesionActual.rol]) window.location.replace(DESTINO_POR_ROL[sesionActual.rol]);
 
 if (!firebaseConfigurado) {
   document.getElementById("hint-firebase").textContent =
@@ -24,7 +29,7 @@ if (!firebaseConfigurado) {
 }
 
 function irADestino(rol) {
-  window.location.href = DESTINO_POR_ROL[rol] || "index.html";
+  window.location.replace(DESTINO_POR_ROL[rol] || "index.html");
 }
 
 document.getElementById("form-login").addEventListener("submit", async (e) => {

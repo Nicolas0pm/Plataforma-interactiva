@@ -14,6 +14,10 @@ class Settings:
     firebase_credentials_path: str = os.getenv(
         "FIREBASE_CREDENTIALS_PATH", "serviceAccountKey.json"
     )
+    # En un servidor (Render, Cloud Run...) no hay archivo serviceAccountKey.json: se pasa
+    # su contenido completo en esta variable (JSON tal cual, o codificado en base64).
+    # Si está definida, tiene prioridad sobre FIREBASE_CREDENTIALS_PATH.
+    firebase_credentials_json: str = os.getenv("FIREBASE_CREDENTIALS_JSON", "")
     firebase_project_id: str = os.getenv("FIREBASE_PROJECT_ID", "")
     realtime_db_url: str = os.getenv("FIREBASE_REALTIME_DB_URL", "")
 

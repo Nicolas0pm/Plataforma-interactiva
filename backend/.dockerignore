@@ -1,0 +1,9 @@
+# Nunca meter secretos ni el entorno local en la imagen
+.env
+serviceAccountKey.json
+*firebase-adminsdk*.json
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+tests/

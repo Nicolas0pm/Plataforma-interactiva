@@ -2,8 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <script>try{document.documentElement.dataset.tema=localStorage.getItem("pik_tema")||"auto"}catch(e){document.documentElement.dataset.tema="auto"}</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>¡Aprendamos inglés!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -35,7 +39,7 @@
       <div class="progress-bar"><div class="progress-bar-fill" id="barra-nivel" style="width:0%"></div></div>
       <p class="hint" id="texto-siguiente-nivel"></p>
       <button type="button" class="secundario" onclick="location.href='rewards.html'" data-i18n="dash.rewards_link">Mis premios</button>
-      <p class="hint oculto" id="mi-codigo" style="margin-top:1rem"><span data-i18n="dash.my_code">Tu código para entrar</span>: <strong id="mi-codigo-valor" style="letter-spacing:0.15em"></strong></p>
+      <p class="hint oculto" id="mi-codigo" style="margin-top:1rem"><span aria-hidden="true">🪪</span> <span data-i18n="dash.my_code">Tu código para entrar</span>: <strong id="mi-codigo-valor" style="letter-spacing:0.15em"></strong></p>
     </div>
 
     <div class="card">

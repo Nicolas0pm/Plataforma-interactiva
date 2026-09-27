@@ -6,6 +6,9 @@ Si `USE_FAKE_DB=true` (ver `app/config.py`), se usa en su lugar una base de
 datos en memoria (`app/services/fake_firestore.py`) para poder desarrollar y
 probar sin credenciales reales de Firebase. Nunca activar esto en producción.
 """
+import base64
+import json
+
 import firebase_admin
 from firebase_admin import credentials, firestore, db
 
@@ -16,6 +19,17 @@ _settings = get_settings()
 _app = None
 
 
+def cargar_credenciales():
+    """Credenciales de la Service Account: desde FIREBASE_CREDENTIALS_JSON (despliegue)
+    o, si no está, desde el archivo FIREBASE_CREDENTIALS_PATH (desarrollo local)."""
+    crudo = _settings.firebase_credentials_json.strip()
+    if not crudo:
+        return _settings.firebase_credentials_path
+    if not crudo.startswith("{"):
+        crudo = base64.b64decode(crudo).decode("utf-8")
+    return json.loads(crudo)
+
+
 def init_firebase():
     global _app
     if _settings.use_fake_db:
@@ -23,7 +37,7 @@ def init_firebase():
     if _app is not None:
         return _app
 
-    cred = credentials.Certificate(_settings.firebase_credentials_path)
+    cred = credentials.Certificate(cargar_credenciales())
     options = {"projectId": _settings.firebase_project_id}
     if _settings.realtime_db_url:
         options["databaseURL"] = _settings.realtime_db_url

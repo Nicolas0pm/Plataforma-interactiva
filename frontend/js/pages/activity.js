@@ -1,5 +1,6 @@
 import { apiFetch } from "../api.js";
 import { inicializarLangToggle, t } from "../i18n.js";
+import { volver } from "../nav.js";
 import { exigirRol } from "../session.js";
 
 const sesion = exigirRol("estudiante");
@@ -124,9 +125,7 @@ function mostrarFinDeSesion() {
 
   const botonContinuar = document.getElementById("btn-continuar");
   botonContinuar.textContent = t("activity.back_dashboard");
-  botonContinuar.onclick = () => {
-    window.location.href = "kid-dashboard.html";
-  };
+  botonContinuar.onclick = () => volver("kid-dashboard.html");
 
   overlay.hidden = false;
   lanzarConfeti();

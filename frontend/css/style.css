@@ -1,4 +1,9 @@
+/* ============================================================
+   Temas: todos los colores salen de estas variables. El tema se elige con
+   el botón 🎨 (js/tema.js) y se guarda en <html data-tema="...">.
+   ============================================================ */
 :root {
+  color-scheme: light;
   --azul-cielo: #3aa9d6;
   --amarillo-sol: #ffc93c;
   --coral: #ff6f59;
@@ -6,7 +11,170 @@
   --morado: #8a6fd1;
   --tinta: #223345;
   --fondo: #f6f9fc;
+  --fondo-punto: rgba(58, 169, 214, 0.08);
+  --superficie: #ffffff;
+  --superficie-2: #eef4fa;
+  --superficie-input: #fbfdff;
+  --borde: #e8eef4;
+  --borde-fuerte: #d9e2ec;
+  --texto-suave: #6b7c8f;
+  --enlace: #1f7fa8;
+  --topbar-1: #3aa9d6;
+  --topbar-2: #4fbfe6;
+  --sombra: rgba(34, 51, 69, 0.08);
+  --sombra-card: 0 1px 2px rgba(34, 51, 69, 0.06), 0 8px 24px rgba(34, 51, 69, 0.07);
+  --sombra-secundario: #d6e2ee;
+  --overlay: rgba(34, 51, 69, 0.5);
+  --calido: #fff7e8;
+  --exito-suave: #eafff2;
+  --exito-chip: #d7f5e2;
+  --exito-texto: #1c6b3f;
+  --alerta-suave: #fff0ee;
+  --alerta-chip: #ffe1de;
+  --alerta-texto: #b23223;
+  --pendiente-chip: #ffe6b8;
+  --pendiente-texto: #8a5a00;
+  --morado-suave: #f7f5ff;
+  --rol-nino: #eafff2;
+  --rol-docente: #e8f4fd;
+  --rol-padre: #f2edfd;
   --radio: 18px;
+}
+
+/* Oscuro (y "Automático" cuando el sistema está en modo oscuro) */
+:root[data-tema="oscuro"] {
+  color-scheme: dark;
+  --azul-cielo: #4cb8e4;
+  --tinta: #e6edf3;
+  --fondo: #0f1720;
+  --fondo-punto: rgba(76, 184, 228, 0.07);
+  --superficie: #18222d;
+  --superficie-2: #22303d;
+  --superficie-input: #121b24;
+  --borde: #2a3947;
+  --borde-fuerte: #3a4b5c;
+  --texto-suave: #9fb0c0;
+  --enlace: #7fcff0;
+  --topbar-1: #1b4f6b;
+  --topbar-2: #236688;
+  --sombra: rgba(0, 0, 0, 0.35);
+  --sombra-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.3);
+  --sombra-secundario: #0c131a;
+  --overlay: rgba(0, 0, 0, 0.6);
+  --calido: #2b2618;
+  --exito-suave: #15291f;
+  --exito-chip: #1d3b2b;
+  --exito-texto: #8fe0b0;
+  --alerta-suave: #331b18;
+  --alerta-chip: #45211d;
+  --alerta-texto: #ff9d8f;
+  --pendiente-chip: #3d3014;
+  --pendiente-texto: #ffd27a;
+  --morado-suave: #221d33;
+  --rol-nino: #15291f;
+  --rol-docente: #142635;
+  --rol-padre: #221d33;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-tema="auto"] {
+    color-scheme: dark;
+    --azul-cielo: #4cb8e4;
+    --tinta: #e6edf3;
+    --fondo: #0f1720;
+    --fondo-punto: rgba(76, 184, 228, 0.07);
+    --superficie: #18222d;
+    --superficie-2: #22303d;
+    --superficie-input: #121b24;
+    --borde: #2a3947;
+    --borde-fuerte: #3a4b5c;
+    --texto-suave: #9fb0c0;
+    --enlace: #7fcff0;
+    --topbar-1: #1b4f6b;
+    --topbar-2: #236688;
+    --sombra: rgba(0, 0, 0, 0.35);
+    --sombra-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.3);
+    --sombra-secundario: #0c131a;
+    --overlay: rgba(0, 0, 0, 0.6);
+    --calido: #2b2618;
+    --exito-suave: #15291f;
+    --exito-chip: #1d3b2b;
+    --exito-texto: #8fe0b0;
+    --alerta-suave: #331b18;
+    --alerta-chip: #45211d;
+    --alerta-texto: #ff9d8f;
+    --pendiente-chip: #3d3014;
+    --pendiente-texto: #ffd27a;
+    --morado-suave: #221d33;
+    --rol-nino: #15291f;
+    --rol-docente: #142635;
+    --rol-padre: #221d33;
+  }
+}
+
+/* Noche morada: oscuro con acentos morados */
+:root[data-tema="morado"] {
+  color-scheme: dark;
+  --azul-cielo: #a88bff;
+  --coral: #ff7aa8;
+  --morado: #c3a6ff;
+  --tinta: #efe9ff;
+  --fondo: #130d22;
+  --fondo-punto: rgba(168, 139, 255, 0.08);
+  --superficie: #1f1733;
+  --superficie-2: #2b2147;
+  --superficie-input: #180f2a;
+  --borde: #372b5a;
+  --borde-fuerte: #4a3b75;
+  --texto-suave: #b3a6d6;
+  --enlace: #cbb7ff;
+  --topbar-1: #4b2d9a;
+  --topbar-2: #7a4fd6;
+  --sombra: rgba(0, 0, 0, 0.4);
+  --sombra-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(20, 0, 50, 0.45);
+  --sombra-secundario: #0d0818;
+  --overlay: rgba(10, 4, 24, 0.7);
+  --calido: #2d2340;
+  --exito-suave: #16282a;
+  --exito-chip: #1d3a33;
+  --exito-texto: #8fe0b0;
+  --alerta-suave: #34182a;
+  --alerta-chip: #4a1f35;
+  --alerta-texto: #ff9dc0;
+  --pendiente-chip: #3d2f18;
+  --pendiente-texto: #ffd27a;
+  --morado-suave: #2b2147;
+  --rol-nino: #1c2a35;
+  --rol-docente: #221c42;
+  --rol-padre: #2e1c45;
+}
+
+/* Rosa dulce: claro en tonos pastel */
+:root[data-tema="dulce"] {
+  color-scheme: light;
+  --azul-cielo: #ff78b0;
+  --coral: #ff6f91;
+  --morado: #b27bd9;
+  --tinta: #4a2338;
+  --fondo: #fff5f9;
+  --fondo-punto: rgba(255, 120, 176, 0.1);
+  --superficie: #ffffff;
+  --superficie-2: #ffe8f1;
+  --superficie-input: #fffafc;
+  --borde: #fbdce9;
+  --borde-fuerte: #f5c3d8;
+  --texto-suave: #8f6379;
+  --enlace: #c2407a;
+  --topbar-1: #d63f82;
+  --topbar-2: #ee5fa0;
+  --sombra: rgba(120, 30, 70, 0.08);
+  --sombra-card: 0 1px 2px rgba(120, 30, 70, 0.06), 0 8px 24px rgba(120, 30, 70, 0.08);
+  --sombra-secundario: #f7cfe0;
+  --calido: #fff1e6;
+  --morado-suave: #fbf0ff;
+  --rol-nino: #eafff2;
+  --rol-docente: #fff0f6;
+  --rol-padre: #f7ecff;
 }
 
 * {
@@ -16,39 +184,70 @@
 body {
   margin: 0;
   font-family: "Baloo 2", "Trebuchet MS", sans-serif;
-  background: var(--fondo);
+  background:
+    radial-gradient(circle at 1px 1px, var(--fondo-punto) 1px, transparent 0) 0 0 / 22px 22px,
+    var(--fondo);
   color: var(--tinta);
   min-height: 100vh;
+  line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3 {
+  line-height: 1.2;
 }
 
 /* ---------- Barra superior ---------- */
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  background: var(--azul-cielo);
+  background: linear-gradient(135deg, var(--topbar-1), var(--topbar-2));
   color: white;
-  padding: 1rem 1.25rem;
+  padding: 0.75rem max(1.25rem, env(safe-area-inset-right)) 0.75rem max(1.25rem, env(safe-area-inset-left));
+  box-shadow: 0 2px 12px rgba(34, 51, 69, 0.15);
 }
 
 .topbar h1 {
   margin: 0;
   font-size: 1.3rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topbar-actions {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .topbar-actions button {
   width: auto;
   margin-top: 0;
-  padding: 0.5rem 0.9rem;
+  min-height: 40px;
+  padding: 0.4rem 1rem;
   font-size: 0.9rem;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  box-shadow: none;
+}
+
+.topbar-actions button:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.btn-volver::before {
+  content: "←";
+  margin-right: 0.4rem;
+  font-weight: 800;
 }
 
 header {
@@ -74,11 +273,25 @@ main.wide {
 }
 
 .card {
-  background: white;
+  background: var(--superficie);
   border-radius: var(--radio);
   padding: 1.75rem;
-  box-shadow: 0 6px 0 rgba(34, 51, 69, 0.08);
+  border: 1px solid var(--borde);
+  box-shadow: var(--sombra-card);
   margin-bottom: 1.25rem;
+}
+
+.card > h2:first-child,
+.card > h3:first-child {
+  margin-top: 0;
+}
+
+details > summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--azul-cielo);
+  padding: 0.5rem 0;
+  list-style-position: inside;
 }
 
 label {
@@ -91,45 +304,72 @@ input,
 select,
 textarea {
   width: 100%;
-  padding: 0.65rem 0.8rem;
-  border: 2px solid #d9e2ec;
-  border-radius: 10px;
+  min-height: 48px;
+  padding: 0.65rem 0.9rem;
+  border: 2px solid var(--borde-fuerte);
+  border-radius: 12px;
+  /* 16px como mínimo: evita que iOS haga zoom al tocar el campo */
   font-size: 1rem;
   font-family: inherit;
+  background: var(--superficie-input);
+  color: var(--tinta);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 3px solid var(--amarillo-sol);
+  outline: none;
   border-color: var(--azul-cielo);
+  box-shadow: 0 0 0 4px rgba(255, 201, 60, 0.45);
 }
 
 button {
   margin-top: 1.25rem;
   width: 100%;
+  min-height: 48px;
   padding: 0.75rem;
   border: none;
-  border-radius: 10px;
+  border-radius: 14px;
   background: var(--coral);
   color: white;
-  font-size: 1rem;
+  font-family: inherit;
+  font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
+  /* Botón "de juguete": sombra inferior que se hunde al presionarlo */
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+  transition: transform 0.08s, box-shadow 0.08s, filter 0.15s;
 }
 
 button:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.06);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--amarillo-sol);
+  outline-offset: 2px;
 }
 
 button.secundario {
-  background: #eef4fa;
+  background: var(--superficie-2);
   color: var(--tinta);
+  box-shadow: 0 4px 0 var(--sombra-secundario);
 }
 
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+a {
+  color: var(--enlace);
 }
 
 .error-msg {
@@ -141,7 +381,7 @@ button:disabled {
 
 .hint {
   font-size: 0.85rem;
-  color: #6b7c8f;
+  color: var(--texto-suave);
 }
 
 /* ---------- Selección de rol (index.html) ---------- */
@@ -152,16 +392,23 @@ button:disabled {
 }
 
 .role-card {
-  background: white;
+  background: var(--superficie);
   color: var(--tinta);
-  border: none;
+  border: 2px solid var(--borde);
   border-radius: var(--radio);
   padding: 1.5rem 1rem;
   text-align: center;
-  box-shadow: 0 6px 0 rgba(34, 51, 69, 0.08);
+  box-shadow: 0 6px 0 var(--sombra);
   cursor: pointer;
   margin-top: 0;
+  font-size: 1.1rem;
   font-weight: 700;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.role-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 9px 0 var(--sombra);
 }
 
 .role-card .emoji {
@@ -171,15 +418,15 @@ button:disabled {
 }
 
 .role-card.nino {
-  background: linear-gradient(160deg, #eafff2, white);
+  background: linear-gradient(160deg, var(--rol-nino), var(--superficie));
 }
 
 .role-card.docente {
-  background: linear-gradient(160deg, #e8f4fd, white);
+  background: linear-gradient(160deg, var(--rol-docente), var(--superficie));
 }
 
 .role-card.padre {
-  background: linear-gradient(160deg, #f2edfd, white);
+  background: linear-gradient(160deg, var(--rol-padre), var(--superficie));
 }
 
 /* ---------- PIN pad infantil ---------- */
@@ -194,7 +441,7 @@ button:disabled {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #d9e2ec;
+  background: var(--borde-fuerte);
   display: inline-block;
   transition: background 0.15s;
 }
@@ -217,7 +464,7 @@ button:disabled {
 }
 
 .pin-pad button.borrar {
-  background: #eef4fa;
+  background: var(--superficie-2);
   color: var(--tinta);
   font-size: 1rem;
 }
@@ -226,7 +473,7 @@ button:disabled {
 .progress-bar {
   height: 12px;
   border-radius: 999px;
-  background: #e3ecf4;
+  background: var(--superficie-2);
   overflow: hidden;
   margin: 0.4rem 0;
 }
@@ -247,11 +494,12 @@ button:disabled {
 }
 
 .stat-tile {
-  background: white;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
   border-radius: 14px;
   padding: 0.9rem 0.5rem;
   text-align: center;
-  box-shadow: 0 4px 0 rgba(34, 51, 69, 0.06);
+  box-shadow: 0 4px 0 var(--sombra);
 }
 
 .stat-tile .valor {
@@ -262,7 +510,7 @@ button:disabled {
 
 .stat-tile .etiqueta {
   font-size: 0.75rem;
-  color: #6b7c8f;
+  color: var(--texto-suave);
 }
 
 .stat-tile.azul { border-top: 4px solid var(--azul-cielo); }
@@ -279,11 +527,17 @@ button:disabled {
 }
 
 .world-card {
-  background: white;
+  background: var(--superficie);
+  border: 2px solid var(--borde);
   border-radius: var(--radio);
   padding: 1.2rem 1rem;
   text-align: center;
-  box-shadow: 0 6px 0 rgba(34, 51, 69, 0.08);
+  box-shadow: 0 6px 0 var(--sombra);
+  transition: transform 0.15s;
+}
+
+.world-card:not(.bloqueado):hover {
+  transform: translateY(-3px);
 }
 
 .world-card .emoji {
@@ -293,6 +547,15 @@ button:disabled {
 .world-card.bloqueado {
   filter: grayscale(1);
   opacity: 0.7;
+}
+
+/* En un mundo bloqueado, el botón indica cuántos puntos se necesitan para abrirlo */
+.world-card.bloqueado button {
+  background: var(--superficie-2);
+  color: var(--texto-suave);
+  box-shadow: none;
+  font-size: 0.9rem;
+  opacity: 1;
 }
 
 /* ---------- Actividad / quiz ---------- */
@@ -310,11 +573,12 @@ button:disabled {
 
 .quiz-opciones button {
   margin-top: 0;
-  background: white;
+  background: var(--superficie);
   color: var(--tinta);
-  border: 3px solid #e3ecf4;
+  border: 3px solid var(--borde);
   padding: 1.1rem 0.5rem;
-  font-size: 1.05rem;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 0 var(--borde);
 }
 
 .quiz-opciones button.correcta {
@@ -339,7 +603,7 @@ button:disabled {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(34, 51, 69, 0.5);
+  background: var(--overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -351,21 +615,21 @@ button:disabled {
 }
 
 .feedback-modal {
-  background: white;
+  background: var(--superficie);
   border-radius: var(--radio);
   padding: 2rem;
   text-align: center;
   max-width: 320px;
   transform: rotate(-1deg);
-  box-shadow: 0 10px 0 rgba(34, 51, 69, 0.15);
+  box-shadow: 0 10px 0 var(--sombra);
 }
 
 .feedback-modal.correcto {
-  background: #eafff2;
+  background: var(--exito-suave);
 }
 
 .feedback-modal.incorrecto {
-  background: #fff0ee;
+  background: var(--alerta-suave);
 }
 
 .feedback-modal .emoji-grande {
@@ -404,7 +668,7 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: #fff7e8;
+  background: var(--calido);
   border-radius: 12px;
   padding: 0.75rem 1rem;
   margin-bottom: 0.6rem;
@@ -423,18 +687,18 @@ button:disabled {
 }
 
 .pill.pendiente {
-  background: #ffe6b8;
-  color: #8a5a00;
+  background: var(--pendiente-chip);
+  color: var(--pendiente-texto);
 }
 
 .pill.entregada {
-  background: #d7f5e2;
-  color: #1c6b3f;
+  background: var(--exito-chip);
+  color: var(--exito-texto);
 }
 
 .pill.alerta {
-  background: #ffe1de;
-  color: #b23223;
+  background: var(--alerta-chip);
+  color: var(--alerta-texto);
 }
 
 /* ---------- Listas (docentes / padres) ---------- */
@@ -447,7 +711,7 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: #eef4fa;
+  background: var(--superficie-2);
   border-radius: 12px;
   padding: 0.75rem 1rem;
   margin-bottom: 0.6rem;
@@ -487,7 +751,7 @@ button:disabled {
   border-left: 4px solid var(--morado);
   padding: 0.5rem 0.9rem;
   margin-bottom: 0.6rem;
-  background: #f7f5ff;
+  background: var(--morado-suave);
   border-radius: 0 10px 10px 0;
 }
 
@@ -497,7 +761,7 @@ button:disabled {
   letter-spacing: 0.3rem;
   text-align: center;
   padding: 1rem;
-  background: #fff7e8;
+  background: var(--calido);
   border-radius: 12px;
   margin: 1rem 0;
 }
@@ -514,6 +778,70 @@ button:disabled {
 @media (max-width: 480px) {
   main {
     margin: 1rem auto;
+  }
+
+  .topbar {
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+
+  .topbar h1 {
+    font-size: 1.05rem;
+  }
+
+  .topbar-actions button {
+    padding: 0.35rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .quiz-imagen {
+    font-size: 4rem;
+  }
+
+  /* Mapa del niño: dos mundos por fila */
+  .world-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .world-card {
+    padding: 0.9rem 0.6rem;
+  }
+
+  .world-card button {
+    font-size: 0.95rem;
+  }
+
+  /* Pantalla inicial: tarjetas de rol en lista, con el emoji a la izquierda */
+  .role-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .role-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    text-align: left;
+  }
+
+  .role-card .emoji {
+    font-size: 2.4rem;
+    margin-bottom: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -546,4 +874,248 @@ label.casilla input[type="checkbox"] {
   width: auto;
   margin: 0.2rem 0 0;
   flex-shrink: 0;
+}
+
+/* ---------- Selector de tema (js/tema.js) ---------- */
+/* El menú se ancla al grupo de botones (borde derecho de la barra), no al botón 🎨,
+   para que en el celular no se salga de la pantalla. */
+.topbar-actions:last-child {
+  position: relative;
+}
+
+.topbar-actions .btn-tema {
+  min-width: 40px;
+  padding: 0.4rem 0.6rem;
+  font-size: 1.05rem;
+}
+
+.menu-tema {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 60;
+  width: min(220px, calc(100vw - 2rem));
+  padding: 0.5rem;
+  background: var(--superficie);
+  color: var(--tinta);
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  box-shadow: var(--sombra-card);
+}
+
+.menu-tema[hidden] {
+  display: none;
+}
+
+.menu-tema-titulo {
+  margin: 0.25rem 0.5rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--texto-suave);
+}
+
+.topbar-actions .menu-tema button {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 42px;
+  margin: 0;
+  padding: 0.45rem 0.6rem;
+  background: transparent;
+  color: var(--tinta);
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  box-shadow: none;
+}
+
+.topbar-actions .menu-tema button:hover {
+  background: var(--superficie-2);
+}
+
+.topbar-actions .menu-tema button[aria-checked="true"] {
+  background: var(--superficie-2);
+  outline: 2px solid var(--azul-cielo);
+}
+
+.menu-tema .muestra {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--borde-fuerte);
+  flex-shrink: 0;
+}
+
+/* ---------- Código vs PIN: dos identidades visuales distintas ----------
+   Código (🪪, azul): se escribe, letras y números.
+   PIN (🔒, naranja): secreto, solo números. */
+:root {
+  --codigo-fondo: #e8f4fd;
+  --codigo-borde: #3aa9d6;
+  --codigo-texto: #1a6f96;
+  --pin-fondo: #fff1e8;
+  --pin-borde: #ff8a4c;
+  --pin-texto: #b24a14;
+}
+
+:root[data-tema="oscuro"],
+:root[data-tema="morado"] {
+  --codigo-fondo: #13303f;
+  --codigo-borde: #4cb8e4;
+  --codigo-texto: #8fd6f5;
+  --pin-fondo: #3a2418;
+  --pin-borde: #ff8a4c;
+  --pin-texto: #ffb88f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-tema="auto"] {
+    --codigo-fondo: #13303f;
+    --codigo-borde: #4cb8e4;
+    --codigo-texto: #8fd6f5;
+    --pin-fondo: #3a2418;
+    --pin-borde: #ff8a4c;
+    --pin-texto: #ffb88f;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+input.campo-codigo {
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  background: var(--codigo-fondo);
+  border-color: var(--codigo-borde);
+  color: var(--codigo-texto);
+}
+
+input.campo-codigo.pequeno {
+  font-size: 1.2rem;
+}
+
+input.campo-codigo::placeholder {
+  color: var(--codigo-texto);
+  opacity: 0.35;
+}
+
+input.campo-pin {
+  letter-spacing: 0.4em;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  background: var(--pin-fondo);
+  border-color: var(--pin-borde);
+  color: var(--pin-texto);
+}
+
+input.campo-pin::placeholder {
+  color: var(--pin-texto);
+  opacity: 0.35;
+}
+
+/* Paso 2 del login: recordatorio del código elegido */
+.chip-codigo {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  background: var(--codigo-fondo);
+  color: var(--codigo-texto);
+  border: 2px solid var(--codigo-borde);
+}
+
+.chip-codigo strong {
+  letter-spacing: 0.15em;
+}
+
+button.enlace {
+  width: auto;
+  min-height: 0;
+  margin: 0 0 0 0.25rem;
+  padding: 0.1rem 0.4rem;
+  background: transparent;
+  color: var(--enlace);
+  box-shadow: none;
+  font-size: 0.9rem;
+  text-decoration: underline;
+}
+
+.titulo-pin {
+  color: var(--pin-texto);
+}
+
+.pin-dots span.llena {
+  background: var(--pin-borde);
+}
+
+.pin-pad button:not(.borrar) {
+  background: var(--pin-borde);
+}
+
+/* Tarjeta "¡Registrado!": código y PIN lado a lado, cada uno con su color */
+.credenciales {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.credencial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem 0.75rem;
+  border-radius: 14px;
+  border: 2px dashed;
+}
+
+.credencial strong {
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+}
+
+.credencial-titulo {
+  font-weight: 700;
+}
+
+.credencial-ayuda {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  text-align: center;
+}
+
+.credencial.codigo {
+  background: var(--codigo-fondo);
+  border-color: var(--codigo-borde);
+  color: var(--codigo-texto);
+}
+
+.credencial.pin {
+  background: var(--pin-fondo);
+  border-color: var(--pin-borde);
+  color: var(--pin-texto);
+}
+
+.pill.pill-codigo {
+  background: var(--codigo-fondo);
+  color: var(--codigo-texto);
+  letter-spacing: 0.1em;
 }

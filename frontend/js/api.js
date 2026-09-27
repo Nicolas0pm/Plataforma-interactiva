@@ -1,7 +1,8 @@
 import { cerrarSesion, obtenerSesion } from "./session.js";
 
-// Cambia esto por la URL real de la API cuando la despliegues (Cloud Run, Render, etc.)
-export const API_BASE_URL = window.PIK_API_BASE_URL || "http://localhost:8000";
+import { API_BASE_URL } from "./config.js";
+
+export { API_BASE_URL };
 
 /**
  * Wrapper de fetch: agrega el token de sesión (si existe), serializa JSON,
@@ -30,7 +31,7 @@ export async function apiFetch(ruta, { method = "GET", body, headers = {}, token
   // se deja pasar como error normal para mostrarlo en la misma pantalla.
   if (respuesta.status === 401 && !esLogin) {
     cerrarSesion();
-    window.location.href = "index.html";
+    window.location.replace("index.html");
     throw new Error("Sesión inválida o vencida");
   }
 

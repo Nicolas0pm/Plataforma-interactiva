@@ -2,14 +2,18 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <script>try{document.documentElement.dataset.tema=localStorage.getItem("pik_tema")||"auto"}catch(e){document.documentElement.dataset.tema="auto"}</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>¡Aprendamos inglés!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <div class="topbar">
     <div class="topbar-actions">
-      <button type="button" onclick="location.href='index.html'" data-i18n="nav.back">Volver</button>
+      <button type="button" class="btn-volver" data-volver="index.html" data-i18n="nav.back">Volver</button>
     </div>
     <div class="topbar-actions">
       <button type="button" data-lang-toggle>EN</button>
@@ -19,31 +23,45 @@
   <main>
     <div class="card centrado">
       <span style="font-size:3.5rem">🦊</span>
-      <h2 data-i18n="kidlogin.title">¡Hola! ¿Cuál es tu código?</h2>
 
-      <label for="codigo" data-i18n="kidlogin.code">Código de estudiante</label>
-      <input id="codigo" type="text" autocomplete="off" maxlength="7" placeholder="K7M3QX"
-        style="text-transform:uppercase; letter-spacing:0.2em; text-align:center; font-size:1.5rem" />
+      <!-- Paso 1: el código (se escribe, letras y números) -->
+      <form id="paso-codigo" novalidate>
+        <h2><span aria-hidden="true">🪪</span> <span data-i18n="kidlogin.title">¡Hola! ¿Cuál es tu código?</span></h2>
+        <label for="codigo" class="sr-only" data-i18n="kidlogin.code">Código de estudiante</label>
+        <input id="codigo" class="campo-codigo" type="text" autocomplete="off" autocapitalize="characters"
+          spellcheck="false" maxlength="7" placeholder="K7M3QX" aria-describedby="ayuda-codigo" />
+        <p class="hint" id="ayuda-codigo" data-i18n="kidlogin.code_hint">Son 6 letras y números.</p>
+        <button type="submit" data-i18n="kidlogin.next">Siguiente</button>
+      </form>
 
-      <p class="hint" data-i18n="kidlogin.pin_prompt">Ahora escribe tu PIN secreto</p>
-      <div class="pin-dots" id="pin-dots"></div>
+      <!-- Paso 2: el PIN (secreto, solo números) -->
+      <div id="paso-pin" hidden>
+        <p class="chip-codigo">
+          <span aria-hidden="true">🪪</span> <span data-i18n="kidlogin.code">Código</span>:
+          <strong id="codigo-elegido"></strong>
+          <button type="button" class="enlace" id="btn-cambiar-codigo" data-i18n="kidlogin.change">Cambiar</button>
+        </p>
+        <h2 class="titulo-pin"><span aria-hidden="true">🔒</span> <span data-i18n="kidlogin.pin_prompt">Ahora tu PIN secreto</span></h2>
+        <p class="hint" data-i18n="kidlogin.pin_hint">Son 4 números. ¡No se lo muestres a nadie!</p>
+        <div class="pin-dots" id="pin-dots" aria-live="polite"></div>
 
-      <div class="pin-pad" id="pin-pad">
-        <button type="button" data-num="1">1</button>
-        <button type="button" data-num="2">2</button>
-        <button type="button" data-num="3">3</button>
-        <button type="button" data-num="4">4</button>
-        <button type="button" data-num="5">5</button>
-        <button type="button" data-num="6">6</button>
-        <button type="button" data-num="7">7</button>
-        <button type="button" data-num="8">8</button>
-        <button type="button" data-num="9">9</button>
-        <button type="button" class="borrar" id="btn-borrar" data-i18n="kidlogin.clear">Borrar</button>
-        <button type="button" data-num="0">0</button>
-        <div></div>
+        <div class="pin-pad" id="pin-pad">
+          <button type="button" data-num="1">1</button>
+          <button type="button" data-num="2">2</button>
+          <button type="button" data-num="3">3</button>
+          <button type="button" data-num="4">4</button>
+          <button type="button" data-num="5">5</button>
+          <button type="button" data-num="6">6</button>
+          <button type="button" data-num="7">7</button>
+          <button type="button" data-num="8">8</button>
+          <button type="button" data-num="9">9</button>
+          <button type="button" class="borrar" id="btn-borrar" data-i18n="kidlogin.clear">Borrar</button>
+          <button type="button" data-num="0">0</button>
+          <div></div>
+        </div>
       </div>
 
-      <p class="error-msg" id="error"></p>
+      <p class="error-msg" id="error" role="alert"></p>
       <p class="hint" data-i18n="kidlogin.need_code">Pídele tu código de estudiante a tu profe o a tu familia.</p>
     </div>
   </main>
