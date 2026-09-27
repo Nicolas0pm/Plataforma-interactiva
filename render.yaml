@@ -1,5 +1,7 @@
-# Blueprint de Render: despliega solo el backend (la API). El frontend va aparte
-# en Firebase Hosting. Ver docs/despliegue.md.
+# Blueprint de Render: crea DOS servicios separados desde este mismo repositorio:
+#   1. plataforma-ingles-kids-api → el backend (FastAPI, Docker)
+#   2. plataforma-ingles-kids     → el frontend (sitio estático, sin build)
+# Cada uno se despliega por su cuenta. Ver docs/despliegue.md.
 services:
   - type: web
     name: plataforma-ingles-kids-api
@@ -17,7 +19,7 @@ services:
       - key: FIREBASE_REALTIME_DB_URL
         value: https://plataforma-ingles-kids-default-rtdb.firebaseio.com
       - key: CORS_ORIGINS
-        value: https://plataforma-ingles-kids.web.app,https://plataforma-ingles-kids.firebaseapp.com
+        value: https://plataforma-ingles-kids.onrender.com,https://plataforma-ingles-kids.web.app
       - key: REWARD_THRESHOLD
         value: "100"
       - key: JWT_PIN_EXP_MINUTOS
@@ -32,3 +34,26 @@ services:
       # Contenido de serviceAccountKey.json (se pega en el panel de Render)
       - key: FIREBASE_CREDENTIALS_JSON
         sync: false
+
+  - type: web
+    name: plataforma-ingles-kids
+    runtime: static
+    rootDir: frontend
+    # Sin build: son HTML/CSS/JS puros. Solo se quita el servidor de desarrollo.
+    buildCommand: rm -f dev-server.py
+    staticPublishPath: .
+    autoDeploy: true
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      # Sin versiones en los nombres de archivo: que el navegador siempre revise si hay cambios
+      - path: /*
+        name: Cache-Control
+        value: no-cache

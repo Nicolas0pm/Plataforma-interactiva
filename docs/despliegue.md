@@ -1,22 +1,23 @@
 # Despliegue
 
-El frontend y el backend se despliegan **por separado**:
+El frontend y el backend se despliegan **por separado**, los dos en **Render**, desde el
+mismo repositorio. [`render.yaml`](../render.yaml) (un "Blueprint") crea ambos servicios:
 
-| Parte | Dónde | Por qué |
-|---|---|---|
-| Frontend (`frontend/`) | **Firebase Hosting** | Gratis, HTTPS automático, mismo proyecto de Firebase, usa `404.html` solo. |
-| Backend (`backend/`) | **Render** (plan gratis) | Se conecta al repositorio de GitHub y se vuelve a desplegar solo con cada `git push`. Usa el `Dockerfile`, así que también sirve para Cloud Run. |
+| Servicio | Tipo en Render | URL | Qué es |
+|---|---|---|---|
+| `plataforma-ingles-kids-api` | Web Service (Docker) | `https://plataforma-ingles-kids-api.onrender.com` | Backend (FastAPI), usa `backend/Dockerfile`. |
+| `plataforma-ingles-kids` | Static Site | `https://plataforma-ingles-kids.onrender.com` | Frontend (`frontend/`), sin build. |
 
-Orden recomendado: **primero el backend** (para tener su URL) y **después el frontend**.
+Cada servicio se vuelve a desplegar solo con cada `git push`, y uno no afecta al otro.
 
 ---
 
-## 1. Backend en Render
+## 1. Crear los dos servicios
 
-1. Sube los últimos cambios a GitHub (`git push`).
-2. Entra a <https://render.com>, inicia sesión con tu cuenta de GitHub y dale acceso al repositorio.
-3. **New → Blueprint** y elige el repositorio. Render lee [`render.yaml`](../render.yaml) y crea el servicio `plataforma-ingles-kids-api`.
-4. Te pedirá los valores marcados como secretos:
+1. Sube los últimos cambios a GitHub (`git push`); Render lee `render.yaml` desde ahí.
+2. Entra a <https://dashboard.render.com> e inicia sesión con tu cuenta de GitHub.
+3. **New → Blueprint**, elige el repositorio y dale acceso a Render si lo pide.
+4. Render muestra los dos servicios. Completa los secretos del backend:
 
    | Variable | Qué poner |
    |---|---|
@@ -24,49 +25,40 @@ Orden recomendado: **primero el backend** (para tener su URL) y **después el fr
    | `PIN_PEPPER` | **El mismo valor** que está en tu `backend/.env`. Si pones otro, los PIN de los niños ya registrados dejan de funcionar. |
 
    `JWT_SECRET` y `DEVICE_SHARED_SECRET` los genera Render solo.
-5. Espera a que termine el despliegue y copia la URL (algo como `https://plataforma-ingles-kids-api.onrender.com`).
-6. Comprueba que responde: al abrir la URL debe mostrar `{"status":"ok", ...}`.
+5. **Apply** y espera a que los dos queden en verde ("Live").
+6. Comprueba el backend: al abrir su URL debe mostrar `{"status":"ok", ...}`.
 
-> **Plan gratis de Render:** el servicio se "duerme" tras 15 minutos sin uso y la primera
-> petición después tarda unos 30–50 segundos en despertarlo. Para la sustentación, abre la
-> URL de la API un minuto antes.
+> **Si Render te da URLs distintas** (porque el nombre ya estaba ocupado), actualiza:
+> - `API_PRODUCCION` en [`frontend/js/config.js`](../frontend/js/config.js) con la URL del backend, y
+> - `CORS_ORIGINS` del backend (en Render → Environment) con la URL del frontend.
 
-## 2. Frontend en Firebase Hosting
+> **Plan gratis de Render:** el backend se "duerme" tras 15 minutos sin uso y la primera
+> petición después tarda unos 30–50 segundos. Para la sustentación, abre la URL de la API
+> un minuto antes. El sitio estático no se duerme.
 
-1. Si la URL que te dio Render es distinta, cámbiala en
-   [`frontend/js/config.js`](../frontend/js/config.js) (`API_PRODUCCION`).
-2. Instala Node.js y la CLI de Firebase (una sola vez):
-   ```bash
-   sudo pacman -S nodejs npm
-   ```
-   ```bash
-   sudo npm install -g firebase-tools
-   ```
-3. Inicia sesión (abre el navegador):
-   ```bash
-   firebase login
-   ```
-4. Desde la raíz del proyecto, publica:
-   ```bash
-   firebase deploy --only hosting
-   ```
-5. La app queda en **<https://plataforma-ingles-kids.web.app>**.
+## 2. Autorizar el dominio en Firebase (login de docentes y padres)
 
-`firebase.json` ya está configurado: publica la carpeta `frontend/`, excluye
-`dev-server.py`, desactiva el caché de HTML/JS/CSS (para que los cambios se vean al
-volver a publicar) y agrega cabeceras de seguridad.
+Firebase Authentication solo acepta inicios de sesión desde dominios autorizados:
+**Firebase Console → Authentication → Configuración → Dominios autorizados → Agregar dominio**
+y agrega `plataforma-ingles-kids.onrender.com` (o la URL que te haya dado Render).
+
+## Alternativa: frontend en Firebase Hosting
+
+Si prefieres Firebase Hosting para el frontend, `firebase.json` ya está listo:
+instala Node.js y `firebase-tools`, ejecuta `firebase login` y luego
+`firebase deploy --only hosting` (queda en `https://plataforma-ingles-kids.web.app`, que ya
+está autorizado en Firebase y en `CORS_ORIGINS`).
 
 ## 3. Comprobación final
 
-- Abre <https://plataforma-ingles-kids.web.app> y entra como niño (`2MFE4D` / `1234`).
+- Abre <https://plataforma-ingles-kids.onrender.com> y entra como niño (`2MFE4D` / `1234`).
 - Entra como docente y como padre con sus correos.
 - Si algo falla con un error de CORS en la consola del navegador, revisa que
   `CORS_ORIGINS` en Render tenga exactamente la URL del frontend (sin `/` al final).
 
 ## Actualizar después
 
-- **Backend:** basta con `git push`; Render lo vuelve a desplegar solo.
-- **Frontend:** `firebase deploy --only hosting`.
+- **Backend y frontend:** basta con `git push`; Render vuelve a desplegar solo el servicio cuyos archivos cambiaron.
 
 ## Variables de entorno del backend
 
