@@ -16,11 +16,20 @@ from app.services.firebase_service import get_firestore_client, get_realtime_ref
 _settings = get_settings()
 
 
-def evaluar_recompensa(id_usuario: str, puntaje_total: int) -> dict | None:
-    if puntaje_total < _settings.reward_threshold:
+def evaluar_recompensa(id_usuario: str, puntaje_total: int, puntaje_anterior: int | None = None) -> dict | None:
+    """Genera una recompensa cada vez que el puntaje cruza un múltiplo del umbral.
+
+    Con `puntaje_anterior` se detecta el cruce aunque el total no caiga justo en el
+    múltiplo (las lecciones suman de a 10 puntos por acierto). Sin él, se mantiene el
+    comportamiento original: solo al caer exactamente en un múltiplo.
+    """
+    umbral = _settings.reward_threshold
+    if puntaje_total < umbral:
         return None
-    if puntaje_total % _settings.reward_threshold != 0:
-        # solo dispara justo al cruzar el múltiplo del umbral, no en cada punto extra
+    if puntaje_anterior is not None:
+        if puntaje_total // umbral <= puntaje_anterior // umbral:
+            return None
+    elif puntaje_total % umbral != 0:
         return None
 
     db = get_firestore_client()

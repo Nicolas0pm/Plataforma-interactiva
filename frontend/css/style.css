@@ -1119,3 +1119,336 @@ button.enlace {
   color: var(--codigo-texto);
   letter-spacing: 0.1em;
 }
+
+/* ======================================================================
+   Camino de aprendizaje (panel del niño)
+   ====================================================================== */
+.hero-leccion {
+  background: linear-gradient(160deg, var(--rol-nino), var(--superficie));
+  border: 2px solid var(--verde-hoja);
+}
+
+.hero-emoji {
+  display: block;
+  font-size: 4rem;
+  line-height: 1.1;
+}
+
+.hero-leccion #btn-empezar {
+  font-size: 1.3rem;
+  min-height: 56px;
+  background: var(--verde-hoja);
+}
+
+.camino {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.unidad {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background: var(--superficie-2);
+}
+
+.unidad.bloqueada {
+  opacity: 0.6;
+}
+
+.unidad-emoji {
+  font-size: 2rem;
+}
+
+.unidad-info {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+}
+
+.burbujas {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.burbuja {
+  width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  background: var(--superficie);
+  color: var(--tinta);
+  border: 2px solid var(--borde-fuerte);
+  box-shadow: 0 3px 0 var(--sombra);
+}
+
+.burbuja.actual {
+  background: var(--verde-hoja);
+  color: white;
+  border-color: var(--verde-hoja);
+  animation: latido 1.6s ease-in-out infinite;
+}
+
+.burbuja.aprobada {
+  border-color: var(--verde-hoja);
+}
+
+.burbuja:disabled {
+  box-shadow: none;
+}
+
+@keyframes latido {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.lista-intentos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lista-intentos li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.lista-intentos li:last-child {
+  border-bottom: none;
+}
+
+.lista-intentos li .hint {
+  margin-left: auto;
+}
+
+/* ======================================================================
+   Lección (activity.html)
+   ====================================================================== */
+.leccion-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.leccion-cabecera .progress-bar {
+  flex: 1;
+}
+
+.vidas {
+  font-size: 1.3rem;
+  white-space: nowrap;
+}
+
+.quiz-pregunta {
+  font-size: 1.4rem;
+}
+
+.quiz-opciones.emoji button {
+  font-size: 2.6rem;
+  padding: 0.6rem;
+}
+
+.explicacion ul {
+  text-align: left;
+  padding-left: 1.2rem;
+  line-height: 1.7;
+}
+
+.aviso-respuesta {
+  position: sticky;
+  bottom: 0;
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radio);
+  font-size: 1.1rem;
+  font-weight: 700;
+  animation: aparecer-acierto 0.2s ease-out;
+}
+
+.aviso-respuesta p {
+  margin: 0;
+}
+
+.aviso-respuesta.bien {
+  background: var(--exito-suave);
+  color: var(--exito-texto);
+}
+
+.aviso-respuesta.mal {
+  background: var(--alerta-suave);
+  color: var(--alerta-texto);
+  border: 2px solid var(--coral);
+}
+
+.feedback-modal #btn-secundario {
+  margin-top: 0.75rem;
+}
+
+/* ======================================================================
+   Pestañas "Registrar niño / Ingresar niño con código"
+   ====================================================================== */
+.pestanas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.pestanas button {
+  margin: 0;
+  background: var(--superficie-2);
+  color: var(--tinta);
+  box-shadow: 0 4px 0 var(--sombra-secundario);
+  font-size: 0.95rem;
+}
+
+.pestanas button[aria-selected="true"] {
+  background: var(--azul-cielo);
+  color: white;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
+}
+
+/* ======================================================================
+   Panel del docente: los recuadros son botones de vista
+   ====================================================================== */
+.botones-vista .stat-tile {
+  margin: 0;
+  width: auto;
+  color: var(--tinta);
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.botones-vista .stat-tile[aria-selected="true"] {
+  outline: 3px solid var(--azul-cielo);
+  outline-offset: 2px;
+  background: var(--superficie-2);
+}
+
+.lista-estudiantes {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.student-row .detalle {
+  flex-basis: 100%;
+}
+
+.motivos {
+  margin: 0.4rem 0 0;
+  padding-left: 0;
+  list-style: none;
+  font-size: 0.9rem;
+  color: var(--alerta-texto);
+}
+
+.detalle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--superficie);
+}
+
+.detalle-grid h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.temas,
+.errores {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.temas li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  margin-bottom: 0.3rem;
+  border-radius: 8px;
+  background: var(--superficie-2);
+}
+
+.temas li.mal {
+  background: var(--alerta-chip);
+  color: var(--alerta-texto);
+}
+
+.temas li.bien {
+  background: var(--exito-chip);
+  color: var(--exito-texto);
+}
+
+.errores li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--borde);
+  font-size: 0.92rem;
+}
+
+.form-feedback textarea {
+  min-height: 70px;
+}
+
+.tabla-scroll {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.tabla-progreso {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-progreso th,
+.tabla-progreso td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--borde);
+}
+
+.tabla-progreso td:nth-child(2) {
+  min-width: 140px;
+}
+
+.vacio {
+  text-align: center;
+  padding: 1.5rem 0;
+  font-size: 1.05rem;
+}
+
+@media (max-width: 480px) {
+  .stat-row,
+  .botones-vista {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pestanas {
+    grid-template-columns: 1fr;
+  }
+
+  .burbuja {
+    width: 40px;
+    min-height: 40px;
+  }
+}
+
+/* Con un número impar de opciones (gramática: 3), una opción por fila */
+.quiz-opciones.una-columna {
+  grid-template-columns: 1fr;
+}

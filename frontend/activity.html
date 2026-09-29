@@ -21,19 +21,30 @@
   </div>
 
   <main>
-    <div class="progress-bar"><div class="progress-bar-fill" id="barra-actividad" style="width:0%"></div></div>
+    <div class="leccion-cabecera">
+      <div class="progress-bar"><div class="progress-bar-fill" id="barra-actividad" style="width:0%"></div></div>
+      <span class="vidas" id="vidas" aria-live="polite"></span>
+    </div>
+    <p class="hint centrado" id="leccion-nombre"></p>
 
     <div class="card centrado" id="tarjeta-actividad">
       <p data-i18n="activity.loading">Cargando actividad...</p>
+    </div>
+
+    <!-- Aviso de acierto / error bajo la pregunta (estilo Duolingo) -->
+    <div class="aviso-respuesta oculto" id="aviso" role="status">
+      <p id="aviso-texto"></p>
+      <button type="button" id="btn-aviso" data-i18n="activity.continue">Continuar</button>
     </div>
   </main>
 
   <div class="overlay" id="overlay" hidden>
     <div class="feedback-modal" id="modal-feedback">
       <div class="emoji-grande" id="modal-emoji">⭐</div>
-      <h2 id="modal-titulo">¡Genial!</h2>
+      <h2 id="modal-titulo"></h2>
       <p id="modal-extra"></p>
-      <button type="button" id="btn-continuar" data-i18n="activity.next">Siguiente</button>
+      <button type="button" id="btn-continuar"></button>
+      <button type="button" class="secundario oculto" id="btn-secundario"></button>
     </div>
   </div>
   <div class="confeti" id="confeti" hidden></div>

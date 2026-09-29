@@ -5,7 +5,7 @@ Firestore con el Admin SDK (sin necesitar el token de un docente).
 
 Uso (desde backend/):
     python scripts/verificar_firebase.py            # solo revisa la conexión
-    python scripts/verificar_firebase.py --sembrar  # revisa y crea las actividades
+    python scripts/verificar_firebase.py --sembrar  # revisa y carga el temario (app/curriculo.py)
 """
 import argparse
 import json
@@ -81,29 +81,13 @@ def _revisar_servicios(settings) -> bool:
 
 
 def _sembrar_actividades() -> None:
+    """Carga el temario (app/curriculo.py): vocabulario + gramática, 26 lecciones."""
     from app.services.firebase_service import get_firestore_client
-    from scripts.seed_actividades import ACTIVIDADES
+    from app.services.lecciones_service import sembrar_temario
 
-    db = get_firestore_client()
-    existentes = {doc.to_dict().get("nombre") for doc in db.collection("actividades").stream()}
-    creadas = 0
-    for actividad in ACTIVIDADES:
-        if actividad["nombre"] in existentes:
-            continue
-        db.collection("actividades").document().set({
-            "nombre": actividad["nombre"],
-            "descripcion": "",
-            "nivel": actividad["nivel"],
-            "tipo": "vocabulario",
-            "puntaje_maximo": 100,
-            "pregunta": actividad["pregunta"],
-            "opciones": actividad["opciones"],
-            "respuesta_correcta": actividad["respuesta_correcta"],
-            "icono": actividad["icono"],
-            "activo": True,
-        })
-        creadas += 1
-    print(f"{OK} {creadas} actividades nuevas creadas ({len(existentes)} ya existían).")
+    r = sembrar_temario(get_firestore_client())
+    print(f"{OK} Temario cargado: {r['creadas_o_actualizadas']} preguntas "
+          f"({r['antiguas_desactivadas']} actividades antiguas desactivadas).")
 
 
 def _asignar_codigos_faltantes() -> None:

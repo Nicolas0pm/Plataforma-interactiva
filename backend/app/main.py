@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import get_settings
-from app.routers import actividades, auditoria, feedback, recompensas, usuarios, vinculacion
+from app.routers import actividades, auditoria, feedback, lecciones, recompensas, usuarios, vinculacion
 from app.services.auth_service import registrar_auditoria
 from app.services.firebase_service import get_firestore_client
 
@@ -18,6 +18,15 @@ app = FastAPI(
     version="1.0.0",
 )
 
+@app.middleware("http")
+async def sin_cache(request: Request, call_next):
+    """Las respuestas de la API tienen datos personales y de progreso: que ningún
+    navegador ni proxy las guarde."""
+    respuesta = await call_next(request)
+    respuesta.headers["Cache-Control"] = "no-store"
+    return respuesta
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -26,8 +35,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+if settings.use_fake_db:
+    # Modo de prueba: la base de datos en memoria arranca vacía; se carga el temario para
+    # que las lecciones se puedan jugar de inmediato.
+    from app.services.lecciones_service import sembrar_temario
+
+    sembrar_temario(get_firestore_client())
+
 app.include_router(usuarios.router)
 app.include_router(actividades.router)
+app.include_router(lecciones.router)
 app.include_router(feedback.router)
 app.include_router(recompensas.router)
 app.include_router(vinculacion.router)

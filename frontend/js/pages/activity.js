@@ -1,134 +1,195 @@
 import { apiFetch } from "../api.js";
-import { inicializarLangToggle, t } from "../i18n.js";
+import { esc, miniMarkdown } from "../html.js";
+import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import { volver } from "../nav.js";
 import { exigirRol } from "../session.js";
+
+// Lección estilo Duolingo (sin audios):
+// - La lección la elige el servidor (sin parámetros). Con ?unidad=&leccion= solo se puede
+//   repetir una lección ya aprobada (práctica).
+// - Un intento por pregunta: si se equivoca se muestra el error y la respuesta correcta, y
+//   pierde una vida ❤️. Sin vidas, la lección termina y se repite.
+// - Al final se envían las respuestas y el servidor califica.
 
 const sesion = exigirRol("estudiante");
 inicializarLangToggle();
 
 const params = new URLSearchParams(window.location.search);
-const nivel = Number(params.get("nivel") || 1);
-
 const tarjeta = document.getElementById("tarjeta-actividad");
+const aviso = document.getElementById("aviso");
 const overlay = document.getElementById("overlay");
 const confetiEl = document.getElementById("confeti");
 
-let actividades = [];
+let leccion = null;
 let indice = 0;
-let intentos = 1;
+let vidas = 0;
 let inicioPregunta = 0;
+const respuestas = [];
 
-// Resumen de la sesión: se celebra una sola vez, al terminar todas las preguntas.
-const resumen = { aLaPrimera: 0, puntos: 0, subioDeNivel: false, recompensa: null };
+if (sesion) cargar();
 
-if (sesion) cargarActividades();
-
-async function cargarActividades() {
-  const todas = await apiFetch(`/api/actividades?nivel=${nivel}`);
-  actividades = todas.filter((a) => a.pregunta && a.opciones?.length);
-  if (!actividades.length) {
-    tarjeta.innerHTML = `<p>${t("activity.empty")}</p>`;
+async function cargar() {
+  const consulta = params.get("unidad")
+    ? `?unidad=${encodeURIComponent(params.get("unidad"))}&leccion=${encodeURIComponent(params.get("leccion"))}`
+    : "";
+  try {
+    leccion = await apiFetch(`/api/lecciones/jugar${consulta}`);
+  } catch (err) {
+    tarjeta.innerHTML = `<p>${esc(err.message)}</p>`;
     return;
   }
-  mostrarPregunta();
+  vidas = leccion.vidas;
+  const titulo = leccion.unidad.titulo[idiomaActual()] || leccion.unidad.titulo.es;
+  const modo = { nueva: "", repaso: ` · 🔁 ${t("path.review")}`, practica: ` · ${t("path.practice")}` }[leccion.modo];
+  document.getElementById("leccion-nombre").textContent =
+    `${leccion.unidad.emoji} ${titulo} · ${t("path.lesson")} ${leccion.leccion}${modo}`;
+  pintarVidas();
+
+  if (leccion.unidad.explicacion) mostrarExplicacion(titulo);
+  else mostrarPregunta();
+}
+
+// Gramática: antes de los ejercicios, la tarjeta "Cómo se usa".
+function mostrarExplicacion(titulo) {
+  const lineas = leccion.unidad.explicacion[idiomaActual()] || leccion.unidad.explicacion.es;
+  tarjeta.innerHTML = `
+    <div class="explicacion">
+      <span class="hero-emoji">${esc(leccion.unidad.emoji)}</span>
+      <h2>📖 ${t("activity.how_to_use")}: ${esc(titulo)}</h2>
+      <ul>${lineas.map((l) => `<li>${miniMarkdown(l)}</li>`).join("")}</ul>
+      <button type="button" id="btn-entendido">${t("activity.got_it")}</button>
+    </div>`;
+  document.getElementById("btn-entendido").addEventListener("click", mostrarPregunta);
+}
+
+function pintarVidas() {
+  document.getElementById("vidas").textContent =
+    "❤️".repeat(vidas) + "🤍".repeat(Math.max(0, leccion.vidas - vidas));
+  document.getElementById("vidas").setAttribute("aria-label", `${vidas} ${t("activity.lives")}`);
+}
+
+function barajar(lista) {
+  const copia = [...lista];
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+  }
+  return copia;
 }
 
 function mostrarPregunta() {
-  intentos = 1;
+  const pregunta = leccion.preguntas[indice];
   inicioPregunta = Date.now();
-  const actividad = actividades[indice];
-  document.getElementById("barra-actividad").style.width = `${Math.round((indice / actividades.length) * 100)}%`;
+  aviso.classList.add("oculto");
+  document.getElementById("barra-actividad").style.width = `${Math.round((indice / leccion.preguntas.length) * 100)}%`;
 
   tarjeta.innerHTML = `
-    <div class="quiz-imagen">${actividad.icono || "❓"}</div>
-    <h2>${actividad.pregunta}</h2>
-    <div class="quiz-opciones" id="opciones"></div>
-    <p class="acierto" id="acierto" hidden>✅ ${t("activity.correct")}</p>
+    ${pregunta.icono ? `<div class="quiz-imagen">${esc(pregunta.icono)}</div>` : ""}
+    <h2 class="quiz-pregunta">${esc(pregunta.pregunta)}</h2>
+    <div class="quiz-opciones ${pregunta.formato_opciones === "emoji" ? "emoji" : ""} ${pregunta.opciones.length % 2 ? "una-columna" : ""}" id="opciones"></div>
   `;
-
   const contenedor = document.getElementById("opciones");
-  for (const opcion of actividad.opciones) {
+  for (const opcion of barajar(pregunta.opciones)) {
     const boton = document.createElement("button");
     boton.type = "button";
     boton.textContent = opcion;
-    boton.addEventListener("click", () => elegirOpcion(boton, opcion, actividad));
+    boton.addEventListener("click", () => responder(boton, opcion, pregunta));
     contenedor.appendChild(boton);
   }
 }
 
-async function elegirOpcion(boton, opcion, actividad) {
-  if (opcion !== actividad.respuesta_correcta) {
-    boton.classList.add("incorrecta");
-    intentos += 1;
-    setTimeout(() => boton.classList.remove("incorrecta"), 400);
+function responder(boton, opcion, pregunta) {
+  const botones = [...document.querySelectorAll("#opciones button")];
+  botones.forEach((b) => (b.disabled = true));
+  respuestas.push({ id_actividad: pregunta.id_actividad, respuesta: opcion, tiempo_ms: Date.now() - inicioPregunta });
+
+  const correcta = opcion === pregunta.respuesta_correcta;
+  if (correcta) {
+    boton.classList.add("correcta");
+    mostrarAviso(true, `✅ ${t("activity.correct")}`);
+    setTimeout(avanzar, 1100);
     return;
   }
 
-  boton.classList.add("correcta");
-  document.querySelectorAll("#opciones button").forEach((b) => (b.disabled = true));
-  // RF08: feedback inmediato y breve por pregunta; la celebración grande queda
-  // para el final de la sesión.
-  document.getElementById("acierto").hidden = false;
+  // Error: se marca, se muestra la respuesta correcta y se pierde una vida.
+  boton.classList.add("incorrecta");
+  botones.find((b) => b.textContent === pregunta.respuesta_correcta)?.classList.add("correcta");
+  vidas -= 1;
+  pintarVidas();
+  mostrarAviso(false, `❌ ${t("activity.wrong")} ${t("activity.right_answer")}: <strong>${esc(pregunta.respuesta_correcta)}</strong>`);
+  document.getElementById("btn-aviso").onclick = avanzar;
+}
 
-  const tiempoEmpleado = Math.max(1, Math.round((Date.now() - inicioPregunta) / 1000));
-  const pausa = new Promise((r) => setTimeout(r, 1200));
+function mostrarAviso(bien, html) {
+  aviso.className = `aviso-respuesta ${bien ? "bien" : "mal"}`;
+  document.getElementById("aviso-texto").innerHTML = html;
+  document.getElementById("btn-aviso").classList.toggle("oculto", bien);
+  if (!bien) document.getElementById("btn-aviso").focus();
+}
+
+function avanzar() {
+  if (vidas <= 0 || indice === leccion.preguntas.length - 1) {
+    terminar();
+    return;
+  }
+  indice += 1;
+  mostrarPregunta();
+}
+
+async function terminar() {
+  aviso.classList.add("oculto");
+  document.getElementById("barra-actividad").style.width = vidas > 0 ? "100%" : document.getElementById("barra-actividad").style.width;
   let resultado;
   try {
-    resultado = await apiFetch(`/api/actividades/completar/${sesion.id_usuario}`, {
+    resultado = await apiFetch("/api/lecciones/resultado", {
       method: "POST",
-      body: {
-        id_actividad: actividad.id_actividad,
-        tiempo_empleado: tiempoEmpleado,
-        intentos,
-        puntaje_obtenido: actividad.puntaje_maximo,
-      },
+      body: { unidad: leccion.unidad.id, leccion: leccion.leccion, respuestas },
     });
-  } catch {
-    resultado = {};
+  } catch (err) {
+    mostrarModal({ emoji: "⚠️", titulo: err.message, extra: [], principal: [t("activity.back_dashboard"), irAlMapa] });
+    return;
   }
-  await pausa;
 
-  if (intentos === 1) resumen.aLaPrimera += 1;
-  resumen.puntos += actividad.puntaje_maximo;
-  if (resultado.subio_de_nivel) resumen.subioDeNivel = true;
-  if (resultado.recompensa_generada) resumen.recompensa = resultado.recompensa_generada;
-
-  if (indice === actividades.length - 1) {
-    document.getElementById("barra-actividad").style.width = "100%";
-    mostrarFinDeSesion();
+  if (resultado.aprobada) {
+    const extra = [t("activity.lesson_summary").replace("{aciertos}", resultado.aciertos).replace("{total}", resultado.total)];
+    extra.push(resultado.modo === "practica" ? t("activity.practice_no_points") : `+${resultado.puntos_ganados} ⭐`);
+    if (resultado.subio_de_nivel) extra.push(t("activity.level_up"));
+    // Solo se habla de "ir a la máquina" si el estudiante tiene un dispensador asignado.
+    if (resultado.recompensa_generada) {
+      extra.push(resultado.recompensa_generada.device_id ? t("activity.reward") : t("activity.reward_no_device"));
+    }
+    mostrarModal({ emoji: "🏆", titulo: t("activity.lesson_passed"), extra, principal: [t("activity.continue"), irAlMapa] });
+    lanzarConfeti();
   } else {
-    indice += 1;
-    mostrarPregunta();
+    mostrarModal({
+      emoji: "💔",
+      titulo: t("activity.out_of_lives"),
+      extra: [t("activity.try_again_hint")],
+      principal: [t("activity.try_again"), () => window.location.reload()],
+      secundario: [t("activity.back_dashboard"), irAlMapa],
+    });
   }
 }
 
-function mostrarFinDeSesion() {
-  document.getElementById("modal-emoji").textContent = "🏆";
-  document.getElementById("modal-titulo").textContent = t("activity.session_done");
+function irAlMapa() {
+  volver("kid-dashboard.html");
+}
 
-  const extras = [
-    t("activity.session_summary")
-      .replace("{aciertos}", resumen.aLaPrimera)
-      .replace("{total}", actividades.length)
-      .replace("{puntos}", resumen.puntos),
-  ];
-  if (resumen.subioDeNivel) extras.push(t("activity.level_up"));
-  // Solo se le dice "ve a revisar la máquina" si el estudiante tiene un
-  // dispensador (device_id) sincronizado. Si no, el logro se celebra igual
-  // (con un mensaje genérico), pero sin prometerle un premio físico que
-  // todavía no existe en su salón ni pedirle que hable con el profe por algo
-  // que la app no puede resolver.
-  if (resumen.recompensa) {
-    extras.push(resumen.recompensa.device_id ? t("activity.reward") : t("activity.reward_no_device"));
+function mostrarModal({ emoji, titulo, extra, principal, secundario }) {
+  document.getElementById("modal-emoji").textContent = emoji;
+  document.getElementById("modal-titulo").textContent = titulo;
+  document.getElementById("modal-extra").innerHTML = extra.map((e) => `<span>${esc(e)}</span>`).join("<br />");
+  const boton = document.getElementById("btn-continuar");
+  boton.textContent = principal[0];
+  boton.onclick = principal[1];
+  const botonSecundario = document.getElementById("btn-secundario");
+  botonSecundario.classList.toggle("oculto", !secundario);
+  if (secundario) {
+    botonSecundario.textContent = secundario[0];
+    botonSecundario.onclick = secundario[1];
   }
-  document.getElementById("modal-extra").innerHTML = extras.map((e) => `<span>${e}</span>`).join("<br />");
-
-  const botonContinuar = document.getElementById("btn-continuar");
-  botonContinuar.textContent = t("activity.back_dashboard");
-  botonContinuar.onclick = () => volver("kid-dashboard.html");
-
   overlay.hidden = false;
-  lanzarConfeti();
+  boton.focus();
 }
 
 function lanzarConfeti() {

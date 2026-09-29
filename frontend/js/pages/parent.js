@@ -1,6 +1,7 @@
 import { apiFetch } from "../api.js";
-import { montarRegistrar, montarVincular } from "../estudiantes-ui.js";
-import { inicializarLangToggle, t } from "../i18n.js";
+import { montarPestanas, montarRegistrar, montarVincular } from "../estudiantes-ui.js";
+import { esc, porcentaje } from "../html.js";
+import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
 import { exigirRol, salir } from "../session.js";
 
@@ -11,6 +12,7 @@ document.getElementById("btn-logout").addEventListener("click", salir);
 
 if (sesion) {
   cargar(sesion);
+  montarPestanas();
   montarVincular({ onVinculado: () => cargar(sesion) });
   montarRegistrar({ onCreado: () => cargar(sesion) });
 }
@@ -23,39 +25,51 @@ async function cargar(sesion) {
   contenedor.innerHTML = "";
 
   for (const hijo of hijos) {
-    const [progreso, recompensas, feedback] = await Promise.all([
-      apiFetch(`/api/usuarios/${hijo.id_usuario}/progreso`).catch(() => ({
-        puntaje_total: 0, nivel_logrado: 1, actividades_completadas: 0,
-      })),
+    const [aprendizaje, recompensas, feedback] = await Promise.all([
+      apiFetch(`/api/lecciones/resumen/${hijo.id_usuario}`).catch(() => null),
       apiFetch(`/api/recompensas/estudiante/${hijo.id_usuario}`).catch(() => []),
       apiFetch(`/api/feedback/estudiante/${hijo.id_usuario}`).catch(() => []),
     ]);
+    const a = aprendizaje || { nivel_logrado: 1, puntaje_total: 0, lecciones_aprobadas: 0, total_lecciones: 0, precision: null, recientes: [] };
+    const titulo = (x) => x.titulo[idiomaActual()] || x.titulo.es;
 
     const tarjeta = document.createElement("div");
     tarjeta.className = "card";
     tarjeta.innerHTML = `
       <div class="child-banner">
-        <strong>🧒 ${hijo.nombre}</strong> — ${t("dash.level")} ${progreso.nivel_logrado}
-        ${hijo.codigo_acceso ? `<div>🪪 ${t("teacher.code")}: <strong>${hijo.codigo_acceso}</strong></div>` : ""}
+        <strong>🧒 ${esc(hijo.nombre)}</strong> — ${t("dash.level")} ${a.nivel_logrado}
+        ${hijo.codigo_acceso ? `<div>🪪 ${t("teacher.code")}: <strong>${esc(hijo.codigo_acceso)}</strong></div>` : ""}
+        ${a.siguiente ? `<div>📍 ${t("teacher.now_on")}: ${esc(a.siguiente.info.emoji)} ${esc(titulo(a.siguiente.info))} · ${t("path.lesson")} ${a.siguiente.leccion}</div>` : ""}
       </div>
       <div class="stat-row">
         <div class="stat-tile azul">
-          <span class="valor">${progreso.puntaje_total}</span>
+          <span class="valor">${a.puntaje_total}</span>
           <span class="etiqueta">${t("dash.points")}</span>
         </div>
-        <div class="stat-tile amarillo">
-          <span class="valor">${progreso.actividades_completadas}</span>
-          <span class="etiqueta">🔥 ${t("dash.streak")}</span>
+        <div class="stat-tile verde">
+          <span class="valor">${a.lecciones_aprobadas}/${a.total_lecciones}</span>
+          <span class="etiqueta">${t("path.lessons")}</span>
+        </div>
+        <div class="stat-tile naranja">
+          <span class="valor">${porcentaje(a.precision)}</span>
+          <span class="etiqueta">${t("path.accuracy")}</span>
         </div>
         <div class="stat-tile morado">
           <span class="valor">${recompensas.length}</span>
           <span class="etiqueta">${t("parent.rewards")}</span>
         </div>
       </div>
+      <h3>🕑 ${t("teacher.recent")}</h3>
+      <ul class="lista-intentos">${
+        a.recientes.length
+          ? a.recientes.slice(0, 5).map((r) => `<li>${r.aprobada ? "✅" : "💔"} ${esc(titulo(r))} · ${t("path.lesson")} ${r.leccion}
+              <span class="hint">${r.aprobada ? `${r.aciertos}/${r.total}` : `${r.errores} ${t("path.errors")}`}</span></li>`).join("")
+          : `<li class="hint">${t("path.no_attempts")}</li>`
+      }</ul>
       <h3>${t("parent.feedback")}</h3>
       ${
         feedback.length
-          ? feedback.map((f) => `<div class="feedback-item">${f.comentario}</div>`).join("")
+          ? feedback.map((f) => `<div class="feedback-item">${esc(f.comentario)}</div>`).join("")
           : `<p class="hint">—</p>`
       }
     `;

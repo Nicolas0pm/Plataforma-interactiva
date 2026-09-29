@@ -28,10 +28,13 @@ export function exigirRol(...rolesPermitidos) {
     const actual = obtenerSesion();
     return actual && rolesPermitidos.includes(actual.rol) ? actual : null;
   };
-  // Si se cerró sesión y luego se usa "atrás", el navegador puede mostrar esta página
-  // desde su caché (bfcache) sin volver a ejecutar el script: se revalida aquí.
+  // Al volver con "atrás", el navegador puede mostrar esta página desde su caché (bfcache)
+  // sin volver a ejecutar el script: si ya no hay sesión se va al inicio, y si la hay se
+  // recarga para no mostrar datos viejos (p. ej. el progreso antes de terminar una lección).
   window.addEventListener("pageshow", (evento) => {
-    if (evento.persisted && !valida()) window.location.replace("index.html");
+    if (!evento.persisted) return;
+    if (!valida()) window.location.replace("index.html");
+    else window.location.reload();
   });
   const sesion = valida();
   if (!sesion) {

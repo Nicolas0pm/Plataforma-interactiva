@@ -19,6 +19,9 @@ export async function apiFetch(ruta, { method = "GET", body, headers = {}, token
   let respuesta;
   try {
     respuesta = await fetch(`${API_BASE_URL}${ruta}`, {
+      // Datos personales y de progreso: nunca desde la caché del navegador (al volver
+      // con "atrás" mostraría el progreso viejo).
+      cache: "no-store",
       method,
       headers: encabezados,
       body: body !== undefined ? JSON.stringify(body) : undefined,

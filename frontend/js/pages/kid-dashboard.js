@@ -1,24 +1,15 @@
 import { apiFetch } from "../api.js";
-import { inicializarLangToggle, t } from "../i18n.js";
+import { esc, porcentaje } from "../html.js";
+import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
 import { exigirRol, salir } from "../session.js";
 
 const sesion = exigirRol("estudiante");
+inicializarLangToggle();
+document.getElementById("btn-logout").addEventListener("click", salir);
 if (sesion) iniciar(sesion);
 
-inicializarLangToggle();
-
-document.getElementById("btn-logout").addEventListener("click", salir);
-
-// Debe reflejar app/config.py Settings.nivel_umbrales del backend.
-const NIVELES = [
-  { nivel: 1, umbral: 0, emoji: "🐾", clave: "dash.world1" },
-  { nivel: 2, umbral: 150, emoji: "🎨", clave: "dash.world2" },
-  { nivel: 3, umbral: 400, emoji: "🍎", clave: "dash.world3" },
-  { nivel: 4, umbral: 700, emoji: "🔢", clave: "dash.world4" },
-  { nivel: 5, umbral: 1100, emoji: "🚗", clave: "dash.world5" },
-  { nivel: 6, umbral: 1550, emoji: "🖐️", clave: "dash.world6" },
-];
+const titulo = (unidad) => unidad.titulo[idiomaActual()] || unidad.titulo.es;
 
 async function iniciar(sesion) {
   document.getElementById("titulo-hola").textContent = `${t("dash.hello")} ${sesion.nombre || ""} 👋`;
@@ -27,48 +18,103 @@ async function iniciar(sesion) {
     document.getElementById("mi-codigo").classList.remove("oculto");
   }
 
-  let progreso;
-  try {
-    progreso = await apiFetch(`/api/usuarios/${sesion.id_usuario}/progreso`);
-  } catch {
-    progreso = { puntaje_total: 0, nivel_logrado: 1, actividades_completadas: 0, puntos_para_siguiente_nivel: 150 };
+  const resumen = await apiFetch(`/api/lecciones/resumen/${sesion.id_usuario}`);
+  pintarProxima(resumen.siguiente);
+  pintarEstadisticas(resumen);
+  pintarCamino(resumen, "vocabulario", document.getElementById("camino-vocabulario"));
+  pintarCamino(resumen, "gramatica", document.getElementById("camino-gramatica"));
+  pintarRecientes(resumen.recientes);
+}
+
+function pintarProxima(siguiente) {
+  const boton = document.getElementById("btn-empezar");
+  if (!siguiente) {
+    document.getElementById("proxima-emoji").textContent = "🏆";
+    document.getElementById("proxima-titulo").textContent = t("path.all_done");
+    document.getElementById("proxima-detalle").textContent = t("path.all_done_hint");
+    boton.classList.add("oculto");
+    return;
   }
+  const info = siguiente.info;
+  document.getElementById("proxima-emoji").textContent = info.emoji;
+  document.getElementById("proxima-titulo").textContent = titulo(info);
+  const seccion = info.seccion === "vocabulario" ? t("path.vocabulary") : t("path.grammar");
+  const modo = siguiente.modo === "repaso" ? ` · 🔁 ${t("path.review")}` : "";
+  document.getElementById("proxima-detalle").textContent =
+    `${seccion} · ${t("path.lesson")} ${siguiente.leccion} ${t("path.of")} ${info.lecciones}${modo}`;
+  // Sin parámetros: la lección la vuelve a elegir el servidor al abrir la actividad.
+  boton.addEventListener("click", () => (window.location.href = "activity.html"));
+}
 
-  document.getElementById("stat-nivel").textContent = progreso.nivel_logrado;
-  document.getElementById("stat-puntos").textContent = progreso.puntaje_total;
-  document.getElementById("stat-racha").textContent = `🔥${progreso.actividades_completadas}`;
+function pintarEstadisticas(resumen) {
+  document.getElementById("stat-nivel").textContent = resumen.nivel_logrado;
+  document.getElementById("stat-puntos").textContent = resumen.puntaje_total;
+  document.getElementById("stat-lecciones").textContent = `${resumen.lecciones_aprobadas}/${resumen.total_lecciones}`;
+  document.getElementById("stat-precision").textContent = porcentaje(resumen.precision);
+  const avance = Math.round((resumen.lecciones_aprobadas / resumen.total_lecciones) * 100);
+  document.getElementById("barra-nivel").style.width = `${avance}%`;
+  document.getElementById("texto-siguiente-nivel").textContent =
+    resumen.puntos_para_siguiente_nivel === null
+      ? t("dash.max_level")
+      : `${resumen.puntos_para_siguiente_nivel} ${t("dash.next_level")}`;
+}
 
-  const siguienteUmbral = NIVELES.find((n) => n.nivel === progreso.nivel_logrado + 1)?.umbral;
-  const anteriorUmbral = NIVELES.find((n) => n.nivel === progreso.nivel_logrado)?.umbral ?? 0;
-  if (siguienteUmbral !== undefined) {
-    const rango = siguienteUmbral - anteriorUmbral;
-    const avance = Math.min(100, Math.round(((progreso.puntaje_total - anteriorUmbral) / rango) * 100));
-    document.getElementById("barra-nivel").style.width = `${avance}%`;
-    document.getElementById("texto-siguiente-nivel").textContent =
-      `${progreso.puntos_para_siguiente_nivel} ${t("dash.next_level")}`;
-  } else {
-    document.getElementById("barra-nivel").style.width = "100%";
-    document.getElementById("texto-siguiente-nivel").textContent = t("dash.max_level");
-  }
-
-  const contenedor = document.getElementById("mundos");
+function pintarCamino(resumen, seccion, contenedor) {
   contenedor.innerHTML = "";
-  for (const mundo of NIVELES) {
-    const desbloqueado = mundo.nivel <= progreso.nivel_logrado;
-    const div = document.createElement("div");
-    div.className = `world-card ${desbloqueado ? "" : "bloqueado"}`.trim();
-    div.innerHTML = `
-      <span class="emoji">${desbloqueado ? mundo.emoji : "🔒"}</span>
-      <h3>${t(mundo.clave)}</h3>
-      <button type="button" ${desbloqueado ? "" : "disabled"}>${
-        desbloqueado ? t("dash.play") : `⭐ ${mundo.umbral} ${t("dash.points").toLowerCase()}`
-      }</button>
+  for (const unidad of resumen.unidades.filter((u) => u.seccion === seccion)) {
+    const fila = document.createElement("div");
+    const bloqueada = unidad.lecciones.every((l) => l.estado === "bloqueada");
+    fila.className = `unidad ${bloqueada ? "bloqueada" : ""}`.trim();
+    fila.innerHTML = `
+      <span class="unidad-emoji" aria-hidden="true">${bloqueada ? "🔒" : esc(unidad.emoji)}</span>
+      <div class="unidad-info">
+        <strong>${esc(titulo(unidad))}</strong>
+        <span class="hint">${unidad.aprobadas}/${unidad.lecciones.length} ${t("path.lessons").toLowerCase()}
+          ${unidad.precision !== null ? ` · ${porcentaje(unidad.precision)}` : ""}</span>
+      </div>
+      <div class="burbujas"></div>
     `;
-    if (desbloqueado) {
-      div.querySelector("button").addEventListener("click", () => {
-        window.location.href = `activity.html?nivel=${mundo.nivel}`;
-      });
+    const burbujas = fila.querySelector(".burbujas");
+    for (const leccion of unidad.lecciones) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = `burbuja ${leccion.estado}`;
+      if (leccion.estado === "actual") {
+        b.textContent = "▶";
+        b.title = t("path.start");
+        b.addEventListener("click", () => (window.location.href = "activity.html"));
+      } else if (leccion.aprobada) {
+        b.textContent = "✅";
+        b.title = `${t("path.repeat")} · ${leccion.mejor}/${leccion.total}`;
+        b.addEventListener("click", () => {
+          window.location.href = `activity.html?unidad=${encodeURIComponent(unidad.id)}&leccion=${leccion.numero}`;
+        });
+      } else {
+        b.textContent = "🔒";
+        b.disabled = true;
+        b.title = t("path.locked");
+      }
+      b.setAttribute("aria-label", `${titulo(unidad)} · ${t("path.lesson")} ${leccion.numero} · ${b.title}`);
+      burbujas.appendChild(b);
     }
-    contenedor.appendChild(div);
+    contenedor.appendChild(fila);
   }
+}
+
+function pintarRecientes(recientes) {
+  const lista = document.getElementById("recientes");
+  if (!recientes.length) {
+    lista.innerHTML = `<li class="hint">${t("path.no_attempts")}</li>`;
+    return;
+  }
+  lista.innerHTML = recientes
+    .map((r) => {
+      const nombre = r.titulo[idiomaActual()] || r.titulo.es;
+      const estado = r.aprobada ? "✅" : "💔";
+      const extra = r.modo === "practica" ? ` · ${t("path.practice")}` : r.puntos ? ` · +${r.puntos} ⭐` : "";
+      return `<li><span aria-hidden="true">${estado}</span>
+        <span><strong>${esc(nombre)}</strong> · ${t("path.lesson")} ${r.leccion}</span>
+        <span class="hint">${r.aprobada ? `${r.aciertos}/${r.total}${extra}` : `${r.errores} ${t("path.errors")}`}</span></li>`;
+    })
+    .join("");
 }

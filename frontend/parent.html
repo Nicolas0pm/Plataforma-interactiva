@@ -20,45 +20,33 @@
   </div>
 
   <main class="wide">
-    <div class="card">
-      <h2 data-i18n="parent.have_code_title"></h2>
-      <p class="hint" data-i18n="parent.have_code_hint"></p>
-      <form id="form-vincular">
-        <label for="vincular-codigo"><span aria-hidden="true">🪪</span> <span data-i18n="kids.code_label">Código del niño</span></label>
-        <input id="vincular-codigo" class="campo-codigo pequeno" type="text" autocomplete="off" autocapitalize="characters"
-          spellcheck="false" maxlength="7" placeholder="K7M3QX" required />
-        <p class="hint" data-i18n="cred.code_help">Se escribe primero · letras y números</p>
-        <label for="vincular-pin"><span aria-hidden="true">🔒</span> <span data-i18n="kids.pin_label">PIN del niño (4 números)</span></label>
-        <input id="vincular-pin" class="campo-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" placeholder="••••" required />
-        <button type="submit" data-i18n="kids.link_button">Agregar a mi panel</button>
+    <div class="card" id="agregar-ninos">
+      <h2 data-i18n="parent.add_title"></h2>
+      <div class="pestanas" role="tablist">
+        <button type="button" role="tab" id="tab-registrar" aria-controls="panel-registrar" aria-selected="true">
+          ➕ <span data-i18n="kids.tab_register">Registrar niño</span></button>
+        <button type="button" role="tab" id="tab-ingresar" aria-controls="panel-ingresar" aria-selected="false">
+          🔗 <span data-i18n="kids.tab_link">Ingresar niño con código</span></button>
+      </div>
+
+      <div role="tabpanel" id="panel-registrar" aria-labelledby="tab-registrar">
+        <p class="hint" data-i18n="parent.new_hint"></p>
+      <form id="form-registrar">
+        <label for="nuevo-nombre" data-i18n="login.name">Nombre</label>
+        <input id="nuevo-nombre" type="text" required />
+        <label for="nuevo-edad" data-i18n="kids.age">Edad</label>
+        <input id="nuevo-edad" type="number" min="4" max="12" value="7" required />
+        <label for="nuevo-pin"><span aria-hidden="true">🔒</span> <span data-i18n="teacher.pin_label">PIN (exactamente 4 números)</span></label>
+        <input id="nuevo-pin" class="campo-pin" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" placeholder="1234" required />
+        <p class="hint" data-i18n="teacher.pin_hint"></p>
+        <label class="casilla">
+          <input id="nuevo-autoriza" type="checkbox" required />
+          <span><span data-i18n="parent.consent">Autorizo</span>
+          <a href="terminos.html" target="_blank" data-i18n="terms.policy_link">Ver política de datos</a></span>
+        </label>
+        <button type="submit" data-i18n="kids.register">Registrar niño</button>
       </form>
-      <p class="error-msg" id="error-vincular"></p>
-      <p class="hint oculto" id="exito-vincular"></p>
-    </div>
-
-    <div class="card">
-      <h2 data-i18n="parent.new_title"></h2>
-      <p class="hint" data-i18n="parent.new_hint"></p>
-      <details>
-        <summary data-i18n="kids.register">Registrar niño</summary>
-        <form id="form-registrar">
-          <label for="nuevo-nombre" data-i18n="login.name">Nombre</label>
-          <input id="nuevo-nombre" type="text" required />
-          <label for="nuevo-edad" data-i18n="kids.age">Edad</label>
-          <input id="nuevo-edad" type="number" min="4" max="12" value="7" required />
-          <label for="nuevo-pin"><span aria-hidden="true">🔒</span> <span data-i18n="teacher.pin_label">PIN (exactamente 4 números)</span></label>
-          <input id="nuevo-pin" class="campo-pin" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" placeholder="1234" required />
-          <p class="hint" data-i18n="teacher.pin_hint"></p>
-          <label class="casilla">
-            <input id="nuevo-autoriza" type="checkbox" required />
-            <span><span data-i18n="parent.consent">Autorizo</span>
-            <a href="terminos.html" target="_blank" data-i18n="terms.policy_link">Ver política de datos</a></span>
-          </label>
-          <button type="submit" data-i18n="kids.register">Registrar niño</button>
-        </form>
-        <p class="error-msg" id="error-registrar"></p>
-      </details>
-
+      <p class="error-msg" id="error-registrar"></p>
       <div class="oculto centrado" id="estudiante-creado" style="margin-top:1rem">
         <h3 data-i18n="teacher.created_title">¡Registrado!</h3>
         <p class="hint" data-i18n="teacher.created_body"></p>
@@ -75,6 +63,22 @@
             <span class="credencial-ayuda" data-i18n="cred.pin_help">Se marca después · solo 4 números</span>
           </div>
         </div>
+      </div>
+      </div>
+
+      <div role="tabpanel" id="panel-ingresar" aria-labelledby="tab-ingresar" hidden>
+        <p class="hint" data-i18n="parent.have_code_hint"></p>
+      <form id="form-vincular">
+        <label for="vincular-codigo"><span aria-hidden="true">🪪</span> <span data-i18n="kids.code_label">Código del niño</span></label>
+        <input id="vincular-codigo" class="campo-codigo pequeno" type="text" autocomplete="off" autocapitalize="characters"
+          spellcheck="false" maxlength="7" placeholder="K7M3QX" required />
+        <p class="hint" data-i18n="cred.code_help">Se escribe primero · letras y números</p>
+        <label for="vincular-pin"><span aria-hidden="true">🔒</span> <span data-i18n="kids.pin_label">PIN del niño (4 números)</span></label>
+        <input id="vincular-pin" class="campo-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" placeholder="••••" required />
+        <button type="submit" data-i18n="kids.link_button">Agregar a mi panel</button>
+      </form>
+      <p class="error-msg" id="error-vincular"></p>
+      <p class="hint oculto" id="exito-vincular"></p>
       </div>
     </div>
 

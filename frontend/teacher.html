@@ -20,67 +20,62 @@
   </div>
 
   <main class="wide">
-    <div class="stat-row">
-      <div class="stat-tile verde">
+    <!-- Botones de vista: cada uno muestra su lista abajo -->
+    <div class="stat-row botones-vista" role="tablist" aria-label="Vistas del panel">
+      <button type="button" role="tab" class="stat-tile verde" data-vista="estudiantes" aria-selected="true">
         <span class="valor" id="stat-total">0</span>
-        <span class="etiqueta" data-i18n="teacher.total_students">Estudiantes</span>
-      </div>
-      <div class="stat-tile azul">
-        <span class="valor" id="stat-promedio">0</span>
-        <span class="etiqueta" data-i18n="teacher.avg_progress">Progreso promedio</span>
-      </div>
-      <div class="stat-tile amarillo">
-        <span class="valor" id="stat-activos">0</span>
-        <span class="etiqueta" data-i18n="teacher.active_today">Activos hoy</span>
-      </div>
-      <div class="stat-tile naranja">
+        <span class="etiqueta">👧 <span data-i18n="teacher.total_students">Estudiantes</span></span>
+      </button>
+      <button type="button" role="tab" class="stat-tile naranja" data-vista="ayuda" aria-selected="false">
         <span class="valor" id="stat-ayuda">0</span>
-        <span class="etiqueta" data-i18n="teacher.needs_help">Necesitan ayuda</span>
+        <span class="etiqueta">🆘 <span data-i18n="teacher.needs_help">Necesitan ayuda</span></span>
+      </button>
+      <button type="button" role="tab" class="stat-tile azul" data-vista="progreso" aria-selected="false">
+        <span class="valor" id="stat-promedio">0 %</span>
+        <span class="etiqueta">📈 <span data-i18n="teacher.avg_progress">Progreso</span></span>
+      </button>
+      <button type="button" role="tab" class="stat-tile amarillo" data-vista="activos" aria-selected="false">
+        <span class="valor" id="stat-activos">0</span>
+        <span class="etiqueta">⚡ <span data-i18n="teacher.active_today">Activos hoy</span></span>
+      </button>
+    </div>
+
+    <div class="card" id="vista" role="tabpanel" aria-live="polite">
+      <h2 id="vista-titulo"></h2>
+      <p class="hint" id="vista-ayuda"></p>
+      <div id="vista-contenido"><p class="hint" data-i18n="activity.loading">Cargando...</p></div>
+    </div>
+
+    <div class="card" id="agregar-ninos">
+      <h2 data-i18n="teacher.add_title"></h2>
+      <div class="pestanas" role="tablist">
+        <button type="button" role="tab" id="tab-registrar" aria-controls="panel-registrar" aria-selected="true">
+          ➕ <span data-i18n="kids.tab_register">Registrar niño</span></button>
+        <button type="button" role="tab" id="tab-ingresar" aria-controls="panel-ingresar" aria-selected="false">
+          🔗 <span data-i18n="kids.tab_link">Ingresar niño con código</span></button>
       </div>
-    </div>
 
-    <div class="card">
-      <h2 data-i18n="teacher.have_code_title"></h2>
-      <p class="hint" data-i18n="teacher.have_code_hint"></p>
-      <form id="form-vincular">
-        <label for="vincular-codigo"><span aria-hidden="true">🪪</span> <span data-i18n="kids.code_label">Código del niño</span></label>
-        <input id="vincular-codigo" class="campo-codigo pequeno" type="text" autocomplete="off" autocapitalize="characters"
-          spellcheck="false" maxlength="7" placeholder="K7M3QX" required />
-        <p class="hint" data-i18n="cred.code_help">Se escribe primero · letras y números</p>
-        <label for="vincular-pin"><span aria-hidden="true">🔒</span> <span data-i18n="kids.pin_label">PIN del niño (4 números)</span></label>
-        <input id="vincular-pin" class="campo-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" placeholder="••••" required />
-        <button type="submit" data-i18n="kids.link_button">Agregar a mi panel</button>
+      <div role="tabpanel" id="panel-registrar" aria-labelledby="tab-registrar">
+        <p class="hint" data-i18n="teacher.new_hint"></p>
+      <form id="form-registrar">
+        <label for="nuevo-nombre" data-i18n="login.name">Nombre</label>
+        <input id="nuevo-nombre" type="text" required />
+        <label for="nuevo-edad" data-i18n="kids.age">Edad</label>
+        <input id="nuevo-edad" type="number" min="4" max="12" value="7" required />
+        <label for="nuevo-pin"><span aria-hidden="true">🔒</span> <span data-i18n="teacher.pin_label">PIN (exactamente 4 números)</span></label>
+        <input id="nuevo-pin" class="campo-pin" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" placeholder="1234" required />
+        <p class="hint" data-i18n="teacher.pin_hint"></p>
+        <label for="nuevo-device" data-i18n="teacher.device_id">ID del dispensador (opcional)</label>
+        <input id="nuevo-device" type="text" />
+        <p class="hint" data-i18n="teacher.device_hint">Déjalo vacío si el salón todavía no tiene el dispensador físico conectado.</p>
+        <label class="casilla">
+          <input id="nuevo-autoriza" type="checkbox" required />
+          <span><span data-i18n="teacher.consent">Autorizo</span>
+          <a href="terminos.html" target="_blank" data-i18n="terms.policy_link">Ver política de datos</a></span>
+        </label>
+        <button type="submit" data-i18n="kids.register">Registrar niño</button>
       </form>
-      <p class="error-msg" id="error-vincular"></p>
-      <p class="hint oculto" id="exito-vincular"></p>
-    </div>
-
-    <div class="card">
-      <h2 data-i18n="teacher.new_title"></h2>
-      <p class="hint" data-i18n="teacher.new_hint"></p>
-      <details>
-        <summary data-i18n="kids.register">Registrar niño</summary>
-        <form id="form-registrar">
-          <label for="nuevo-nombre" data-i18n="login.name">Nombre</label>
-          <input id="nuevo-nombre" type="text" required />
-          <label for="nuevo-edad" data-i18n="kids.age">Edad</label>
-          <input id="nuevo-edad" type="number" min="4" max="12" value="7" required />
-          <label for="nuevo-pin"><span aria-hidden="true">🔒</span> <span data-i18n="teacher.pin_label">PIN (exactamente 4 números)</span></label>
-          <input id="nuevo-pin" class="campo-pin" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" placeholder="1234" required />
-          <p class="hint" data-i18n="teacher.pin_hint"></p>
-          <label for="nuevo-device" data-i18n="teacher.device_id">ID del dispensador (opcional)</label>
-          <input id="nuevo-device" type="text" />
-          <p class="hint" data-i18n="teacher.device_hint">Déjalo vacío si el salón todavía no tiene el dispensador físico conectado.</p>
-          <label class="casilla">
-            <input id="nuevo-autoriza" type="checkbox" required />
-            <span><span data-i18n="teacher.consent">Autorizo</span>
-            <a href="terminos.html" target="_blank" data-i18n="terms.policy_link">Ver política de datos</a></span>
-          </label>
-          <button type="submit" data-i18n="kids.register">Registrar niño</button>
-        </form>
-        <p class="error-msg" id="error-registrar"></p>
-      </details>
-
+      <p class="error-msg" id="error-registrar"></p>
       <div class="oculto centrado" id="estudiante-creado" style="margin-top:1rem">
         <h3 data-i18n="teacher.created_title">¡Registrado!</h3>
         <p class="hint" data-i18n="teacher.created_body"></p>
@@ -98,12 +93,24 @@
           </div>
         </div>
       </div>
+      </div>
+
+      <div role="tabpanel" id="panel-ingresar" aria-labelledby="tab-ingresar" hidden>
+        <p class="hint" data-i18n="teacher.have_code_hint"></p>
+      <form id="form-vincular">
+        <label for="vincular-codigo"><span aria-hidden="true">🪪</span> <span data-i18n="kids.code_label">Código del niño</span></label>
+        <input id="vincular-codigo" class="campo-codigo pequeno" type="text" autocomplete="off" autocapitalize="characters"
+          spellcheck="false" maxlength="7" placeholder="K7M3QX" required />
+        <p class="hint" data-i18n="cred.code_help">Se escribe primero · letras y números</p>
+        <label for="vincular-pin"><span aria-hidden="true">🔒</span> <span data-i18n="kids.pin_label">PIN del niño (4 números)</span></label>
+        <input id="vincular-pin" class="campo-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" placeholder="••••" required />
+        <button type="submit" data-i18n="kids.link_button">Agregar a mi panel</button>
+      </form>
+      <p class="error-msg" id="error-vincular"></p>
+      <p class="hint oculto" id="exito-vincular"></p>
+      </div>
     </div>
 
-    <div class="card">
-      <h2 data-i18n="teacher.students_list">Mis estudiantes</h2>
-      <ul id="lista-estudiantes"></ul>
-    </div>
   </main>
 
   <script type="module" src="js/pages/teacher.js"></script>

@@ -92,8 +92,15 @@ class ActividadCreate(BaseModel):
     nombre: str
     descripcion: str = ""
     nivel: int = Field(ge=1, le=10, description="El máximo alcanzable lo define config.nivel_umbrales")
-    tipo: Literal["vocabulario"] = "vocabulario"
+    tipo: Literal["vocabulario", "gramatica"] = "vocabulario"
     puntaje_maximo: int = 100
+    # Ubicación en el temario (app/curriculo.py). Las actividades sin unidad quedan
+    # fuera del camino guiado de lecciones.
+    seccion: Optional[Literal["vocabulario", "gramatica"]] = None
+    unidad: Optional[str] = None
+    leccion: Optional[int] = Field(default=None, ge=1)
+    orden: Optional[int] = Field(default=None, ge=1)
+    formato_opciones: Literal["texto", "emoji"] = "texto"
     # Contenido interpretado por el frontend (frontend/activity.html) para renderizar
     # la actividad sin necesidad de tocar código (RNF-ESC-01): imagen, pregunta y
     # opciones con la respuesta correcta marcada.
@@ -116,6 +123,20 @@ class ResultadoActividad(BaseModel):
     tiempo_empleado: int = Field(ge=0, description="segundos")
     intentos: int = Field(ge=1)
     puntaje_obtenido: int = Field(ge=0)
+
+
+class RespuestaLeccion(BaseModel):
+    id_actividad: str
+    respuesta: str
+    tiempo_ms: int = Field(default=0, ge=0)
+
+
+class ResultadoLeccion(BaseModel):
+    """Lo que envía el frontend al terminar (o perder) una lección. El servidor califica
+    comparando cada respuesta con la correcta: no confía en un puntaje del cliente."""
+    unidad: str
+    leccion: int = Field(ge=1)
+    respuestas: list[RespuestaLeccion] = Field(min_length=1, max_length=50)
 
 
 class FeedbackCreate(BaseModel):
