@@ -21,8 +21,8 @@ def _preparar(client, db):
     return docente, token_docente, nino, token_nino
 
 
-def _jugar(client, token, errores=0, unidad=None, leccion=None):
-    params = {"unidad": unidad, "leccion": leccion} if unidad else {}
+def _jugar(client, token, errores=0, unidad=None, leccion=None, seccion="vocabulario"):
+    params = {"unidad": unidad, "leccion": leccion} if unidad else {"seccion": seccion}
     leccion_datos = client.get("/api/lecciones/jugar", params=params, headers=_auth(token)).json()
     respuestas = []
     for i, p in enumerate(leccion_datos["preguntas"]):
@@ -115,3 +115,25 @@ def test_docente_ve_quien_necesita_ayuda_y_por_que(client, db):
     assert resumen["necesitan_ayuda"] == 1 and resumen["activos_hoy"] == 1
     detalle = client.get(f"/api/lecciones/resumen/{nino['id_usuario']}", headers=_auth(token_docente)).json()
     assert detalle["errores_frecuentes"] and detalle["recientes"][0]["aprobada"] is False
+
+
+def test_gramatica_es_un_camino_aparte_que_el_nino_puede_elegir(client, db):
+    _, _, nino, token = _preparar(client, db)
+    leccion, r = _jugar(client, token, seccion="gramatica")
+    assert (leccion["unidad"]["id"], leccion["leccion"]) == ("to-be", 1)
+    assert leccion["unidad"]["explicacion"]  # trae la tarjeta "Cómo se usa"
+    assert (r.json()["siguiente"]["unidad"], r.json()["siguiente"]["leccion"]) == ("to-be", 2)
+    # Vocabulario sigue en su propio inicio: avanzar en gramática no lo mueve.
+    resumen = client.get(f"/api/lecciones/resumen/{nino['id_usuario']}", headers=_auth(token)).json()
+    assert (resumen["siguiente"]["vocabulario"]["unidad"], resumen["siguiente"]["vocabulario"]["leccion"]) == ("animals", 1)
+    assert resumen["por_seccion"]["gramatica"]["aprobadas"] == 1
+    assert resumen["por_seccion"]["vocabulario"]["total"] == 55
+
+
+def test_docente_ve_a_que_horas_estuvo_activo(client, db):
+    docente, token_docente, _, token = _preparar(client, db)
+    _jugar(client, token)
+    _jugar(client, token, seccion="gramatica")
+    fila = client.get(f"/api/lecciones/docente/{docente['id_usuario']}", headers=_auth(token_docente)).json()["estudiantes"][0]
+    assert len(fila["horas_hoy"]) == 2
+    assert fila["ultima_actividad"] is not None

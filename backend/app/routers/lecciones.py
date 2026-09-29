@@ -1,7 +1,8 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from app.config import get_settings
 from app.curriculo import ORDEN_UNIDADES, info_unidad
 from app.models.schemas import ResultadoLeccion
 from app.services.auth_service import (
@@ -19,13 +20,28 @@ from app.services.lecciones_service import (
 )
 
 router = APIRouter(prefix="/api/lecciones", tags=["lecciones"])
+ZONA = timezone(timedelta(hours=get_settings().zona_horaria_utc))
+
+
+def _como_local(fecha: datetime | None) -> datetime | None:
+    if fecha is None:
+        return None
+    if fecha.tzinfo is None:
+        fecha = fecha.replace(tzinfo=timezone.utc)
+    return fecha.astimezone(ZONA)
 
 
 @router.get("/jugar")
-def jugar(unidad: str | None = None, leccion: int | None = None, usuario: dict = Depends(require_role("estudiante"))):
-    """RF03/RF04: sin parámetros entrega la lección que le toca (la elige la plataforma).
+def jugar(
+    seccion: str = "vocabulario",
+    unidad: str | None = None,
+    leccion: int | None = None,
+    usuario: dict = Depends(require_role("estudiante")),
+):
+    """RF03/RF04: con `seccion` ("vocabulario" o "gramatica") entrega la lección que le toca
+    en ese camino (el niño elige el camino; la lección la elige la plataforma).
     Con `unidad` y `leccion` solo permite repetir una lección ya aprobada (práctica)."""
-    return armar_leccion(get_firestore_client(), usuario["id_usuario"], unidad, leccion)
+    return armar_leccion(get_firestore_client(), usuario["id_usuario"], unidad, leccion, seccion)
 
 
 @router.post("/resultado")
@@ -62,6 +78,7 @@ def resumen_docente(id_docente: str, usuario: dict = Depends(require_role("docen
 
     db = get_firestore_client()
     ahora = datetime.now(timezone.utc)
+    hoy = ahora.astimezone(ZONA).date()
     estudiantes = db.collection("usuarios").where("docente_id", "==", id_docente).where("rol", "==", "estudiante")
 
     filas = []
@@ -69,9 +86,8 @@ def resumen_docente(id_docente: str, usuario: dict = Depends(require_role("docen
     for doc in estudiantes.stream():
         datos = doc.to_dict()
         r = resumen_aprendizaje(db, doc.id)
-        actualizado = r["ultima_actividad"]
-        if actualizado is not None and actualizado.tzinfo is None:
-            actualizado = actualizado.replace(tzinfo=timezone.utc)
+        actualizado = _como_local(r["ultima_actividad"])
+        horas_hoy = sorted(f for f in (_como_local(x) for x in r["actividad"]) if f.date() == hoy)
         motivos = motivos_de_ayuda(r, ahora)
         for unidad in r["unidades"]:
             if unidad["precision"] is not None:
@@ -88,8 +104,9 @@ def resumen_docente(id_docente: str, usuario: dict = Depends(require_role("docen
             "total_lecciones": r["total_lecciones"],
             "precision": r["precision"],
             "siguiente": r["siguiente"],
-            "activo_hoy": bool(actualizado and actualizado.date() == ahora.date()),
+            "activo_hoy": bool(horas_hoy),
             "ultima_actividad": actualizado,
+            "horas_hoy": horas_hoy,
             "necesita_ayuda": bool(motivos),
             "motivos": motivos,
         })

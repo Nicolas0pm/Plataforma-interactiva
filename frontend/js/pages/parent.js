@@ -1,6 +1,6 @@
 import { apiFetch } from "../api.js";
 import { montarPestanas, montarRegistrar, montarVincular } from "../estudiantes-ui.js";
-import { esc, porcentaje } from "../html.js";
+import { cuando, esc, porcentaje } from "../html.js";
 import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
 import { exigirRol, salir } from "../session.js";
@@ -39,7 +39,9 @@ async function cargar(sesion) {
       <div class="child-banner">
         <strong>🧒 ${esc(hijo.nombre)}</strong> — ${t("dash.level")} ${a.nivel_logrado}
         ${hijo.codigo_acceso ? `<div>🪪 ${t("teacher.code")}: <strong>${esc(hijo.codigo_acceso)}</strong></div>` : ""}
-        ${a.siguiente ? `<div>📍 ${t("teacher.now_on")}: ${esc(a.siguiente.info.emoji)} ${esc(titulo(a.siguiente.info))} · ${t("path.lesson")} ${a.siguiente.leccion}</div>` : ""}
+        ${["vocabulario", "gramatica"].filter((sec) => a.siguiente?.[sec]).map((sec) =>
+          `<div>${sec === "vocabulario" ? "📚" : "✏️"} ${t("teacher.now_on")}: ${esc(titulo(a.siguiente[sec].info))} · ${t("path.lesson")} ${a.siguiente[sec].leccion}</div>`).join("")}
+        <div>🕑 ${t("teacher.last_active")}: ${a.ultima_actividad ? cuando(a.ultima_actividad, idiomaActual()) : t("teacher.never")}</div>
       </div>
       <div class="stat-row">
         <div class="stat-tile azul">
@@ -62,8 +64,8 @@ async function cargar(sesion) {
       <h3>🕑 ${t("teacher.recent")}</h3>
       <ul class="lista-intentos">${
         a.recientes.length
-          ? a.recientes.slice(0, 5).map((r) => `<li>${r.aprobada ? "✅" : "💔"} ${esc(titulo(r))} · ${t("path.lesson")} ${r.leccion}
-              <span class="hint">${r.aprobada ? `${r.aciertos}/${r.total}` : `${r.errores} ${t("path.errors")}`}</span></li>`).join("")
+          ? a.recientes.slice(0, 5).map((r) => `<li>${r.aprobada ? "✅" : "💔"} ${esc(r.emoji)} ${esc(titulo(r))} · ${t("path.lesson")} ${r.leccion}
+              <span class="hint">${r.aprobada ? `${r.aciertos}/${r.total}` : `${r.errores} ${t("path.errors")}`} · ${cuando(r.fecha, idiomaActual())}</span></li>`).join("")
           : `<li class="hint">${t("path.no_attempts")}</li>`
       }</ul>
       <h3>${t("parent.feedback")}</h3>

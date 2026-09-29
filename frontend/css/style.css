@@ -679,6 +679,8 @@ a {
 }
 
 .pill {
+  display: inline-block;
+  white-space: nowrap;
   padding: 0.2rem 0.7rem;
   border-radius: 999px;
   font-size: 0.75rem;
@@ -1451,4 +1453,33 @@ button.enlace {
 /* Con un número impar de opciones (gramática: 3), una opción por fila */
 .quiz-opciones.una-columna {
   grid-template-columns: 1fr;
+}
+
+/* Panel del niño: selector de apartado arriba */
+.selector-seccion button {
+  font-size: 1.1rem;
+  min-height: 52px;
+}
+
+.selector-seccion button[data-seccion="gramatica"][aria-selected="true"] {
+  background: var(--morado);
+}
+
+/* Docente: horas de actividad de hoy */
+.horas-hoy {
+  margin-top: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.horas-hoy .pill {
+  margin: 0.2rem 0.2rem 0 0;
+  background: var(--superficie);
+  border: 1px solid var(--borde-fuerte);
+}
+
+@media (max-width: 480px) {
+  /* El selector de apartado siempre lado a lado, como un interruptor */
+  .pestanas.selector-seccion {
+    grid-template-columns: 1fr 1fr;
+  }
 }

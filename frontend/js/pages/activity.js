@@ -31,7 +31,7 @@ if (sesion) cargar();
 async function cargar() {
   const consulta = params.get("unidad")
     ? `?unidad=${encodeURIComponent(params.get("unidad"))}&leccion=${encodeURIComponent(params.get("leccion"))}`
-    : "";
+    : `?seccion=${params.get("seccion") === "gramatica" ? "gramatica" : "vocabulario"}`;
   try {
     leccion = await apiFetch(`/api/lecciones/jugar${consulta}`);
   } catch (err) {

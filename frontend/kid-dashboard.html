@@ -20,7 +20,14 @@
   </div>
 
   <main>
-    <!-- La plataforma elige la lección: el niño solo pulsa "¡Empezar!" -->
+    <!-- El niño elige el apartado; dentro de él, la plataforma elige la lección -->
+    <div class="pestanas selector-seccion" role="tablist" aria-label="Apartado">
+      <button type="button" role="tab" data-seccion="vocabulario" aria-selected="true">
+        📚 <span data-i18n="path.vocabulary">Vocabulario</span></button>
+      <button type="button" role="tab" data-seccion="gramatica" aria-selected="false">
+        ✏️ <span data-i18n="path.grammar">Gramática</span></button>
+    </div>
+
     <div class="card centrado hero-leccion" id="proxima" aria-live="polite">
       <p class="hint" data-i18n="path.next_title">Tu próxima lección</p>
       <span class="hero-emoji" id="proxima-emoji">🦊</span>
@@ -55,14 +62,9 @@
     </div>
 
     <div class="card">
-      <h2><span aria-hidden="true">📚</span> <span data-i18n="path.vocabulary">Vocabulario</span></h2>
+      <h2 id="camino-titulo"></h2>
       <p class="hint" data-i18n="path.repeat_hint">Toca una lección con ✅ para repetirla y practicar.</p>
-      <div class="camino" id="camino-vocabulario"></div>
-    </div>
-
-    <div class="card">
-      <h2><span aria-hidden="true">✏️</span> <span data-i18n="path.grammar">Gramática</span></h2>
-      <div class="camino" id="camino-gramatica"></div>
+      <div class="camino" id="camino"></div>
     </div>
 
     <div class="card">

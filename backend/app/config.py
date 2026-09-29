@@ -32,6 +32,9 @@ class Settings:
     # para saber qué versión aceptó cada adulto (Ley 1581 / Decreto 1377).
     terminos_version: str = "1.0"
 
+    # Horas respecto a UTC para decidir qué es "hoy" (Colombia: -5, sin horario de verano).
+    zona_horaria_utc: int = int(os.getenv("ZONA_HORARIA_UTC", "-5"))
+
     reward_threshold: int = int(os.getenv("REWARD_THRESHOLD", "100"))
 
     # RF04: umbrales de puntaje acumulado para desbloquear cada nivel. Agregar un

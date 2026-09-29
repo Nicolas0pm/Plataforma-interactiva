@@ -1,9 +1,11 @@
 """
 Camino de aprendizaje guiado (estilo Duolingo).
 
-- El niño NO elige lecciones nuevas: `siguiente_leccion()` decide cuál sigue. Normalmente es
-  la primera del temario que aún no aprueba; pero cada `REPASO_CADA` lecciones nuevas, si
-  hay alguna aprobada con menos del 80 % de aciertos, le toca un **repaso** de la más débil.
+- Hay dos caminos independientes: **vocabulario** y **gramática**. El niño elige cuál
+  quiere hacer; dentro de cada uno NO elige lecciones nuevas: `siguiente_leccion()` decide.
+  Normalmente es la primera del camino que aún no aprueba; pero cada `REPASO_CADA` lecciones
+  nuevas de ese camino, si hay alguna aprobada con menos del 80 % de aciertos, le toca un
+  **repaso** de la más débil.
 - Sí puede **repetir** lecciones que ya aprobó (modo "practica"): cuenta para su precisión
   y su mejor resultado, pero no da puntos (para que no se acumulen premios repitiendo).
 - Cada lección tiene `VIDAS_POR_LECCION` vidas: cada error quita una. Si se equivoca
@@ -13,7 +15,8 @@ Camino de aprendizaje guiado (estilo Duolingo).
 Progreso guardado en `usuarios/{id}/resultados/actual`:
   lecciones: { "animals-1": {aprobada, mejor, total, intentos, fallos, ultima} }
   unidades:  { "animals": {respuestas, correctas} }      # precisión por tema
-  respuestas_totales, respuestas_correctas, aprobadas_desde_repaso
+  respuestas_totales, respuestas_correctas
+  aprobadas_desde_repaso: { "vocabulario": n, "gramatica": n }
 Cada intento queda además en la colección `intentos_leccion` (con sus errores), que es lo
 que ve el docente como "en qué va bien y en qué va mal".
 """
@@ -22,13 +25,15 @@ from datetime import datetime, timezone
 from fastapi import HTTPException
 
 from app.curriculo import (
+    ORDEN_POR_SECCION,
+    ORDEN_UNIDADES,
     PUNTOS_POR_ACIERTO,
     SECCIONES,
     VIDAS_POR_LECCION,
     clave_leccion,
     info_unidad,
     lecciones_en_orden,
-    ORDEN_UNIDADES,
+    seccion_de,
 )
 from app.services.progreso_service import calcular_nivel, puntos_para_siguiente_nivel
 from app.services.recompensas_service import evaluar_recompensa
@@ -49,7 +54,10 @@ def leer_progreso(db, id_usuario: str) -> dict:
     datos.setdefault("unidades", {})
     datos.setdefault("respuestas_totales", 0)
     datos.setdefault("respuestas_correctas", 0)
-    datos.setdefault("aprobadas_desde_repaso", 0)
+    contador = datos.get("aprobadas_desde_repaso", {})
+    if not isinstance(contador, dict):  # progreso guardado antes de separar los caminos
+        contador = {"vocabulario": contador}
+    datos["aprobadas_desde_repaso"] = {s: contador.get(s, 0) for s in ORDEN_POR_SECCION}
     return datos
 
 
@@ -57,11 +65,14 @@ def _proporcion(estado: dict) -> float:
     return estado.get("mejor", 0) / estado["total"] if estado.get("total") else 0.0
 
 
-def siguiente_leccion(progreso: dict) -> dict | None:
-    """La lección que le toca al niño: {unidad, leccion, modo: "nueva" | "repaso"}."""
+def siguiente_leccion(progreso: dict, seccion: str) -> dict | None:
+    """La lección que le toca al niño en ese camino: {unidad, leccion, modo: "nueva" | "repaso"}."""
     lecciones = progreso["lecciones"]
     pendiente = next(
-        ((u, n) for u, n in lecciones_en_orden() if not lecciones.get(clave_leccion(u, n), {}).get("aprobada")),
+        (
+            (u, n) for u, n in lecciones_en_orden(seccion)
+            if not lecciones.get(clave_leccion(u, n), {}).get("aprobada")
+        ),
         None,
     )
     debiles = sorted(
@@ -69,20 +80,21 @@ def siguiente_leccion(progreso: dict) -> dict | None:
             (_proporcion(estado), clave)
             for clave, estado in lecciones.items()
             if estado.get("aprobada") and _proporcion(estado) < UMBRAL_REPASO
+            and clave.rpartition("-")[0] in ORDEN_POR_SECCION[seccion]
         ),
     )
-    toca_repaso = progreso["aprobadas_desde_repaso"] >= REPASO_CADA or pendiente is None
+    toca_repaso = progreso["aprobadas_desde_repaso"][seccion] >= REPASO_CADA or pendiente is None
     if toca_repaso and debiles:
         unidad, _, numero = debiles[0][1].rpartition("-")
         return {"unidad": unidad, "leccion": int(numero), "modo": "repaso"}
     if pendiente:
         return {"unidad": pendiente[0], "leccion": pendiente[1], "modo": "nueva"}
-    return None  # terminó todo el temario y no tiene nada débil
+    return None  # terminó ese camino y no tiene nada débil
 
 
 def modo_para(progreso: dict, unidad: str, leccion: int) -> str:
     """Decide si el niño puede jugar esa lección y en qué modo, o lanza 403."""
-    siguiente = siguiente_leccion(progreso)
+    siguiente = siguiente_leccion(progreso, seccion_de(unidad))
     if siguiente and siguiente["unidad"] == unidad and siguiente["leccion"] == leccion:
         return siguiente["modo"]
     if progreso["lecciones"].get(clave_leccion(unidad, leccion), {}).get("aprobada"):
@@ -103,12 +115,16 @@ def preguntas_de(db, unidad: str, leccion: int) -> list[dict]:
     return sorted(preguntas, key=lambda p: p.get("orden") or 0)
 
 
-def armar_leccion(db, id_usuario: str, unidad: str | None, leccion: int | None) -> dict:
+def armar_leccion(
+    db, id_usuario: str, unidad: str | None, leccion: int | None, seccion: str = "vocabulario"
+) -> dict:
     progreso = leer_progreso(db, id_usuario)
     if unidad is None or leccion is None:
-        siguiente = siguiente_leccion(progreso)
+        if seccion not in ORDEN_POR_SECCION:
+            raise HTTPException(404, "No existe ese apartado")
+        siguiente = siguiente_leccion(progreso, seccion)
         if siguiente is None:
-            raise HTTPException(404, "¡Terminaste todo el temario!")
+            raise HTTPException(404, "¡Terminaste todo este apartado!")
         unidad, leccion = siguiente["unidad"], siguiente["leccion"]
     if unidad not in ORDEN_UNIDADES:
         raise HTTPException(404, "No existe esa unidad")
@@ -197,10 +213,11 @@ def registrar_resultado(db, id_usuario: str, unidad: str, leccion: int, respuest
     nivel_anterior = calcular_nivel(anterior)
     progreso["puntaje_total"] = anterior + puntos
     progreso["actividades_completadas"] += respondidas
+    seccion = seccion_de(unidad)
     if aprobada and modo == "nueva":
-        progreso["aprobadas_desde_repaso"] += 1
+        progreso["aprobadas_desde_repaso"][seccion] += 1
     elif aprobada and modo == "repaso":
-        progreso["aprobadas_desde_repaso"] = 0
+        progreso["aprobadas_desde_repaso"][seccion] = 0
 
     nuevo_nivel = calcular_nivel(progreso["puntaje_total"])
     progreso["nivel_logrado"] = nuevo_nivel
@@ -210,6 +227,7 @@ def registrar_resultado(db, id_usuario: str, unidad: str, leccion: int, respuest
     db.collection("intentos_leccion").document().set({
         "id_usuario": id_usuario,
         "unidad": unidad,
+        "seccion": seccion,
         "leccion": leccion,
         "modo": modo,
         "aciertos": aciertos,
@@ -232,7 +250,7 @@ def registrar_resultado(db, id_usuario: str, unidad: str, leccion: int, respuest
         "nivel_logrado": nuevo_nivel,
         "subio_de_nivel": nuevo_nivel > nivel_anterior,
         "recompensa_generada": recompensa,
-        "siguiente": siguiente_leccion(progreso),
+        "siguiente": siguiente_leccion(progreso, seccion),
     }
 
 
@@ -246,12 +264,13 @@ def intentos_recientes(db, id_usuario: str, limite: int = 20) -> list[dict]:
 def resumen_aprendizaje(db, id_usuario: str) -> dict:
     """Camino completo con estados + estadísticas. Lo usan el niño, su docente y sus padres."""
     progreso = leer_progreso(db, id_usuario)
-    siguiente = siguiente_leccion(progreso)
+    siguientes = {sec: siguiente_leccion(progreso, sec) for sec in ORDEN_POR_SECCION}
     lecciones = progreso["lecciones"]
 
     unidades = []
     for unidad in ORDEN_UNIDADES:
         info = info_unidad(unidad)
+        siguiente = siguientes[info["seccion"]]
         estados = []
         for numero in range(1, info["lecciones"] + 1):
             estado = lecciones.get(clave_leccion(unidad, numero), {})
@@ -288,10 +307,24 @@ def resumen_aprendizaje(db, id_usuario: str) -> dict:
 
     total_lecciones = len(lecciones_en_orden())
     aprobadas = sum(1 for e in lecciones.values() if e.get("aprobada"))
+    por_seccion = {
+        sec: {
+            "aprobadas": sum(
+                1 for u, n in lecciones_en_orden(sec) if lecciones.get(clave_leccion(u, n), {}).get("aprobada")
+            ),
+            "total": len(lecciones_en_orden(sec)),
+        }
+        for sec in ORDEN_POR_SECCION
+    }
     return {
         "secciones": SECCIONES,
         "unidades": unidades,
-        "siguiente": {**siguiente, "info": info_unidad(siguiente["unidad"])} if siguiente else None,
+        # La próxima lección de cada camino (el niño elige el camino; la lección, no).
+        "siguiente": {
+            sec: {**sig, "info": info_unidad(sig["unidad"])} if sig else None
+            for sec, sig in siguientes.items()
+        },
+        "por_seccion": por_seccion,
         "lecciones_aprobadas": aprobadas,
         "total_lecciones": total_lecciones,
         "precision": round(progreso["respuestas_correctas"] / progreso["respuestas_totales"], 2)
@@ -301,9 +334,12 @@ def resumen_aprendizaje(db, id_usuario: str) -> dict:
         "puntos_para_siguiente_nivel": puntos_para_siguiente_nivel(progreso["puntaje_total"]),
         # Última lección jugada (no la fecha de registro): define "activo hoy" y "sin practicar".
         "ultima_actividad": recientes[0]["fecha"] if recientes else None,
+        # Hora de cada intento reciente: el docente ve a qué horas estuvo activo.
+        "actividad": [i["fecha"] for i in recientes],
         "recientes": [
             {k: i[k] for k in ("unidad", "leccion", "modo", "aciertos", "total", "aprobada", "puntos", "fecha")}
-            | {"errores": len(i.get("errores", [])), "titulo": info_unidad(i["unidad"])["titulo"]}
+            | {"errores": len(i.get("errores", [])), "titulo": info_unidad(i["unidad"])["titulo"],
+               "emoji": info_unidad(i["unidad"])["emoji"], "seccion": seccion_de(i["unidad"])}
             for i in recientes[:8]
         ],
         "errores_frecuentes": sorted(conteo_errores.values(), key=lambda e: -e["veces"])[:8],

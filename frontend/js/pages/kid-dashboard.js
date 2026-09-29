@@ -11,6 +11,29 @@ if (sesion) iniciar(sesion);
 
 const titulo = (unidad) => unidad.titulo[idiomaActual()] || unidad.titulo.es;
 
+const CLAVE_SECCION = "pik_seccion";
+let resumen = null;
+
+function seccionElegida() {
+  try {
+    return localStorage.getItem(CLAVE_SECCION) === "gramatica" ? "gramatica" : "vocabulario";
+  } catch {
+    return "vocabulario";
+  }
+}
+
+// Botones "📚 Vocabulario | ✏️ Gramática": el niño elige el apartado.
+document.querySelectorAll("[data-seccion]").forEach((boton) => {
+  boton.addEventListener("click", () => {
+    try {
+      localStorage.setItem(CLAVE_SECCION, boton.dataset.seccion);
+    } catch {
+      /* sin almacenamiento: la elección dura solo esta visita */
+    }
+    pintarSeccion();
+  });
+});
+
 async function iniciar(sesion) {
   document.getElementById("titulo-hola").textContent = `${t("dash.hello")} ${sesion.nombre || ""} 👋`;
   if (sesion.codigo_acceso) {
@@ -18,15 +41,26 @@ async function iniciar(sesion) {
     document.getElementById("mi-codigo").classList.remove("oculto");
   }
 
-  const resumen = await apiFetch(`/api/lecciones/resumen/${sesion.id_usuario}`);
-  pintarProxima(resumen.siguiente);
+  resumen = await apiFetch(`/api/lecciones/resumen/${sesion.id_usuario}`);
   pintarEstadisticas(resumen);
-  pintarCamino(resumen, "vocabulario", document.getElementById("camino-vocabulario"));
-  pintarCamino(resumen, "gramatica", document.getElementById("camino-gramatica"));
   pintarRecientes(resumen.recientes);
+  pintarSeccion();
 }
 
-function pintarProxima(siguiente) {
+function pintarSeccion() {
+  if (!resumen) return;
+  const seccion = seccionElegida();
+  document.querySelectorAll("[data-seccion]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.seccion === seccion)));
+  document.getElementById("camino-titulo").textContent =
+    seccion === "vocabulario" ? `📚 ${t("path.vocabulary")}` : `✏️ ${t("path.grammar")}`;
+  const avance = resumen.por_seccion[seccion];
+  document.getElementById("stat-lecciones").textContent = `${avance.aprobadas}/${avance.total}`;
+  document.getElementById("barra-nivel").style.width = `${Math.round((avance.aprobadas / avance.total) * 100)}%`;
+  pintarProxima(resumen.siguiente[seccion], seccion);
+  pintarCamino(resumen, seccion, document.getElementById("camino"));
+}
+
+function pintarProxima(siguiente, seccion) {
   const boton = document.getElementById("btn-empezar");
   if (!siguiente) {
     document.getElementById("proxima-emoji").textContent = "🏆";
@@ -35,24 +69,22 @@ function pintarProxima(siguiente) {
     boton.classList.add("oculto");
     return;
   }
+  boton.classList.remove("oculto");
   const info = siguiente.info;
   document.getElementById("proxima-emoji").textContent = info.emoji;
   document.getElementById("proxima-titulo").textContent = titulo(info);
-  const seccion = info.seccion === "vocabulario" ? t("path.vocabulary") : t("path.grammar");
+  const nombreSeccion = seccion === "vocabulario" ? t("path.vocabulary") : t("path.grammar");
   const modo = siguiente.modo === "repaso" ? ` · 🔁 ${t("path.review")}` : "";
   document.getElementById("proxima-detalle").textContent =
-    `${seccion} · ${t("path.lesson")} ${siguiente.leccion} ${t("path.of")} ${info.lecciones}${modo}`;
-  // Sin parámetros: la lección la vuelve a elegir el servidor al abrir la actividad.
-  boton.addEventListener("click", () => (window.location.href = "activity.html"));
+    `${nombreSeccion} · ${t("path.lesson")} ${siguiente.leccion} ${t("path.of")} ${info.lecciones}${modo}`;
+  // Solo el apartado: la lección la vuelve a elegir el servidor al abrir la actividad.
+  boton.onclick = () => (window.location.href = `activity.html?seccion=${seccion}`);
 }
 
 function pintarEstadisticas(resumen) {
   document.getElementById("stat-nivel").textContent = resumen.nivel_logrado;
   document.getElementById("stat-puntos").textContent = resumen.puntaje_total;
-  document.getElementById("stat-lecciones").textContent = `${resumen.lecciones_aprobadas}/${resumen.total_lecciones}`;
   document.getElementById("stat-precision").textContent = porcentaje(resumen.precision);
-  const avance = Math.round((resumen.lecciones_aprobadas / resumen.total_lecciones) * 100);
-  document.getElementById("barra-nivel").style.width = `${avance}%`;
   document.getElementById("texto-siguiente-nivel").textContent =
     resumen.puntos_para_siguiente_nivel === null
       ? t("dash.max_level")
@@ -82,7 +114,7 @@ function pintarCamino(resumen, seccion, contenedor) {
       if (leccion.estado === "actual") {
         b.textContent = "▶";
         b.title = t("path.start");
-        b.addEventListener("click", () => (window.location.href = "activity.html"));
+        b.addEventListener("click", () => (window.location.href = `activity.html?seccion=${seccion}`));
       } else if (leccion.aprobada) {
         b.textContent = "✅";
         b.title = `${t("path.repeat")} · ${leccion.mejor}/${leccion.total}`;

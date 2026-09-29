@@ -1,6 +1,6 @@
 import { apiFetch } from "../api.js";
 import { montarPestanas, montarRegistrar, montarVincular } from "../estudiantes-ui.js";
-import { esc, porcentaje } from "../html.js";
+import { cuando, esc, hora, porcentaje } from "../html.js";
 import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
 import { exigirRol, salir } from "../session.js";
@@ -69,22 +69,58 @@ function pintarVista() {
   }
   const ul = document.createElement("ul");
   ul.className = "lista-estudiantes";
-  lista.forEach((e) => ul.appendChild(filaEstudiante(e, vista === "ayuda")));
+  lista.forEach((e) => ul.appendChild(filaEstudiante(e, vista)));
   contenido.appendChild(ul);
 }
 
-function filaEstudiante(e, mostrarMotivos) {
+// "Va en": la próxima lección de cada camino (vocabulario y gramática son independientes).
+function vaEn(siguiente) {
+  const partes = ["vocabulario", "gramatica"]
+    .filter((sec) => siguiente[sec])
+    .map((sec) => `${sec === "vocabulario" ? "📚" : "✏️"} ${esc(titulo(siguiente[sec].info))} · ${t("path.lesson")} ${siguiente[sec].leccion}`);
+  return partes.join(" &nbsp;·&nbsp; ") || "🏆";
+}
+
+// Agrupa las lecciones de hoy en sesiones: si entre una y otra pasan menos de 15 minutos,
+// cuentan como la misma sesión. "9:10 – 9:40 p. m. · 5 lecciones".
+function sesiones(horas, idioma) {
+  const grupos = [];
+  for (const iso of horas) {
+    const fecha = new Date(iso);
+    const ultimo = grupos[grupos.length - 1];
+    if (ultimo && fecha - ultimo.fin <= 15 * 60 * 1000) {
+      ultimo.fin = fecha;
+      ultimo.n += 1;
+    } else {
+      grupos.push({ inicio: fecha, fin: fecha, n: 1 });
+    }
+  }
+  return grupos
+    .map((g) => {
+      const desde = hora(g.inicio.toISOString(), idioma);
+      const hasta = hora(g.fin.toISOString(), idioma);
+      const rango = desde === hasta ? desde : `${desde} – ${hasta}`;
+      return `<span class="pill">${rango} · ${g.n} ${g.n === 1 ? t("teacher.lesson_one") : t("teacher.lessons_many")}</span>`;
+    })
+    .join(" ");
+}
+
+function filaEstudiante(e, vista) {
+  const mostrarMotivos = vista === "ayuda";
+  const idioma = idiomaActual();
   const li = document.createElement("li");
   li.className = "student-row";
   const avance = Math.round((e.lecciones_aprobadas / e.total_lecciones) * 100);
-  const siguiente = e.siguiente ? `${e.siguiente.info.emoji} ${esc(titulo(e.siguiente.info))} · ${t("path.lesson")} ${e.siguiente.leccion}` : "🏆";
   li.innerHTML = `
     <span class="emoji">🧒</span>
     <div class="info">
       <strong>${esc(e.nombre)}</strong>
       ${e.codigo_acceso ? `<span class="pill pill-codigo">🪪 ${esc(e.codigo_acceso)}</span>` : ""}
       ${e.necesita_ayuda ? `<span class="pill alerta">${t("teacher.needs_help_badge")}</span>` : ""}
-      <div class="hint">${t("path.lessons")}: ${e.lecciones_aprobadas}/${e.total_lecciones} · ${t("path.accuracy")}: ${porcentaje(e.precision)} · ${t("teacher.now_on")}: ${siguiente}</div>
+      <div class="hint">${t("path.lessons")}: ${e.lecciones_aprobadas}/${e.total_lecciones} · ${t("path.accuracy")}: ${porcentaje(e.precision)}</div>
+      <div class="hint">${t("teacher.now_on")}: ${vaEn(e.siguiente)}</div>
+      <div class="hint">🕑 ${t("teacher.last_active")}: ${e.ultima_actividad ? cuando(e.ultima_actividad, idioma) : t("teacher.never")}</div>
+      ${vista === "activos" && e.horas_hoy.length ? `<div class="horas-hoy">⚡ ${t("teacher.active_at")}: ${sesiones(e.horas_hoy, idioma)}</div>` : ""}
       <div class="progress-bar"><div class="progress-bar-fill" style="width:${avance}%"></div></div>
       ${mostrarMotivos ? `<ul class="motivos">${e.motivos.map((m) => `<li>⚠️ ${esc(m)}</li>`).join("")}</ul>` : ""}
     </div>
@@ -124,8 +160,8 @@ async function cargarDetalle(e, detalle) {
         ${t("teacher.correct_was")} <strong>${esc(err.respuesta_correcta)}</strong> <span class="hint">(${err.veces}×)</span></li>`)
     .join("");
   const intentos = aprendizaje.recientes
-    .map((r) => `<li>${r.aprobada ? "✅" : "💔"} ${esc(titulo(r))} · ${t("path.lesson")} ${r.leccion}
-        <span class="hint">${r.aprobada ? `${r.aciertos}/${r.total}` : `${r.errores} ${t("path.errors")}`}${r.modo === "practica" ? " · " + t("path.practice") : ""}</span></li>`)
+    .map((r) => `<li>${r.aprobada ? "✅" : "💔"} ${esc(r.emoji)} ${esc(titulo(r))} · ${t("path.lesson")} ${r.leccion}
+        <span class="hint">${r.aprobada ? `${r.aciertos}/${r.total}` : `${r.errores} ${t("path.errors")}`}${r.modo === "practica" ? " · " + t("path.practice") : ""} · ${cuando(r.fecha, idiomaActual())}</span></li>`)
     .join("");
 
   detalle.innerHTML = `
