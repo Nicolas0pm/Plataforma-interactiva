@@ -142,8 +142,11 @@ class FakeRealtimeRef:
     def set(self, data):
         self._store[self._path] = data
 
-    def get(self):
+    def get(self, shallow: bool = False):
         return self._store.get(self._path)
+
+    def delete(self):
+        self._store.pop(self._path, None)
 
 
 _cliente_fake: FakeFirestoreClient | None = None

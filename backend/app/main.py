@@ -2,10 +2,11 @@ import logging
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import get_settings
-from app.routers import actividades, auditoria, feedback, lecciones, recompensas, usuarios, vinculacion
+from app.routers import actividades, auditoria, feedback, lecciones, mundos, recompensas, tienda, usuarios, vinculacion
 from app.services.auth_service import registrar_auditoria
 from app.services.firebase_service import get_firestore_client
 
@@ -27,6 +28,10 @@ async def sin_cache(request: Request, call_next):
     return respuesta
 
 
+# Los resúmenes (camino completo del niño, panel del salón) son JSON de varios KB:
+# comprimidos viajan mucho más rápido por redes móviles.
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -45,6 +50,8 @@ if settings.use_fake_db:
 app.include_router(usuarios.router)
 app.include_router(actividades.router)
 app.include_router(lecciones.router)
+app.include_router(mundos.router)
+app.include_router(tienda.router)
 app.include_router(feedback.router)
 app.include_router(recompensas.router)
 app.include_router(vinculacion.router)

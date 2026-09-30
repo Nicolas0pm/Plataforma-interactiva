@@ -1,11 +1,18 @@
 """
 RF05: Sistema de recompensas físicas.
 
-Cuando un estudiante cruza un umbral de puntos, se crea un registro en
-`historial_recompensas` (Firestore, fuente de verdad) y, si hay un dispositivo ESP32
-asociado, se escribe un comando en Realtime Database `cola_recompensas/{device_id}`
-para que el hardware lo recoja. Esto último es opcional hoy (fase futura) y se activa
-solo si FIREBASE_REALTIME_DB_URL está configurado.
+El premio real llega cuando el estudiante **completa un mundo** (`recompensa_por_mundo`):
+se crea un registro en `historial_recompensas` (Firestore, fuente de verdad) y, si el
+estudiante tiene una máquina de premios (ESP32) asignada, se encola un pedido en Realtime
+Database `cola_recompensas/{device_id}/{id_historial}` para que la máquina suelte un
+juguete. Sin máquina, el logro queda registrado como "celebrada" (solo felicitación).
+
+Cada pedido es un nodo propio dentro de la cola del dispositivo: si dos niños ganan casi
+al mismo tiempo, ninguno sobrescribe al otro. La máquina borra el nodo al confirmar la
+entrega (ver `routers/recompensas.py` y `esp32/README.md`).
+
+(`evaluar_recompensa`, por umbral de puntos, queda solo para el endpoint antiguo
+`/api/actividades/completar`; los puntos ahora se gastan en la tienda del perfil.)
 """
 from datetime import datetime, timezone
 
@@ -50,15 +57,44 @@ def evaluar_recompensa(id_usuario: str, puntaje_total: int, puntaje_anterior: in
         detalle={"id_historial": recompensa_ref.id, "puntos_consumidos": _settings.reward_threshold},
     )
 
-    if device_id and _settings.realtime_db_url:
-        get_realtime_ref(f"cola_recompensas/{device_id}").set(
-            {
-                "id_usuario": id_usuario,
-                "id_historial_recompensa": recompensa_ref.id,
-                "comando": "dispensar",
-                "estado": "pendiente",
-                "timestamp": datetime.now(timezone.utc).timestamp(),
-            }
-        )
-
+    _encolar_para_maquina(device_id, id_usuario, recompensa_ref.id)
     return {**recompensa, "id_historial": recompensa_ref.id}
+
+
+def _encolar_para_maquina(device_id: str | None, id_usuario: str, id_historial: str) -> None:
+    if not (device_id and _settings.realtime_db_url):
+        return
+    get_realtime_ref(f"cola_recompensas/{device_id}/{id_historial}").set(
+        {
+            "id_usuario": id_usuario,
+            "id_historial_recompensa": id_historial,
+            "comando": "dispensar",
+            "estado": "pendiente",
+            "timestamp": datetime.now(timezone.utc).timestamp(),
+        }
+    )
+
+
+def recompensa_por_mundo(db, id_usuario: str, info_unidad: dict) -> dict:
+    """El estudiante completó un mundo: premio físico si tiene máquina, felicitación si no."""
+    usuario = db.collection("usuarios").document(id_usuario).get().to_dict() or {}
+    device_id = usuario.get("device_id")
+    recompensa = {
+        "id_usuario": id_usuario,
+        "tipo": "mundo",
+        "unidad": info_unidad["id"],
+        "titulo": info_unidad["titulo"],
+        "emoji": info_unidad["emoji"],
+        "fecha_entrega": datetime.now(timezone.utc),
+        "puntos_consumidos": 0,
+        "estado": "pendiente" if device_id else "celebrada",
+        "device_id": device_id,
+    }
+    ref = db.collection("historial_recompensas").document()
+    ref.set(recompensa)
+    registrar_auditoria(
+        db, tipo="mundo_completado", actor=id_usuario,
+        detalle={"id_historial": ref.id, "unidad": info_unidad["id"], "con_maquina": bool(device_id)},
+    )
+    _encolar_para_maquina(device_id, id_usuario, ref.id)
+    return {**recompensa, "id_historial": ref.id}

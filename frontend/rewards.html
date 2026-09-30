@@ -21,10 +21,27 @@
   </div>
 
   <main>
+    <!-- Perfil: avatar con su marco y los puntos para gastar -->
+    <div class="card centrado">
+      <div class="avatar-perfil grande" id="mi-avatar">🦊</div>
+      <p class="saldo">⭐ <strong id="saldo">0</strong> <span data-i18n="shop.to_spend">puntos para gastar</span></p>
+      <p class="hint" data-i18n="shop.how_to_earn">Ganas puntos al aprobar lecciones. ¡Úsalos para decorar tu perfil!</p>
+    </div>
+
     <div class="card">
-      <h2 data-i18n="rewards.title">Mis recompensas</h2>
+      <h2>🛍️ <span data-i18n="shop.title">Tienda</span></h2>
+      <h3 data-i18n="shop.avatars">Avatares</h3>
+      <div class="tienda-grid" id="tienda-avatares"></div>
+      <h3 data-i18n="shop.frames">Marcos</h3>
+      <div class="tienda-grid" id="tienda-marcos"></div>
+      <p class="error-msg" id="error-tienda" role="alert"></p>
+    </div>
+
+    <div class="card">
+      <h2>🏆 <span data-i18n="rewards.title">Mundos completados</span></h2>
+      <p class="hint" data-i18n="rewards.hint">Cada vez que completas un mundo ganas un premio.</p>
       <ul class="reward-list" id="lista-recompensas"></ul>
-      <p class="hint oculto" id="sin-recompensas" data-i18n="rewards.empty">Todavía no tienes recompensas. ¡Sigue jugando!</p>
+      <p class="hint oculto" id="sin-recompensas" data-i18n="rewards.empty">Todavía no completas un mundo. ¡Sigue jugando!</p>
     </div>
   </main>
 

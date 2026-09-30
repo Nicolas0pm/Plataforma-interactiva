@@ -43,8 +43,12 @@ def vincular_con_pin(codigo: str, pin: str, usuario: dict) -> dict:
         estudiante.reference.update({"acudientes_ids": acudientes})
         data["acudientes_ids"] = acudientes
     else:
-        estudiante.reference.update({"docente_id": id_usuario})
-        data["docente_id"] = id_usuario
+        docente = db.collection("usuarios").document(id_usuario).get().to_dict() or {}
+        cambios = {"docente_id": id_usuario}
+        if docente.get("device_id_aula"):
+            cambios["device_id"] = docente["device_id_aula"]
+        estudiante.reference.update(cambios)
+        data.update(cambios)
 
     registrar_auditoria(
         db, tipo="vinculacion_confirmada", actor=id_usuario,

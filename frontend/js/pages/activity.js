@@ -152,13 +152,25 @@ async function terminar() {
 
   if (resultado.aprobada) {
     const extra = [t("activity.lesson_summary").replace("{aciertos}", resultado.aciertos).replace("{total}", resultado.total)];
-    extra.push(resultado.modo === "practica" ? t("activity.practice_no_points") : `+${resultado.puntos_ganados} ⭐`);
+    extra.push(
+      resultado.modo === "practica"
+        ? t("activity.practice_no_points")
+        : `+${resultado.puntos_ganados} ⭐ ${t("activity.points_for_shop")}`
+    );
     if (resultado.subio_de_nivel) extra.push(t("activity.level_up"));
-    // Solo se habla de "ir a la máquina" si el estudiante tiene un dispensador asignado.
-    if (resultado.recompensa_generada) {
-      extra.push(resultado.recompensa_generada.device_id ? t("activity.reward") : t("activity.reward_no_device"));
+
+    const mundo = resultado.mundo_completado;
+    if (mundo) {
+      // ¡Completó todo un mundo! Con máquina de premios se le pide ir por su juguete;
+      // sin máquina, se le felicita (sin prometer un premio físico que no existe).
+      const nombreMundo = mundo.titulo[idiomaActual()] || mundo.titulo.es;
+      extra.unshift(
+        (mundo.recompensa.device_id ? t("activity.world_reward") : t("activity.world_done")).replace("{mundo}", nombreMundo)
+      );
+      mostrarModal({ emoji: `${mundo.emoji}🎁`, titulo: t("activity.world_title"), extra, principal: [t("activity.continue"), irAlMapa] });
+    } else {
+      mostrarModal({ emoji: "🏆", titulo: t("activity.lesson_passed"), extra, principal: [t("activity.continue"), irAlMapa] });
     }
-    mostrarModal({ emoji: "🏆", titulo: t("activity.lesson_passed"), extra, principal: [t("activity.continue"), irAlMapa] });
     lanzarConfeti();
   } else {
     mostrarModal({

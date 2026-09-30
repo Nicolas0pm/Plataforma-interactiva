@@ -15,8 +15,9 @@ montarRegistrar({ onCreado: () => cargar() });
 
 // RF06/RF09: los botones de arriba eligen qué se ve abajo. La vista queda en la URL
 // (#ayuda, #progreso...) para que al volver o recargar se mantenga.
-const VISTAS = ["estudiantes", "ayuda", "progreso", "activos"];
+const VISTAS = ["estudiantes", "ayuda", "progreso", "activos", "mundos"];
 let resumen = null;
+let mundos = [];
 
 const titulo = (u) => u.titulo[idiomaActual()] || u.titulo.es;
 
@@ -35,8 +36,28 @@ async function cargar() {
   document.getElementById("stat-ayuda").textContent = resumen.necesitan_ayuda;
   document.getElementById("stat-promedio").textContent = `${resumen.progreso_promedio} %`;
   document.getElementById("stat-activos").textContent = resumen.activos_hoy;
+  document.getElementById("maquina-id").value = resumen.dispensador || "";
+  pintarEstadoMaquina(resumen.dispensador);
+  mundos = await apiFetch("/api/mundos");
+  document.getElementById("stat-mundos").textContent = mundos.length;
   pintarVista();
 }
+
+// ---------- Máquina de premios del salón ----------
+function pintarEstadoMaquina(deviceId) {
+  document.getElementById("maquina-estado").textContent = deviceId
+    ? `✅ ${t("machine.connected").replace("{id}", deviceId)}`
+    : `ℹ️ ${t("machine.none")}`;
+}
+
+document.getElementById("form-maquina").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const r = await apiFetch(`/api/usuarios/docente/${sesion.id_usuario}/dispensador`, {
+    method: "PUT",
+    body: { device_id: document.getElementById("maquina-id").value.trim() || null },
+  });
+  pintarEstadoMaquina(r.device_id);
+});
 
 function vistaActual() {
   const hash = window.location.hash.slice(1);
@@ -51,6 +72,7 @@ function pintarVista() {
   document.getElementById("vista-ayuda").textContent = t(`teacher.view_${vista}_hint`);
   const contenido = document.getElementById("vista-contenido");
   contenido.innerHTML = "";
+  if (vista === "mundos") return pintarMundos(contenido);
 
   const estudiantes = resumen.estudiantes;
   if (!estudiantes.length) {
@@ -75,9 +97,10 @@ function pintarVista() {
 
 // "Va en": la próxima lección de cada camino (vocabulario y gramática son independientes).
 function vaEn(siguiente) {
-  const partes = ["vocabulario", "gramatica"]
+  const iconos = { vocabulario: "📚", gramatica: "✏️", profesor: "👩‍🏫" };
+  const partes = Object.keys(iconos)
     .filter((sec) => siguiente[sec])
-    .map((sec) => `${sec === "vocabulario" ? "📚" : "✏️"} ${esc(titulo(siguiente[sec].info))} · ${t("path.lesson")} ${siguiente[sec].leccion}`);
+    .map((sec) => `${iconos[sec]} ${esc(titulo(siguiente[sec].info))} · ${t("path.lesson")} ${siguiente[sec].leccion}`);
   return partes.join(" &nbsp;·&nbsp; ") || "🏆";
 }
 
@@ -112,12 +135,12 @@ function filaEstudiante(e, vista) {
   li.className = "student-row";
   const avance = Math.round((e.lecciones_aprobadas / e.total_lecciones) * 100);
   li.innerHTML = `
-    <span class="emoji">🧒</span>
+    <span class="avatar-perfil mini ${esc(e.perfil?.marco || "")}">${esc(e.perfil?.avatar_emoji || "🧒")}</span>
     <div class="info">
       <strong>${esc(e.nombre)}</strong>
       ${e.codigo_acceso ? `<span class="pill pill-codigo">🪪 ${esc(e.codigo_acceso)}</span>` : ""}
       ${e.necesita_ayuda ? `<span class="pill alerta">${t("teacher.needs_help_badge")}</span>` : ""}
-      <div class="hint">${t("path.lessons")}: ${e.lecciones_aprobadas}/${e.total_lecciones} · ${t("path.accuracy")}: ${porcentaje(e.precision)}</div>
+      <div class="hint">${t("path.lessons")}: ${e.lecciones_aprobadas}/${e.total_lecciones} · ${t("path.accuracy")}: ${porcentaje(e.precision)} · 🏆 ${e.mundos_completados}</div>
       <div class="hint">${t("teacher.now_on")}: ${vaEn(e.siguiente)}</div>
       <div class="hint">🕑 ${t("teacher.last_active")}: ${e.ultima_actividad ? cuando(e.ultima_actividad, idioma) : t("teacher.never")}</div>
       ${vista === "activos" && e.horas_hoy.length ? `<div class="horas-hoy">⚡ ${t("teacher.active_at")}: ${sesiones(e.horas_hoy, idioma)}</div>` : ""}
@@ -219,4 +242,159 @@ function pintarProgreso(contenido) {
       </table>
     </div>
   `;
+}
+
+
+// ---------- Mis mundos: el docente crea mundos y preguntas de selección múltiple ----------
+function pintarMundos(contenido) {
+  contenido.innerHTML = `
+    <form class="form-mundo" id="form-mundo">
+      <h3>➕ ${t("worlds.create")}</h3>
+      <div class="fila-form">
+        <label class="sr-only" for="mundo-emoji">Emoji</label>
+        <input id="mundo-emoji" class="campo-emoji" maxlength="8" value="🌟" aria-label="Emoji" />
+        <label class="sr-only" for="mundo-titulo">${t("worlds.name")}</label>
+        <input id="mundo-titulo" maxlength="40" required placeholder="${t("worlds.name_placeholder")}" />
+      </div>
+      <label for="mundo-descripcion">${t("worlds.description")}</label>
+      <input id="mundo-descripcion" maxlength="140" placeholder="${t("worlds.description_placeholder")}" />
+      <button type="submit">${t("worlds.create")}</button>
+      <p class="error-msg" id="error-mundo" role="alert"></p>
+    </form>
+    <div id="lista-mundos"></div>
+  `;
+  document.getElementById("form-mundo").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+      await apiFetch("/api/mundos", {
+        method: "POST",
+        body: {
+          titulo: document.getElementById("mundo-titulo").value,
+          emoji: document.getElementById("mundo-emoji").value || "🌟",
+          descripcion: document.getElementById("mundo-descripcion").value,
+        },
+      });
+      await recargarMundos();
+    } catch (err) {
+      document.getElementById("error-mundo").textContent = err.message;
+    }
+  });
+  pintarListaMundos();
+}
+
+async function recargarMundos(abrir) {
+  mundos = await apiFetch("/api/mundos");
+  document.getElementById("stat-mundos").textContent = mundos.length;
+  pintarVista();
+  if (abrir) document.querySelector(`[data-mundo="${abrir}"] .btn-preguntas`)?.click();
+}
+
+function pintarListaMundos() {
+  const lista = document.getElementById("lista-mundos");
+  if (!mundos.length) {
+    lista.innerHTML = `<p class="vacio">🌍 ${t("worlds.empty")}</p>`;
+    return;
+  }
+  lista.innerHTML = "";
+  for (const m of mundos) {
+    const tarjeta = document.createElement("div");
+    tarjeta.className = "mundo-docente";
+    tarjeta.dataset.mundo = m.id_mundo;
+    tarjeta.innerHTML = `
+      <div class="mundo-cabecera">
+        <span class="unidad-emoji">${esc(m.emoji)}</span>
+        <div class="unidad-info">
+          <strong>${esc(m.titulo)}</strong>
+          <span class="hint">${m.preguntas} ${t("worlds.questions")} · ${m.lecciones} ${t("path.lessons").toLowerCase()}
+            ${m.preguntas ? "" : ` · ${t("worlds.hidden_until")}`}</span>
+          ${m.descripcion ? `<span class="hint">${esc(m.descripcion)}</span>` : ""}
+        </div>
+        <div class="acciones">
+          <button type="button" class="secundario btn-preguntas" aria-expanded="false">✏️ ${t("worlds.edit")}</button>
+          <button type="button" class="secundario btn-borrar-mundo" aria-label="${t("worlds.delete")}">🗑️</button>
+        </div>
+      </div>
+      <div class="mundo-preguntas oculto"></div>
+    `;
+    const panel = tarjeta.querySelector(".mundo-preguntas");
+    const boton = tarjeta.querySelector(".btn-preguntas");
+    boton.addEventListener("click", async () => {
+      const abrir = panel.classList.contains("oculto");
+      panel.classList.toggle("oculto", !abrir);
+      boton.setAttribute("aria-expanded", String(abrir));
+      if (abrir) await pintarPreguntas(m, panel);
+    });
+    tarjeta.querySelector(".btn-borrar-mundo").addEventListener("click", async () => {
+      if (!confirm(t("worlds.confirm_delete").replace("{mundo}", m.titulo))) return;
+      await apiFetch(`/api/mundos/${m.id_mundo}`, { method: "DELETE" });
+      await recargarMundos();
+    });
+    lista.appendChild(tarjeta);
+  }
+}
+
+async function pintarPreguntas(mundo, panel) {
+  const preguntas = await apiFetch(`/api/mundos/${mundo.id_mundo}/preguntas`);
+  panel.innerHTML = `
+    <ol class="lista-preguntas">${
+      preguntas
+        .map((p, i) => `<li>
+          ${i % 8 === 0 ? `<span class="pill">${t("path.lesson")} ${i / 8 + 1}</span>` : ""}
+          <span>${p.icono ? esc(p.icono) + " " : ""}<strong>${esc(p.pregunta)}</strong></span>
+          <span class="hint">${p.opciones.map((o) => (o === p.respuesta_correcta ? `✅ ${esc(o)}` : esc(o))).join(" · ")}</span>
+          <button type="button" class="secundario btn-borrar-pregunta" data-id="${esc(p.id_actividad)}" aria-label="${t("worlds.delete")}">🗑️</button>
+        </li>`)
+        .join("") || `<li class="hint">${t("worlds.no_questions")}</li>`
+    }</ol>
+    <form class="form-pregunta">
+      <h4>➕ ${t("worlds.new_question")}</h4>
+      <p class="hint">${t("worlds.multiple_choice_hint")}</p>
+      <div class="fila-form">
+        <input class="campo-emoji" name="icono" maxlength="8" placeholder="🐶" aria-label="${t("worlds.icon")}" />
+        <input name="pregunta" maxlength="200" required placeholder="${t("worlds.question_placeholder")}" aria-label="${t("worlds.question")}" />
+      </div>
+      ${[0, 1, 2, 3]
+        .map((i) => `<label class="opcion-form">
+          <input type="radio" name="correcta" value="${i}" ${i === 0 ? "checked" : ""} aria-label="${t("worlds.mark_correct")}" />
+          <input name="opcion${i}" maxlength="60" ${i < 2 ? "required" : ""}
+            placeholder="${t("worlds.option")} ${i + 1}${i < 2 ? "" : ` (${t("worlds.optional")})`}" />
+        </label>`)
+        .join("")}
+      <p class="hint">🔘 = ${t("worlds.mark_correct")}</p>
+      <button type="submit">${t("worlds.add_question")}</button>
+      <p class="error-msg" role="alert"></p>
+    </form>
+  `;
+  panel.querySelectorAll(".btn-borrar-pregunta").forEach((b) =>
+    b.addEventListener("click", async () => {
+      await apiFetch(`/api/mundos/${mundo.id_mundo}/preguntas/${b.dataset.id}`, { method: "DELETE" });
+      await recargarMundos(mundo.id_mundo);
+    })
+  );
+  const form = panel.querySelector(".form-pregunta");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const datos = new FormData(form);
+    const opciones = [0, 1, 2, 3].map((i) => (datos.get(`opcion${i}`) || "").trim());
+    const correcta = opciones[Number(datos.get("correcta"))];
+    const error = form.querySelector(".error-msg");
+    if (!correcta) {
+      error.textContent = t("worlds.correct_empty");
+      return;
+    }
+    try {
+      await apiFetch(`/api/mundos/${mundo.id_mundo}/preguntas`, {
+        method: "POST",
+        body: {
+          pregunta: datos.get("pregunta"),
+          icono: datos.get("icono") || null,
+          opciones: opciones.filter(Boolean),
+          respuesta_correcta: correcta,
+        },
+      });
+      await recargarMundos(mundo.id_mundo);
+    } catch (err) {
+      error.textContent = err.message;
+    }
+  });
 }

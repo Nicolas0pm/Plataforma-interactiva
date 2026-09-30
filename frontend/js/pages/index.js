@@ -1,5 +1,9 @@
 import { inicializarLangToggle } from "../i18n.js";
 import "../nav.js";
+import { despertarServidor } from "../api.js";
+
+// Mientras la persona elige o escribe, el servidor va despertando (plan gratis de Render).
+despertarServidor();
 import { cerrarSesion, obtenerSesion } from "../session.js";
 
 inicializarLangToggle();

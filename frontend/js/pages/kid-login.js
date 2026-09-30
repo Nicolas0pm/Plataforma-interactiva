@@ -1,6 +1,10 @@
 import { apiFetch } from "../api.js";
 import { inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
+import { despertarServidor } from "../api.js";
+
+// Mientras la persona elige o escribe, el servidor va despertando (plan gratis de Render).
+despertarServidor();
 import { guardarSesion, obtenerSesion } from "../session.js";
 
 // Si el niño ya tiene sesión abierta, no tiene sentido volver a pedirle el PIN.
@@ -37,7 +41,11 @@ function mostrarPaso(paso) {
   }
 }
 
+const botonEntrar = document.getElementById("btn-entrar");
+
 function pintarPin() {
+  // El PIN no se envía solo al marcar el 4.º número: el niño confirma con "Entrar".
+  botonEntrar.disabled = pin.length !== PIN_LARGO;
   puntos.innerHTML = "";
   puntos.setAttribute("aria-label", `${pin.length} / ${PIN_LARGO}`);
   for (let i = 0; i < PIN_LARGO; i++) {
@@ -64,12 +72,18 @@ document.getElementById("btn-cambiar-codigo").addEventListener("click", () => {
   mostrarPaso("codigo");
 });
 
-async function marcarDigito(digito) {
+function marcarDigito(digito) {
   if (pin.length >= PIN_LARGO) return;
   pin += digito;
+  errorEl.textContent = "";
   pintarPin();
-  if (pin.length === PIN_LARGO) await intentarLogin();
 }
+
+botonEntrar.addEventListener("click", async () => {
+  if (pin.length !== PIN_LARGO) return;
+  botonEntrar.disabled = true;
+  await intentarLogin();
+});
 
 document.getElementById("pin-pad").addEventListener("click", async (evento) => {
   const boton = evento.target.closest("button");
@@ -80,13 +94,14 @@ document.getElementById("pin-pad").addEventListener("click", async (evento) => {
     errorEl.textContent = "";
     return;
   }
-  if (boton.dataset.num !== undefined) await marcarDigito(boton.dataset.num);
+  if (boton.dataset.num !== undefined) marcarDigito(boton.dataset.num);
 });
 
 // En computador, el PIN también se puede marcar con el teclado.
 document.addEventListener("keydown", async (evento) => {
   if (pasoPin.hidden) return;
-  if (/^[0-9]$/.test(evento.key)) await marcarDigito(evento.key);
+  if (/^[0-9]$/.test(evento.key)) marcarDigito(evento.key);
+  else if (evento.key === "Enter" && pin.length === PIN_LARGO) botonEntrar.click();
   else if (evento.key === "Backspace") {
     pin = pin.slice(0, -1);
     pintarPin();

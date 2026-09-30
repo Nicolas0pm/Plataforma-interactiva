@@ -38,12 +38,28 @@
         <span class="valor" id="stat-activos">0</span>
         <span class="etiqueta">⚡ <span data-i18n="teacher.active_today">Activos hoy</span></span>
       </button>
+      <button type="button" role="tab" class="stat-tile morado" data-vista="mundos" aria-selected="false">
+        <span class="valor" id="stat-mundos">0</span>
+        <span class="etiqueta">🌍 <span data-i18n="worlds.title">Mis mundos</span></span>
+      </button>
     </div>
 
     <div class="card" id="vista" role="tabpanel" aria-live="polite">
       <h2 id="vista-titulo"></h2>
       <p class="hint" id="vista-ayuda"></p>
       <div id="vista-contenido"><p class="hint" data-i18n="activity.loading">Cargando...</p></div>
+    </div>
+
+    <!-- RF05: la máquina de premios (ESP32) del salón -->
+    <div class="card">
+      <h2>🎁 <span data-i18n="machine.title">Máquina de premios del salón</span></h2>
+      <p class="hint" data-i18n="machine.hint"></p>
+      <form id="form-maquina" class="fila-form">
+        <label for="maquina-id" class="sr-only" data-i18n="machine.id">ID de la máquina</label>
+        <input id="maquina-id" type="text" maxlength="60" placeholder="aula-101" autocomplete="off" />
+        <button type="submit" data-i18n="machine.save">Guardar</button>
+      </form>
+      <p class="hint" id="maquina-estado" role="status"></p>
     </div>
 
     <div class="card" id="agregar-ninos">

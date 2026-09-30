@@ -14,9 +14,16 @@ const titulo = (unidad) => unidad.titulo[idiomaActual()] || unidad.titulo.es;
 const CLAVE_SECCION = "pik_seccion";
 let resumen = null;
 
+const SECCIONES = {
+  vocabulario: { emoji: "📚", clave: "path.vocabulary" },
+  gramatica: { emoji: "✏️", clave: "path.grammar" },
+  profesor: { emoji: "👩‍🏫", clave: "path.teacher" },
+};
+
 function seccionElegida() {
   try {
-    return localStorage.getItem(CLAVE_SECCION) === "gramatica" ? "gramatica" : "vocabulario";
+    const guardada = localStorage.getItem(CLAVE_SECCION);
+    return SECCIONES[guardada] ? guardada : "vocabulario";
   } catch {
     return "vocabulario";
   }
@@ -42,6 +49,11 @@ async function iniciar(sesion) {
   }
 
   resumen = await apiFetch(`/api/lecciones/resumen/${sesion.id_usuario}`);
+  const avatar = document.getElementById("mi-avatar");
+  avatar.textContent = resumen.perfil.avatar_emoji;
+  if (resumen.perfil.marco) avatar.classList.add(resumen.perfil.marco);
+  document.getElementById("saldo").textContent = resumen.perfil.saldo;
+  document.getElementById("stat-mundos").textContent = resumen.mundos_completados;
   pintarEstadisticas(resumen);
   pintarRecientes(resumen.recientes);
   pintarSeccion();
@@ -51,11 +63,19 @@ function pintarSeccion() {
   if (!resumen) return;
   const seccion = seccionElegida();
   document.querySelectorAll("[data-seccion]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.seccion === seccion)));
-  document.getElementById("camino-titulo").textContent =
-    seccion === "vocabulario" ? `📚 ${t("path.vocabulary")}` : `✏️ ${t("path.grammar")}`;
+  document.getElementById("camino-titulo").textContent = `${SECCIONES[seccion].emoji} ${t(SECCIONES[seccion].clave)}`;
   const avance = resumen.por_seccion[seccion];
   document.getElementById("stat-lecciones").textContent = `${avance.aprobadas}/${avance.total}`;
-  document.getElementById("barra-nivel").style.width = `${Math.round((avance.aprobadas / avance.total) * 100)}%`;
+  document.getElementById("barra-nivel").style.width = `${avance.total ? Math.round((avance.aprobadas / avance.total) * 100) : 0}%`;
+  if (seccion === "profesor" && !avance.total) {
+    // El profe todavía no ha creado mundos (o el niño no tiene profe vinculado).
+    document.getElementById("proxima-emoji").textContent = "👩‍🏫";
+    document.getElementById("proxima-titulo").textContent = t("path.teacher_empty");
+    document.getElementById("proxima-detalle").textContent = t("path.teacher_empty_hint");
+    document.getElementById("btn-empezar").classList.add("oculto");
+    document.getElementById("camino").innerHTML = "";
+    return;
+  }
   pintarProxima(resumen.siguiente[seccion], seccion);
   pintarCamino(resumen, seccion, document.getElementById("camino"));
 }
@@ -73,7 +93,7 @@ function pintarProxima(siguiente, seccion) {
   const info = siguiente.info;
   document.getElementById("proxima-emoji").textContent = info.emoji;
   document.getElementById("proxima-titulo").textContent = titulo(info);
-  const nombreSeccion = seccion === "vocabulario" ? t("path.vocabulary") : t("path.grammar");
+  const nombreSeccion = t(SECCIONES[seccion].clave);
   const modo = siguiente.modo === "repaso" ? ` · 🔁 ${t("path.review")}` : "";
   document.getElementById("proxima-detalle").textContent =
     `${nombreSeccion} · ${t("path.lesson")} ${siguiente.leccion} ${t("path.of")} ${info.lecciones}${modo}`;

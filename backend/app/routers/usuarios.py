@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta, timezone
 
+from typing import Optional
+
 from fastapi import APIRouter, Depends, Header, HTTPException
+from pydantic import BaseModel, Field
 
 from app.config import get_settings
 from app.models.schemas import (
@@ -69,6 +72,10 @@ def crear_usuario(payload: UsuarioCreate, authorization: str | None = Header(def
         data["auth_uid"] = None
         if usuario["rol"] == "docente" and not data.get("docente_id"):
             data["docente_id"] = usuario["id_usuario"]
+        if usuario["rol"] == "docente" and not data.get("device_id"):
+            # Si el salón tiene máquina de premios, el niño nuevo queda conectado a ella.
+            docente = db.collection("usuarios").document(usuario["id_usuario"]).get().to_dict() or {}
+            data["device_id"] = docente.get("device_id_aula")
         if usuario["rol"] == "padre" and usuario["id_usuario"] not in data.get("acudientes_ids", []):
             data.setdefault("acudientes_ids", []).append(usuario["id_usuario"])
     else:
@@ -252,3 +259,26 @@ def hijos_de_padre(id_padre: str, usuario: dict = Depends(current_user)):
     db = get_firestore_client()
     query = db.collection("usuarios").where("acudientes_ids", "array_contains", id_padre)
     return [{**doc.to_dict(), "id_usuario": doc.id} for doc in query.stream()]
+
+
+class DispensadorAula(BaseModel):
+    device_id: Optional[str] = Field(default=None, max_length=60)
+
+
+@router.put("/docente/{id_docente}/dispensador")
+def asignar_dispensador(id_docente: str, payload: DispensadorAula, usuario: dict = Depends(current_user)):
+    """RF05: la máquina de premios (ESP32) del salón. Se guarda en el docente y se asigna a
+    todos sus estudiantes (y a los que registre después). Vacío = sin máquina: al completar
+    un mundo los niños solo reciben la felicitación."""
+    if usuario["rol"] not in ("docente", "admin") or (usuario["rol"] != "admin" and usuario["id_usuario"] != id_docente):
+        raise HTTPException(403, "Solo el propio docente (o un admin) puede cambiar la máquina del salón")
+    device_id = (payload.device_id or "").strip() or None
+    db = get_firestore_client()
+    db.collection("usuarios").document(id_docente).update({"device_id_aula": device_id})
+    estudiantes = db.collection("usuarios").where("docente_id", "==", id_docente).where("rol", "==", "estudiante")
+    n = 0
+    for doc in estudiantes.stream():
+        doc.reference.update({"device_id": device_id})
+        n += 1
+    registrar_auditoria(db, tipo="dispensador_asignado", actor=usuario["id_usuario"], detalle={"device_id": device_id, "estudiantes": n})
+    return {"device_id": device_id, "estudiantes": n}

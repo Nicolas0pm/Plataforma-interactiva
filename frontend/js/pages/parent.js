@@ -24,23 +24,28 @@ async function cargar(sesion) {
   const contenedor = document.getElementById("hijos");
   contenedor.innerHTML = "";
 
-  for (const hijo of hijos) {
-    const [aprendizaje, recompensas, feedback] = await Promise.all([
-      apiFetch(`/api/lecciones/resumen/${hijo.id_usuario}`).catch(() => null),
-      apiFetch(`/api/recompensas/estudiante/${hijo.id_usuario}`).catch(() => []),
-      apiFetch(`/api/feedback/estudiante/${hijo.id_usuario}`).catch(() => []),
-    ]);
-    const a = aprendizaje || { nivel_logrado: 1, puntaje_total: 0, lecciones_aprobadas: 0, total_lecciones: 0, precision: null, recientes: [] };
+  // Todos los hijos a la vez (antes se esperaba a uno para pedir el siguiente).
+  const datos = await Promise.all(
+    hijos.map((hijo) =>
+      Promise.all([
+        apiFetch(`/api/lecciones/resumen/${hijo.id_usuario}`).catch(() => null),
+        apiFetch(`/api/feedback/estudiante/${hijo.id_usuario}`).catch(() => []),
+      ])
+    )
+  );
+  hijos.forEach((hijo, i) => {
+    const [aprendizaje, feedback] = datos[i];
+    const a = aprendizaje || { nivel_logrado: 1, puntaje_total: 0, lecciones_aprobadas: 0, total_lecciones: 0, precision: null, recientes: [], mundos_completados: 0, perfil: { avatar_emoji: "🧒" } };
     const titulo = (x) => x.titulo[idiomaActual()] || x.titulo.es;
 
     const tarjeta = document.createElement("div");
     tarjeta.className = "card";
     tarjeta.innerHTML = `
       <div class="child-banner">
-        <strong>🧒 ${esc(hijo.nombre)}</strong> — ${t("dash.level")} ${a.nivel_logrado}
+        <strong>${esc(a.perfil?.avatar_emoji || "🧒")} ${esc(hijo.nombre)}</strong> — ${t("dash.level")} ${a.nivel_logrado}
         ${hijo.codigo_acceso ? `<div>🪪 ${t("teacher.code")}: <strong>${esc(hijo.codigo_acceso)}</strong></div>` : ""}
-        ${["vocabulario", "gramatica"].filter((sec) => a.siguiente?.[sec]).map((sec) =>
-          `<div>${sec === "vocabulario" ? "📚" : "✏️"} ${t("teacher.now_on")}: ${esc(titulo(a.siguiente[sec].info))} · ${t("path.lesson")} ${a.siguiente[sec].leccion}</div>`).join("")}
+        ${["vocabulario", "gramatica", "profesor"].filter((sec) => a.siguiente?.[sec]).map((sec) =>
+          `<div>${{ vocabulario: "📚", gramatica: "✏️", profesor: "👩‍🏫" }[sec]} ${t("teacher.now_on")}: ${esc(titulo(a.siguiente[sec].info))} · ${t("path.lesson")} ${a.siguiente[sec].leccion}</div>`).join("")}
         <div>🕑 ${t("teacher.last_active")}: ${a.ultima_actividad ? cuando(a.ultima_actividad, idiomaActual()) : t("teacher.never")}</div>
       </div>
       <div class="stat-row">
@@ -57,8 +62,8 @@ async function cargar(sesion) {
           <span class="etiqueta">${t("path.accuracy")}</span>
         </div>
         <div class="stat-tile morado">
-          <span class="valor">${recompensas.length}</span>
-          <span class="etiqueta">${t("parent.rewards")}</span>
+          <span class="valor">${a.mundos_completados}</span>
+          <span class="etiqueta">🏆 ${t("path.worlds_done")}</span>
         </div>
       </div>
       <h3>🕑 ${t("teacher.recent")}</h3>
@@ -76,5 +81,5 @@ async function cargar(sesion) {
       }
     `;
     contenedor.appendChild(tarjeta);
-  }
+  });
 }

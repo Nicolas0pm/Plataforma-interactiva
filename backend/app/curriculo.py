@@ -7,7 +7,7 @@ Dos apartados independientes, cada uno con su propio camino:
   (palabra → imagen), un repaso mezclado y un desafío final.
 - **Gramática**: 10 temas (verbo to be, artículos, plurales, posesivos, presente simple,
   preposiciones, there is/are, can, presente continuo, pasado simple). Cada tema trae una
-  explicación corta ("Cómo se usa") y 2 lecciones de 8 ejercicios de completar.
+  explicación corta ("Cómo se usa") y 4 lecciones de 8 ejercicios de completar.
 
 El niño elige el apartado (vocabulario o gramática); dentro de él no elige: el orden lo
 decide `ORDEN_VOCABULARIO` / `ORDEN_GRAMATICA` y `app/services/lecciones_service.py` elige
@@ -549,6 +549,15 @@ GRAMATICA = {
         ],
     },
 }
+
+# Lecciones 3 y 4 de cada tema (y explicación ampliada) viven en gramatica_extra.py para
+# que este archivo siga siendo legible.
+from app.gramatica_extra import EXTRA as _EXTRA  # noqa: E402
+
+for _unidad, _extra in _EXTRA.items():
+    GRAMATICA[_unidad]["explicacion"]["es"].extend(_extra["explicacion"][0])
+    GRAMATICA[_unidad]["explicacion"]["en"].extend(_extra["explicacion"][1])
+    GRAMATICA[_unidad]["lecciones"].extend(_extra["lecciones"])
 
 # Orden de cada camino. Vocabulario y gramática son independientes: el niño elige el
 # apartado y, dentro de él, la plataforma elige la siguiente lección.

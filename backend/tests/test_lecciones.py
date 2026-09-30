@@ -96,12 +96,106 @@ def test_repaso_automatico_de_la_leccion_mas_debil(client, db):
     assert siguiente == {"unidad": "animals", "leccion": 1, "modo": "repaso"}
 
 
-def test_recompensa_al_cruzar_cien_puntos(client, db):
+def _completar_mundo(client, token, lecciones=5):
+    resultados = [_jugar(client, token)[1].json() for _ in range(lecciones)]
+    return resultados
+
+
+def test_completar_un_mundo_sin_maquina_solo_felicita(client, db):
     _, _, _, token = _preparar(client, db)
-    _, r1 = _jugar(client, token, errores=1)  # 70 puntos
-    assert r1.json()["recompensa_generada"] is None
-    _, r2 = _jugar(client, token)             # 150 → cruza 100
-    assert r2.json()["recompensa_generada"] is not None
+    resultados = _completar_mundo(client, token)
+    assert all(r["mundo_completado"] is None for r in resultados[:4])
+    mundo = resultados[4]["mundo_completado"]
+    assert mundo["unidad"] == "animals"
+    assert mundo["recompensa"]["device_id"] is None and mundo["recompensa"]["estado"] == "celebrada"
+    # Repetir una lección del mundo ya completado no da otro premio
+    _, r = _jugar(client, token, unidad="animals", leccion=1)
+    assert r.json()["mundo_completado"] is None
+
+
+def test_completar_un_mundo_con_maquina_encola_un_juguete(client, db, monkeypatch):
+    from app.services import recompensas_service
+    from app.services.fake_firestore import _realtime_store
+
+    monkeypatch.setattr(recompensas_service._settings, "realtime_db_url", "https://fake-rtdb")
+    docente, token_docente, nino, token = _preparar(client, db)
+    r = client.put(f"/api/usuarios/docente/{docente['id_usuario']}/dispensador",
+                   json={"device_id": "aula-101"}, headers=_auth(token_docente))
+    assert r.json() == {"device_id": "aula-101", "estudiantes": 1}
+
+    recompensa = _completar_mundo(client, token)[4]["mundo_completado"]["recompensa"]
+    assert recompensa["device_id"] == "aula-101" and recompensa["estado"] == "pendiente"
+    # Cada premio es un nodo propio en la cola: no se pisan entre sí
+    clave = f"cola_recompensas/aula-101/{recompensa['id_historial']}"
+    assert _realtime_store[clave]["comando"] == "dispensar"
+
+    # La máquina confirma la entrega y el pedido sale de la cola
+    from app.routers import recompensas as router_recompensas
+    monkeypatch.setattr(router_recompensas._settings, "realtime_db_url", "https://fake-rtdb")
+    ok = client.post(f"/api/recompensas/{recompensa['id_historial']}/confirmar-entrega",
+                     headers={"X-Device-Secret": "test-device-secret"})
+    assert ok.status_code == 200 and clave not in _realtime_store
+
+
+def test_ninos_nuevos_heredan_la_maquina_del_salon(client, db):
+    docente, token_docente, _, _ = _preparar(client, db)
+    client.put(f"/api/usuarios/docente/{docente['id_usuario']}/dispensador", json={"device_id": "aula-7"}, headers=_auth(token_docente))
+    nuevo = client.post("/api/usuarios", headers=_auth(token_docente), json={
+        "nombre": "Leo", "edad": 7, "rol": "estudiante", "acudientes_ids": [], "docente_id": None,
+        "email": None, "pin_acceso": "4321", "autoriza_datos_menor": True,
+    }).json()
+    assert nuevo["device_id"] == "aula-7"
+
+
+def test_tienda_gasta_puntos_sin_bajar_el_nivel(client, db):
+    _, _, _, token = _preparar(client, db)
+    _jugar(client, token)
+    _jugar(client, token)                                   # 160 puntos
+    tienda = client.get("/api/tienda", headers=_auth(token)).json()
+    assert tienda["perfil"]["saldo"] == 160 and tienda["perfil"]["avatar_emoji"] == "🦊"
+    compra = client.post("/api/tienda/comprar", json={"item_id": "marco-arcoiris"}, headers=_auth(token))
+    assert compra.status_code == 200 and compra.json()["saldo"] == 60 and compra.json()["marco"] == "marco-arcoiris"
+    caro = client.post("/api/tienda/comprar", json={"item_id": "avatar-dragon"}, headers=_auth(token))
+    assert caro.status_code == 400
+    repetido = client.post("/api/tienda/comprar", json={"item_id": "marco-arcoiris"}, headers=_auth(token))
+    assert repetido.status_code == 400
+    sin_comprar = client.post("/api/tienda/equipar", json={"item_id": "avatar-dragon", "tipo": "avatar"}, headers=_auth(token))
+    assert sin_comprar.status_code == 400
+    resumen = client.get("/api/lecciones/jugar", headers=_auth(token))  # sigue jugando normal
+    assert resumen.status_code == 200
+
+
+def test_mundos_del_profe_solo_seleccion_multiple(client, db):
+    docente, token_docente, nino, token = _preparar(client, db)
+    mundo = client.post("/api/mundos", json={"titulo": "Mi salón", "emoji": "🏫"}, headers=_auth(token_docente)).json()
+    base = f"/api/mundos/{mundo['id_mundo']}/preguntas"
+    malas = [
+        {"pregunta": "¿Abierta?", "opciones": ["solo una"], "respuesta_correcta": "solo una"},
+        {"pregunta": "Repetidas", "opciones": ["a", "A"], "respuesta_correcta": "a"},
+        {"pregunta": "Sin la correcta", "opciones": ["a", "b"], "respuesta_correcta": "c"},
+        {"pregunta": "Muchas", "opciones": ["a", "b", "c", "d", "e"], "respuesta_correcta": "a"},
+    ]
+    for mala in malas:
+        assert client.post(base, json=mala, headers=_auth(token_docente)).status_code == 422
+    for i in range(10):
+        r = client.post(base, json={"pregunta": f"How do you say {i}?", "opciones": [f"ok{i}", "no", "maybe"],
+                                     "respuesta_correcta": f"ok{i}", "icono": "🔢"}, headers=_auth(token_docente))
+        assert r.status_code == 201
+    assert client.get("/api/mundos", headers=_auth(token_docente)).json()[0]["lecciones"] == 2  # 10 → 8 + 2
+
+    # El niño lo ve en su apartado "profesor" y lo juega como cualquier otro
+    leccion, r = _jugar(client, token, seccion="profesor")
+    assert leccion["unidad"]["titulo"]["es"] == "Mi salón" and len(leccion["preguntas"]) == 8
+    assert r.json()["aprobada"] is True
+    leccion2, r2 = _jugar(client, token, seccion="profesor")
+    assert len(leccion2["preguntas"]) == 2 and r2.json()["mundo_completado"]["unidad"] == leccion["unidad"]["id"]
+
+    # Otro docente no puede tocar ese mundo
+    otro = client.post("/api/usuarios", json={"nombre": "Otro", "edad": 30, "rol": "docente", "acudientes_ids": [],
+                                              "docente_id": None, "email": "o@e.co", "acepta_terminos": True}).json()
+    token_otro = client.post("/api/usuarios/login-dev", json={"id_usuario": otro["id_usuario"], "rol": "docente"}).json()["token"]
+    assert client.post(base, json={"pregunta": "x", "opciones": ["a", "b"], "respuesta_correcta": "a"},
+                       headers=_auth(token_otro)).status_code == 403
 
 
 def test_docente_ve_quien_necesita_ayuda_y_por_que(client, db):

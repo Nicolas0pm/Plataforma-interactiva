@@ -1461,8 +1461,16 @@ button.enlace {
   min-height: 52px;
 }
 
+.selector-seccion {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 .selector-seccion button[data-seccion="gramatica"][aria-selected="true"] {
   background: var(--morado);
+}
+
+.selector-seccion button[data-seccion="profesor"][aria-selected="true"] {
+  background: var(--coral);
 }
 
 /* Docente: horas de actividad de hoy */
@@ -1480,6 +1488,245 @@ button.enlace {
 @media (max-width: 480px) {
   /* El selector de apartado siempre lado a lado, como un interruptor */
   .pestanas.selector-seccion {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
   }
+}
+
+/* ======================================================================
+   Perfil: avatar con marco (tienda)
+   ====================================================================== */
+.avatar-perfil {
+  display: inline-grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-size: 2.2rem;
+  background: var(--superficie-2);
+  border: 4px solid var(--borde-fuerte);
+  flex-shrink: 0;
+}
+
+.avatar-perfil.grande {
+  width: 110px;
+  height: 110px;
+  font-size: 4rem;
+  border-width: 6px;
+}
+
+.avatar-perfil.mini {
+  width: 44px;
+  height: 44px;
+  font-size: 1.5rem;
+  border-width: 3px;
+}
+
+.avatar-enlace {
+  text-decoration: none;
+  display: inline-block;
+}
+
+.marco-arcoiris { border-color: transparent; background: linear-gradient(var(--superficie-2), var(--superficie-2)) padding-box, conic-gradient(#ff5e5e, #ffb347, #ffe66d, #6ddf8b, #5ec8ff, #b085ff, #ff5e5e) border-box; }
+.marco-estrellas { border-color: #ffc93c; border-style: dotted; box-shadow: 0 0 0 3px rgba(255, 201, 60, 0.35); }
+.marco-hielo { border-color: #8fdcff; box-shadow: 0 0 12px rgba(143, 220, 255, 0.9); }
+.marco-fuego { border-color: #ff6a2a; box-shadow: 0 0 12px rgba(255, 106, 42, 0.8), inset 0 0 8px rgba(255, 180, 0, 0.5); }
+.marco-oro { border-color: transparent; background: linear-gradient(var(--superficie-2), var(--superficie-2)) padding-box, linear-gradient(135deg, #b8860b, #ffd700, #fff3a0, #daa520) border-box; }
+.marco-galaxia { border-color: transparent; background: linear-gradient(var(--superficie-2), var(--superficie-2)) padding-box, conic-gradient(#2b1055, #7597de, #d53369, #2b1055) border-box; box-shadow: 0 0 14px rgba(117, 151, 222, 0.8); }
+
+.saldo {
+  font-size: 1.15rem;
+  margin: 0.5rem 0;
+}
+
+.tienda-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.tienda-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.75rem 0.5rem;
+  border-radius: 14px;
+  background: var(--superficie-2);
+  text-align: center;
+}
+
+.tienda-item.puesto {
+  outline: 3px solid var(--verde-hoja);
+}
+
+.tienda-item button {
+  margin-top: 0.25rem;
+  min-height: 40px;
+  padding: 0.4rem;
+  font-size: 0.95rem;
+}
+
+/* Botón de confirmar el PIN */
+.btn-entrar {
+  font-size: 1.3rem;
+  min-height: 56px;
+  background: var(--verde-hoja);
+}
+
+/* Aviso "despertando el servidor" (plan gratis de Render) */
+#aviso-servidor {
+  position: fixed;
+  left: 50%;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 70;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  max-width: calc(100vw - 2rem);
+  padding: 0.75rem 1.1rem;
+  border-radius: 999px;
+  background: var(--tinta);
+  color: var(--fondo);
+  font-weight: 600;
+  box-shadow: var(--sombra-card);
+}
+
+#aviso-servidor[hidden] {
+  display: none;
+}
+
+.girando {
+  display: inline-block;
+  animation: girar 1.4s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+/* ======================================================================
+   Docente: mis mundos + máquina del salón
+   ====================================================================== */
+.fila-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.fila-form input {
+  flex: 1;
+}
+
+.fila-form button {
+  width: auto;
+  margin-top: 0;
+  padding: 0.6rem 1.2rem;
+}
+
+input.campo-emoji {
+  flex: 0 0 64px;
+  width: 64px;
+  text-align: center;
+  font-size: 1.4rem;
+}
+
+.form-mundo,
+.form-pregunta {
+  padding: 1rem;
+  border-radius: 14px;
+  background: var(--superficie-2);
+  margin-bottom: 1rem;
+}
+
+.form-mundo h3,
+.form-pregunta h4 {
+  margin-top: 0;
+}
+
+.mundo-docente {
+  border: 2px solid var(--borde);
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.mundo-cabecera {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.mundo-cabecera .acciones {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.mundo-cabecera .acciones button,
+.lista-preguntas button {
+  width: auto;
+  margin: 0;
+  min-height: 40px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+.lista-preguntas {
+  padding-left: 1.2rem;
+}
+
+.lista-preguntas li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.lista-preguntas li .hint {
+  flex-basis: 100%;
+}
+
+.opcion-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: normal;
+  margin: 0.4rem 0;
+}
+
+.opcion-form input[type="radio"] {
+  width: 22px;
+  height: 22px;
+  min-height: 0;
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .fila-form {
+    flex-wrap: wrap;
+  }
+
+  .fila-form button {
+    width: 100%;
+  }
+
+  .selector-seccion button {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Si queda un recuadro solo en la última fila, que ocupe todo el ancho */
+  .stat-row > :last-child:nth-child(odd) {
+    grid-column: span 2;
+  }
+}
+
+.lista-preguntas .pill {
+  margin-left: 0;
 }

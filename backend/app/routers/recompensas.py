@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 
 from app.config import get_settings
 from app.services.auth_service import current_user, registrar_auditoria, verificar_acceso_estudiante
-from app.services.firebase_service import get_firestore_client
+from app.services.firebase_service import get_firestore_client, get_realtime_ref
 
 router = APIRouter(prefix="/api/recompensas", tags=["recompensas"])
 _settings = get_settings()
@@ -30,6 +30,11 @@ def confirmar_entrega(id_historial: str, x_device_secret: str | None = Header(de
     ref = db.collection("historial_recompensas").document(id_historial)
     if not ref.get().exists:
         raise HTTPException(404, "Recompensa no encontrada")
+    datos = ref.get().to_dict()
     ref.update({"estado": "entregada"})
+    # Se saca el pedido de la cola de la máquina para que no vuelva a soltar el juguete
+    # si se reinicia.
+    if datos.get("device_id") and _settings.realtime_db_url:
+        get_realtime_ref(f"cola_recompensas/{datos['device_id']}/{id_historial}").delete()
     registrar_auditoria(db, tipo="recompensa_entregada", actor="esp32", detalle={"id_historial": id_historial})
     return {"ok": True}

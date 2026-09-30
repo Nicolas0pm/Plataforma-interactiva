@@ -41,7 +41,8 @@ físicas para incentivar el aprendizaje del inglés en Niños de 6 a 8 Años"* (
   ESP32 (p. ej. `Firebase-ESP-Client`) tienen mejor soporte y menor latencia con RTDB.
 
 Ver el detalle completo en [`docs/architecture.md`](docs/architecture.md) y
-[`docs/data-model.md`](docs/data-model.md).
+[`docs/data-model.md`](docs/data-model.md). Explicación de cada parte y de cómo se conecta a
+la base de datos: [`docs/frontend.md`](docs/frontend.md) y [`docs/backend.md`](docs/backend.md).
 
 ## Estructura del repositorio
 

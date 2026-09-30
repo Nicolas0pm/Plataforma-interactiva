@@ -7,6 +7,10 @@ import {
 import { apiFetch } from "../api.js";
 import { inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
+import { despertarServidor } from "../api.js";
+
+// Mientras la persona elige o escribe, el servidor va despertando (plan gratis de Render).
+despertarServidor();
 import { guardarSesion, obtenerSesion } from "../session.js";
 
 inicializarLangToggle();

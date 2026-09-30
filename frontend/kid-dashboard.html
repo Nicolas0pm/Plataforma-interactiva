@@ -26,6 +26,8 @@
         📚 <span data-i18n="path.vocabulary">Vocabulario</span></button>
       <button type="button" role="tab" data-seccion="gramatica" aria-selected="false">
         ✏️ <span data-i18n="path.grammar">Gramática</span></button>
+      <button type="button" role="tab" data-seccion="profesor" aria-selected="false">
+        👩‍🏫 <span data-i18n="path.teacher">Del profe</span></button>
     </div>
 
     <div class="card centrado hero-leccion" id="proxima" aria-live="polite">
@@ -37,6 +39,10 @@
     </div>
 
     <div class="card centrado">
+      <a href="rewards.html" class="avatar-enlace" aria-label="Tienda">
+        <div class="avatar-perfil grande" id="mi-avatar">🦊</div>
+      </a>
+      <p class="saldo">⭐ <strong id="saldo">0</strong> <span data-i18n="shop.to_spend">puntos para gastar</span></p>
       <div class="stat-row">
         <div class="stat-tile azul">
           <span class="valor" id="stat-nivel">1</span>
@@ -54,10 +60,14 @@
           <span class="valor" id="stat-precision">—</span>
           <span class="etiqueta" data-i18n="path.accuracy">Aciertos</span>
         </div>
+        <div class="stat-tile morado">
+          <span class="valor" id="stat-mundos">0</span>
+          <span class="etiqueta" data-i18n="path.worlds_done">Mundos completados</span>
+        </div>
       </div>
       <div class="progress-bar"><div class="progress-bar-fill" id="barra-nivel" style="width:0%"></div></div>
       <p class="hint" id="texto-siguiente-nivel"></p>
-      <button type="button" class="secundario" onclick="location.href='rewards.html'" data-i18n="dash.rewards_link">Mis premios</button>
+      <button type="button" class="secundario" onclick="location.href='rewards.html'" data-i18n="dash.rewards_link">🛍️ Tienda y premios</button>
       <p class="hint oculto" id="mi-codigo" style="margin-top:1rem"><span aria-hidden="true">🪪</span> <span data-i18n="dash.my_code">Tu código para entrar</span>: <strong id="mi-codigo-valor" style="letter-spacing:0.15em"></strong></p>
     </div>
 
