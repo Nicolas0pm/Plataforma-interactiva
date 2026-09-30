@@ -198,6 +198,20 @@ def test_mundos_del_profe_solo_seleccion_multiple(client, db):
                        headers=_auth(token_otro)).status_code == 403
 
 
+def test_preguntas_del_profe_pueden_llevar_imagen(client, db):
+    docente, token_docente, nino, token = _preparar(client, db)
+    mundo = client.post("/api/mundos", json={"titulo": "Fotos"}, headers=_auth(token_docente)).json()
+    base = f"/api/mundos/{mundo['id_mundo']}/preguntas"
+    imagen = "data:image/jpeg;base64,/9j/4AAQSkZJRg=="
+    pregunta = {"pregunta": "What is this?", "opciones": ["dog", "cat"], "respuesta_correcta": "dog"}
+    assert client.post(base, json={**pregunta, "imagen": imagen}, headers=_auth(token_docente)).status_code == 201
+    for mala in ("https://example.com/x.jpg", "data:text/html;base64,PGgxPg==", "data:image/png;base64," + "A" * 300_000):
+        assert client.post(base, json={**pregunta, "imagen": mala}, headers=_auth(token_docente)).status_code == 422
+    assert client.get(base, headers=_auth(token_docente)).json()[0]["imagen"] == imagen
+    leccion = client.get("/api/lecciones/jugar?seccion=profesor", headers=_auth(token)).json()
+    assert leccion["preguntas"][0]["imagen"] == imagen
+
+
 def test_docente_ve_quien_necesita_ayuda_y_por_que(client, db):
     docente, token_docente, nino, token = _preparar(client, db)
     _jugar(client, token, errores=3)

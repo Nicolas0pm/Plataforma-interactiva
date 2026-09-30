@@ -1,4 +1,5 @@
 import { apiFetch } from "../api.js";
+import { emojiHtml } from "../emoji.js";
 import { esc, porcentaje } from "../html.js";
 import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
@@ -91,7 +92,7 @@ function pintarProxima(siguiente, seccion) {
   }
   boton.classList.remove("oculto");
   const info = siguiente.info;
-  document.getElementById("proxima-emoji").textContent = info.emoji;
+  document.getElementById("proxima-emoji").innerHTML = emojiHtml(info.emoji);
   document.getElementById("proxima-titulo").textContent = titulo(info);
   const nombreSeccion = t(SECCIONES[seccion].clave);
   const modo = siguiente.modo === "repaso" ? ` · 🔁 ${t("path.review")}` : "";
@@ -118,7 +119,7 @@ function pintarCamino(resumen, seccion, contenedor) {
     const bloqueada = unidad.lecciones.every((l) => l.estado === "bloqueada");
     fila.className = `unidad ${bloqueada ? "bloqueada" : ""}`.trim();
     fila.innerHTML = `
-      <span class="unidad-emoji" aria-hidden="true">${bloqueada ? "🔒" : esc(unidad.emoji)}</span>
+      <span class="unidad-emoji" aria-hidden="true">${bloqueada ? "🔒" : emojiHtml(unidad.emoji)}</span>
       <div class="unidad-info">
         <strong>${esc(titulo(unidad))}</strong>
         <span class="hint">${unidad.aprobadas}/${unidad.lecciones.length} ${t("path.lessons").toLowerCase()}

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "api-fake",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd backend && USE_FAKE_DB=true .venv/bin/uvicorn app.main:app --port 8000"],
+      "port": 8000
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["frontend/dev-server.py", "5500"],
+      "port": 5500
+    }
+  ]
+}

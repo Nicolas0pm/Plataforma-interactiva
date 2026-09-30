@@ -1,4 +1,5 @@
 import { apiFetch } from "../api.js";
+import { emojiHtml } from "../emoji.js";
 import { esc, miniMarkdown } from "../html.js";
 import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import { volver } from "../nav.js";
@@ -15,6 +16,7 @@ const sesion = exigirRol("estudiante");
 inicializarLangToggle();
 
 const params = new URLSearchParams(window.location.search);
+const SECCIONES = ["vocabulario", "gramatica", "profesor"];
 const tarjeta = document.getElementById("tarjeta-actividad");
 const aviso = document.getElementById("aviso");
 const overlay = document.getElementById("overlay");
@@ -31,7 +33,7 @@ if (sesion) cargar();
 async function cargar() {
   const consulta = params.get("unidad")
     ? `?unidad=${encodeURIComponent(params.get("unidad"))}&leccion=${encodeURIComponent(params.get("leccion"))}`
-    : `?seccion=${params.get("seccion") === "gramatica" ? "gramatica" : "vocabulario"}`;
+    : `?seccion=${SECCIONES.includes(params.get("seccion")) ? params.get("seccion") : "vocabulario"}`;
   try {
     leccion = await apiFetch(`/api/lecciones/jugar${consulta}`);
   } catch (err) {
@@ -54,7 +56,7 @@ function mostrarExplicacion(titulo) {
   const lineas = leccion.unidad.explicacion[idiomaActual()] || leccion.unidad.explicacion.es;
   tarjeta.innerHTML = `
     <div class="explicacion">
-      <span class="hero-emoji">${esc(leccion.unidad.emoji)}</span>
+      <span class="hero-emoji">${emojiHtml(leccion.unidad.emoji)}</span>
       <h2>📖 ${t("activity.how_to_use")}: ${esc(titulo)}</h2>
       <ul>${lineas.map((l) => `<li>${miniMarkdown(l)}</li>`).join("")}</ul>
       <button type="button" id="btn-entendido">${t("activity.got_it")}</button>
@@ -84,7 +86,8 @@ function mostrarPregunta() {
   document.getElementById("barra-actividad").style.width = `${Math.round((indice / leccion.preguntas.length) * 100)}%`;
 
   tarjeta.innerHTML = `
-    ${pregunta.icono ? `<div class="quiz-imagen">${esc(pregunta.icono)}</div>` : ""}
+    ${pregunta.imagen ? `<img class="quiz-foto" src="${esc(pregunta.imagen)}" alt="" />` : ""}
+    ${pregunta.icono ? `<div class="quiz-imagen">${emojiHtml(pregunta.icono)}</div>` : ""}
     <h2 class="quiz-pregunta">${esc(pregunta.pregunta)}</h2>
     <div class="quiz-opciones ${pregunta.formato_opciones === "emoji" ? "emoji" : ""} ${pregunta.opciones.length % 2 ? "una-columna" : ""}" id="opciones"></div>
   `;
@@ -92,7 +95,10 @@ function mostrarPregunta() {
   for (const opcion of barajar(pregunta.opciones)) {
     const boton = document.createElement("button");
     boton.type = "button";
-    boton.textContent = opcion;
+    boton.dataset.opcion = opcion;
+    // Las opciones "emoji" (¿cuál es "dog"?) se muestran con su ilustración.
+    if (pregunta.formato_opciones === "emoji") boton.innerHTML = emojiHtml(opcion);
+    else boton.textContent = opcion;
     boton.addEventListener("click", () => responder(boton, opcion, pregunta));
     contenedor.appendChild(boton);
   }
@@ -113,7 +119,7 @@ function responder(boton, opcion, pregunta) {
 
   // Error: se marca, se muestra la respuesta correcta y se pierde una vida.
   boton.classList.add("incorrecta");
-  botones.find((b) => b.textContent === pregunta.respuesta_correcta)?.classList.add("correcta");
+  botones.find((b) => b.dataset.opcion === pregunta.respuesta_correcta)?.classList.add("correcta");
   vidas -= 1;
   pintarVidas();
   mostrarAviso(false, `❌ ${t("activity.wrong")} ${t("activity.right_answer")}: <strong>${esc(pregunta.respuesta_correcta)}</strong>`);

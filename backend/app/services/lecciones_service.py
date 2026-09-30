@@ -159,6 +159,7 @@ def armar_leccion(
                 # Se envía para dar el feedback inmediato; la nota final la calcula el servidor.
                 "respuesta_correcta": p.get("respuesta_correcta"),
                 "icono": p.get("icono"),
+                "imagen": p.get("imagen"),  # solo las preguntas de los mundos del profe
                 "formato_opciones": p.get("formato_opciones", "texto"),
             }
             for p in _preguntas(db, unidad, leccion)

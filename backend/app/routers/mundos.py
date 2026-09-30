@@ -2,9 +2,12 @@
 Mundos que crea el docente (apartado "Del profe" del niño).
 
 Solo preguntas de **selección múltiple** (2 a 4 opciones, una correcta): no hay preguntas
-abiertas. Las lecciones se arman solas en grupos de 8 preguntas (ver `catalogo_service`).
+abiertas. Cada pregunta puede llevar un emoji y/o una imagen: el navegador del docente la
+achica antes de subirla y se guarda como data URL dentro de la misma actividad.
+Las lecciones se arman solas en grupos de 8 preguntas (ver `catalogo_service`).
 Borrar un mundo o una pregunta los desactiva (no se pierde el historial de los niños).
 """
+import re
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -16,6 +19,11 @@ from app.services.catalogo_service import PREFIJO_PROFESOR, SECCION_PROFESOR, pr
 from app.services.firebase_service import get_firestore_client
 
 router = APIRouter(prefix="/api/mundos", tags=["mundos del docente"])
+
+# Imagen ya achicada en el navegador (~480 px). El límite deja espacio de sobra dentro del
+# máximo de 1 MB por documento de Firestore.
+MAX_IMAGEN = 300_000
+IMAGEN_VALIDA = re.compile(r"^data:image/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/]+=*$")
 
 
 class MundoCrear(BaseModel):
@@ -34,6 +42,7 @@ class PreguntaCrear(BaseModel):
     opciones: list[str] = Field(min_length=2, max_length=4)
     respuesta_correcta: str
     icono: Optional[str] = Field(default=None, max_length=8)
+    imagen: Optional[str] = Field(default=None, max_length=MAX_IMAGEN)
 
     @model_validator(mode="after")
     def validar_opciones(self):
@@ -41,6 +50,9 @@ class PreguntaCrear(BaseModel):
         self.opciones = [o.strip() for o in self.opciones]
         self.respuesta_correcta = self.respuesta_correcta.strip()
         self.icono = (self.icono or "").strip() or None
+        self.imagen = self.imagen or None
+        if self.imagen and not IMAGEN_VALIDA.match(self.imagen):
+            raise ValueError("La imagen debe ser JPG, PNG, WEBP o GIF")
         if any(not o or len(o) > 60 for o in self.opciones):
             raise ValueError("Cada opción debe tener entre 1 y 60 caracteres")
         if len({o.lower() for o in self.opciones}) != len(self.opciones):
@@ -116,7 +128,7 @@ def preguntas_del_mundo(id_mundo: str, usuario: dict = Depends(require_role("doc
     db = get_firestore_client()
     _mundo_propio(db, id_mundo, usuario)
     return [
-        {k: p.get(k) for k in ("id_actividad", "pregunta", "opciones", "respuesta_correcta", "icono")}
+        {k: p.get(k) for k in ("id_actividad", "pregunta", "opciones", "respuesta_correcta", "icono", "imagen")}
         for p in preguntas_activas(db, PREFIJO_PROFESOR + id_mundo)
     ]
 
@@ -141,6 +153,7 @@ def agregar_pregunta(id_mundo: str, payload: PreguntaCrear, usuario: dict = Depe
         "opciones": payload.opciones,
         "respuesta_correcta": payload.respuesta_correcta,
         "icono": payload.icono,
+        "imagen": payload.imagen,
         "formato_opciones": "texto",
         "id_docente": usuario["id_usuario"],
         "activo": True,
@@ -148,7 +161,7 @@ def agregar_pregunta(id_mundo: str, payload: PreguntaCrear, usuario: dict = Depe
     }
     ref.set(datos)
     _contar(db, id_mundo)
-    return {"id_actividad": ref.id, **{k: datos[k] for k in ("pregunta", "opciones", "respuesta_correcta", "icono")}}
+    return {"id_actividad": ref.id, **{k: datos[k] for k in ("pregunta", "opciones", "respuesta_correcta", "icono", "imagen")}}
 
 
 @router.delete("/{id_mundo}/preguntas/{id_actividad}")

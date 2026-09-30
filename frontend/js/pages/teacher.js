@@ -340,6 +340,7 @@ async function pintarPreguntas(mundo, panel) {
       preguntas
         .map((p, i) => `<li>
           ${i % 8 === 0 ? `<span class="pill">${t("path.lesson")} ${i / 8 + 1}</span>` : ""}
+          ${p.imagen ? `<img class="miniatura-pregunta" src="${esc(p.imagen)}" alt="" />` : ""}
           <span>${p.icono ? esc(p.icono) + " " : ""}<strong>${esc(p.pregunta)}</strong></span>
           <span class="hint">${p.opciones.map((o) => (o === p.respuesta_correcta ? `✅ ${esc(o)}` : esc(o))).join(" · ")}</span>
           <button type="button" class="secundario btn-borrar-pregunta" data-id="${esc(p.id_actividad)}" aria-label="${t("worlds.delete")}">🗑️</button>
@@ -352,6 +353,13 @@ async function pintarPreguntas(mundo, panel) {
       <div class="fila-form">
         <input class="campo-emoji" name="icono" maxlength="8" placeholder="🐶" aria-label="${t("worlds.icon")}" />
         <input name="pregunta" maxlength="200" required placeholder="${t("worlds.question_placeholder")}" aria-label="${t("worlds.question")}" />
+      </div>
+      <div class="campo-imagen">
+        <label class="boton-archivo secundario">🖼️ ${t("worlds.image")}
+          <input type="file" name="imagen" accept="image/*" class="sr-only" />
+        </label>
+        <img class="vista-imagen oculto" alt="" />
+        <button type="button" class="secundario btn-quitar-imagen oculto">✖ ${t("worlds.remove_image")}</button>
       </div>
       ${[0, 1, 2, 3]
         .map((i) => `<label class="opcion-form">
@@ -372,12 +380,35 @@ async function pintarPreguntas(mundo, panel) {
     })
   );
   const form = panel.querySelector(".form-pregunta");
+  const error = form.querySelector(".error-msg");
+  const entradaImagen = form.querySelector('input[name="imagen"]');
+  const vista = form.querySelector(".vista-imagen");
+  const quitar = form.querySelector(".btn-quitar-imagen");
+  let imagen = null;
+  const ponerImagen = (url) => {
+    imagen = url;
+    vista.src = url || "";
+    vista.classList.toggle("oculto", !url);
+    quitar.classList.toggle("oculto", !url);
+  };
+  entradaImagen.addEventListener("change", async () => {
+    const archivo = entradaImagen.files[0];
+    entradaImagen.value = "";
+    if (!archivo) return;
+    error.textContent = "";
+    try {
+      ponerImagen(await achicarImagen(archivo));
+    } catch {
+      ponerImagen(null);
+      error.textContent = t("worlds.image_error");
+    }
+  });
+  quitar.addEventListener("click", () => ponerImagen(null));
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const datos = new FormData(form);
     const opciones = [0, 1, 2, 3].map((i) => (datos.get(`opcion${i}`) || "").trim());
     const correcta = opciones[Number(datos.get("correcta"))];
-    const error = form.querySelector(".error-msg");
     if (!correcta) {
       error.textContent = t("worlds.correct_empty");
       return;
@@ -388,6 +419,7 @@ async function pintarPreguntas(mundo, panel) {
         body: {
           pregunta: datos.get("pregunta"),
           icono: datos.get("icono") || null,
+          imagen,
           opciones: opciones.filter(Boolean),
           respuesta_correcta: correcta,
         },
@@ -396,5 +428,34 @@ async function pintarPreguntas(mundo, panel) {
     } catch (err) {
       error.textContent = err.message;
     }
+  });
+}
+
+// La imagen se achica en el navegador (máx. 480 px, JPEG) antes de subirla: así pesa unos
+// pocos KB y cabe dentro de la actividad en Firestore, sin necesitar otro almacenamiento.
+const LADO_MAXIMO = 480;
+
+function achicarImagen(archivo) {
+  return new Promise((resolve, reject) => {
+    if (!archivo.type.startsWith("image/")) return reject(new Error("no es imagen"));
+    const url = URL.createObjectURL(archivo);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const escala = Math.min(1, LADO_MAXIMO / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * escala);
+      canvas.height = Math.round(img.height * escala);
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#fff"; // las zonas transparentes de un PNG quedan blancas en JPEG
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", 0.8));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("imagen inválida"));
+    };
+    img.src = url;
   });
 }
