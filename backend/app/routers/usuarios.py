@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from app.config import get_settings
 from app.models.schemas import (
+    CodigoVerificacion,
     DevLoginRequest,
     PinLoginRequest,
     SesionOut,
@@ -20,6 +21,7 @@ from app.services.auth_service import (
     hash_pin,
     registrar_auditoria,
     require_role,
+    usuario_autenticado,
     verificar_acceso_estudiante,
     verificar_id_token_firebase_crudo,
 )
@@ -30,6 +32,7 @@ from app.services.estudiantes_service import (
 )
 from app.services.firebase_service import get_firestore_client
 from app.services.progreso_service import calcular_nivel, puntos_para_siguiente_nivel
+from app.services.verificacion_service import confirmar_codigo, enviar_codigo
 
 router = APIRouter(prefix="/api/usuarios", tags=["usuarios"])
 _settings = get_settings()
@@ -45,6 +48,8 @@ def crear_usuario(payload: UsuarioCreate, authorization: str | None = Header(def
     - Un docente/padre/admin se auto-registra: primero crea su cuenta con el SDK
       web de Firebase Authentication y llama a este endpoint con el ID token
       resultante en `Authorization`, para vincular ese `auth_uid` a su perfil.
+      Queda con `email_verificado: False` y se le envía un código al correo
+      (`POST /verificacion/confirmar`); hasta confirmarlo no puede usar la API.
     """
     db = get_firestore_client()
     data = payload.model_dump(exclude={"pin_acceso", "auth_uid", "acepta_terminos", "autoriza_datos_menor"})
@@ -89,9 +94,17 @@ def crear_usuario(payload: UsuarioCreate, authorization: str | None = Header(def
             info = verificar_id_token_firebase_crudo(authorization)
             data["auth_uid"] = info["auth_uid"]
             data["email"] = payload.email or info["email"]
+        # Sin correo solo se puede en el modo de prueba (cuentas de desarrollo).
+        data["email_verificado"] = not data.get("email")
 
     ref = db.collection("usuarios").document()
     ref.set(data)
+
+    if not data.get("email_verificado", True):
+        try:
+            enviar_codigo(db, ref.id, data, forzar=True)
+        except HTTPException:
+            pass  # la cuenta queda creada; desde la pantalla de confirmación puede pedir otro código
 
     if payload.rol == "estudiante":
         ref.collection("resultados").document("actual").set(
@@ -148,9 +161,38 @@ def login_dev(payload: DevLoginRequest):
     }
 
 
+@router.post("/verificacion/reenviar")
+def reenviar_codigo(usuario: dict = Depends(usuario_autenticado)):
+    """Envía un código nuevo al correo del adulto (el anterior deja de servir)."""
+    db = get_firestore_client()
+    datos = db.collection("usuarios").document(usuario["id_usuario"]).get().to_dict() or {}
+    if datos.get("email_verificado", True):
+        return {"ok": True, "ya_verificado": True}
+    enviar_codigo(db, usuario["id_usuario"], datos)
+    return {"ok": True, "email": datos.get("email")}
+
+
+@router.post("/verificacion/confirmar")
+def confirmar_correo(payload: CodigoVerificacion, usuario: dict = Depends(usuario_autenticado)):
+    db = get_firestore_client()
+    confirmar_codigo(db, usuario["id_usuario"], payload.codigo)
+    datos = db.collection("usuarios").document(usuario["id_usuario"]).get().to_dict() or {}
+    if not _settings.use_fake_db and datos.get("auth_uid"):
+        # Que Firebase Authentication también lo marque como verificado.
+        try:
+            from app.services.firebase_service import get_firebase_auth
+
+            get_firebase_auth().update_user(datos["auth_uid"], email_verified=True)
+        except Exception:
+            pass
+    registrar_auditoria(db, tipo="email_verificado", actor=usuario["id_usuario"])
+    return {"ok": True}
+
+
 @router.get("/sesion", response_model=UsuarioOut)
-def sesion_actual(usuario: dict = Depends(current_user)):
-    """Devuelve el perfil de quien está autenticado (para restaurar sesión en el frontend)."""
+def sesion_actual(usuario: dict = Depends(usuario_autenticado)):
+    """Devuelve el perfil de quien está autenticado (para restaurar sesión en el frontend).
+    Responde aunque no haya confirmado su correo: así el frontend sabe que debe pedir el código."""
     db = get_firestore_client()
     doc = db.collection("usuarios").document(usuario["id_usuario"]).get()
     if not doc.exists:

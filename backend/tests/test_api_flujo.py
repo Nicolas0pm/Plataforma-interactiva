@@ -23,6 +23,11 @@ def _crear_usuario(client, **kwargs):
     payload.update(kwargs)  # lo que quede (p. ej. pin_acceso) se agrega tal cual
     resp = client.post("/api/usuarios", json=payload, headers=headers)
     assert resp.status_code == 201, resp.text
+    if not resp.json()["email_verificado"]:
+        # La confirmación del correo se prueba en test_verificacion_correo.py.
+        from app.services.firebase_service import get_firestore_client
+
+        get_firestore_client().collection("usuarios").document(resp.json()["id_usuario"]).update({"email_verificado": True})
     return resp.json()
 
 

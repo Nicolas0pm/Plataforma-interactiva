@@ -1806,3 +1806,22 @@ input.campo-emoji {
   width: 1.4em;
   height: 1.4em;
 }
+
+/* Confirmar el correo (adult-login.html) */
+input.campo-codigo {
+  font-size: 1.8rem;
+  letter-spacing: 0.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.acciones-verificar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.acciones-verificar button {
+  flex: 1 1 12rem;
+  margin: 0;
+}

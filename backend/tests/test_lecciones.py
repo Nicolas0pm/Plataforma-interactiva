@@ -12,6 +12,7 @@ def _preparar(client, db):
         "nombre": "Marta", "edad": 40, "rol": "docente", "acudientes_ids": [], "docente_id": None,
         "email": "marta@escuela.co", "acepta_terminos": True,
     }).json()
+    db.collection("usuarios").document(docente["id_usuario"]).update({"email_verificado": True})
     token_docente = client.post("/api/usuarios/login-dev", json={"id_usuario": docente["id_usuario"], "rol": "docente"}).json()["token"]
     nino = client.post("/api/usuarios", headers=_auth(token_docente), json={
         "nombre": "Ana", "edad": 7, "rol": "estudiante", "acudientes_ids": [], "docente_id": None,
@@ -193,6 +194,7 @@ def test_mundos_del_profe_solo_seleccion_multiple(client, db):
     # Otro docente no puede tocar ese mundo
     otro = client.post("/api/usuarios", json={"nombre": "Otro", "edad": 30, "rol": "docente", "acudientes_ids": [],
                                               "docente_id": None, "email": "o@e.co", "acepta_terminos": True}).json()
+    db.collection("usuarios").document(otro["id_usuario"]).update({"email_verificado": True})
     token_otro = client.post("/api/usuarios/login-dev", json={"id_usuario": otro["id_usuario"], "rol": "docente"}).json()["token"]
     assert client.post(base, json={"pregunta": "x", "opciones": ["a", "b"], "respuesta_correcta": "a"},
                        headers=_auth(token_otro)).status_code == 403
@@ -245,3 +247,18 @@ def test_docente_ve_a_que_horas_estuvo_activo(client, db):
     fila = client.get(f"/api/lecciones/docente/{docente['id_usuario']}", headers=_auth(token_docente)).json()["estudiantes"][0]
     assert len(fila["horas_hoy"]) == 2
     assert fila["ultima_actividad"] is not None
+
+
+def test_lecciones_de_vocabulario_variadas_y_bien_armadas():
+    from app.curriculo import VOCABULARIO, _preguntas_vocabulario
+
+    for unidad in VOCABULARIO:
+        lecciones = _preguntas_vocabulario(unidad)
+        assert [len(l) for l in lecciones] == [8] * 5
+        for leccion in lecciones:
+            for p in leccion:
+                assert p["respuesta_correcta"] in p["opciones"]
+                assert len({o.lower() for o in p["opciones"]}) == len(p["opciones"])
+        # Cada lección tiene su propia mezcla de tipos de pregunta (el texto sin la palabra).
+        firmas = [frozenset(p["pregunta"].split("“")[0].split("«")[0].split("?")[0][:12] for p in l) for l in lecciones]
+        assert len(set(firmas)) == 5, unidad

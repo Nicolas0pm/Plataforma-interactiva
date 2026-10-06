@@ -21,7 +21,25 @@
   </div>
 
   <main>
-    <div class="card">
+    <div class="card oculto" id="card-verificar">
+      <h2>📧 <span data-i18n="verify.title">Confirma tu correo</span></h2>
+      <p id="verificar-texto"></p>
+      <form id="form-verificar">
+        <label for="codigo-verificacion" data-i18n="verify.code">Código de 6 dígitos</label>
+        <input id="codigo-verificacion" class="campo-codigo" type="text" inputmode="numeric" pattern="\d{6}"
+               maxlength="6" required autocomplete="one-time-code" placeholder="123456" />
+        <button type="submit" data-i18n="verify.submit">Confirmar</button>
+      </form>
+      <p class="error-msg" id="error-verificar" role="alert"></p>
+      <p class="hint" id="verificar-aviso" role="status"></p>
+      <div class="acciones-verificar">
+        <button type="button" class="secundario" id="btn-reenviar" data-i18n="verify.resend">Enviar otro código</button>
+        <button type="button" class="secundario" id="btn-otra-cuenta" data-i18n="verify.other_account">Usar otra cuenta</button>
+      </div>
+      <p class="hint" data-i18n="verify.spam_hint">¿No te llega? Revisa la carpeta de spam o correo no deseado.</p>
+    </div>
+
+    <div class="card" id="card-login">
       <h2 data-i18n="login.title">Iniciar sesión</h2>
       <form id="form-login">
         <label for="email" data-i18n="login.email">Correo</label>
@@ -34,7 +52,7 @@
       <p class="hint" id="hint-firebase"></p>
     </div>
 
-    <div class="card">
+    <div class="card" id="card-registro">
       <h2 data-i18n="login.create_account">Crear cuenta</h2>
       <form id="form-registro">
         <label for="reg-nombre" data-i18n="login.name">Nombre</label>
@@ -53,7 +71,7 @@
       <p class="error-msg" id="error-registro"></p>
     </div>
 
-    <details class="card">
+    <details class="card" id="card-dev">
       <summary data-i18n="login.dev_mode">Modo de prueba (sin Firebase)</summary>
       <p class="hint" data-i18n="login.dev_hint">Solo funciona si el backend corre con USE_FAKE_DB=true.</p>
 

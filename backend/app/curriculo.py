@@ -3,8 +3,8 @@ Temario de la plataforma (estilo Duolingo, sin audios).
 
 Dos apartados independientes, cada uno con su propio camino:
 - **Vocabulario**: 11 mundos temáticos (animales, colores, ropa, deportes...). Cada mundo
-  tiene 5 lecciones de 8 preguntas: "¿qué es esto?" (imagen → palabra), "¿cuál es ...?"
-  (palabra → imagen), un repaso mezclado y un desafío final.
+  tiene 5 lecciones de 8 preguntas, cada una con un enfoque distinto: conocer las palabras,
+  encontrarlas, traducirlas, escribirlas y un desafío final (ver `_preguntas_vocabulario`).
 - **Gramática**: 10 temas (verbo to be, artículos, plurales, posesivos, presente simple,
   preposiciones, there is/are, can, presente continuo, pasado simple). Cada tema trae una
   explicación corta ("Cómo se usa") y 4 lecciones de 8 ejercicios de completar.
@@ -142,6 +142,83 @@ VOCABULARIO = {
             ("Light", "💡"),
         ],
     },
+}
+
+# Pregunta "¿cuál NO es…?" de cada mundo (lección 5).
+_INTRUSO = {
+    "animals": "Which one is NOT an animal?",
+    "colors": "Which one is NOT a color?",
+    "food": "Which one is NOT food?",
+    "numbers": "Which one is NOT a number?",
+    "transport": "Which one is NOT a vehicle?",
+    "body": "Which one is NOT a part of the body?",
+    "clothes": "Which one is NOT something to wear?",
+    "nature": "Which one is NOT about nature or the weather?",
+    "school": "Which one is NOT a school thing?",
+    "sports": "Which one is NOT a sport?",
+    "home": "Which one is NOT in a house?",
+}
+for _unidad, _texto in _INTRUSO.items():
+    VOCABULARIO[_unidad]["intruso"] = _texto
+
+# De qué mundos sale el "intruso": mundos que no se confundan con el tema (en la naturaleza
+# hay animales y en una casa hay reloj, así que esos no sirven de intruso ahí).
+INTRUSOS_POR_DEFECTO = ["transport", "school"]
+INTRUSOS = {
+    "transport": ["animals", "food"],
+    "school": ["animals", "food"],
+    "home": ["animals", "transport"],
+}
+
+# Traducción de cada palabra (lección 3: «perro» → Dog y dog → «perro»).
+TRADUCCIONES = {
+    # animals
+    "Dog": "Perro", "Cat": "Gato", "Bird": "Pájaro", "Fish": "Pez", "Horse": "Caballo",
+    "Cow": "Vaca", "Pig": "Cerdo", "Sheep": "Oveja", "Lion": "León", "Tiger": "Tigre",
+    "Monkey": "Mono", "Elephant": "Elefante", "Rabbit": "Conejo", "Duck": "Pato",
+    "Frog": "Rana", "Bear": "Oso",
+    # colors
+    "Red": "Rojo", "Blue": "Azul", "Green": "Verde", "Yellow": "Amarillo", "Orange": "Naranja",
+    "Purple": "Morado", "Black": "Negro", "White": "Blanco", "Brown": "Café", "Pink": "Rosado",
+    # food
+    "Apple": "Manzana", "Banana": "Banano", "Bread": "Pan", "Milk": "Leche", "Pizza": "Pizza",
+    "Egg": "Huevo", "Cheese": "Queso", "Rice": "Arroz", "Carrot": "Zanahoria", "Grapes": "Uvas",
+    "Cake": "Torta", "Ice cream": "Helado", "Strawberry": "Fresa", "Cookie": "Galleta",
+    "Chicken": "Pollo", "Corn": "Maíz",
+    # numbers
+    "One": "Uno", "Two": "Dos", "Three": "Tres", "Four": "Cuatro", "Five": "Cinco",
+    "Six": "Seis", "Seven": "Siete", "Eight": "Ocho", "Nine": "Nueve", "Ten": "Diez",
+    # transport
+    "Car": "Carro", "Bus": "Bus", "Bike": "Bicicleta", "Plane": "Avión", "Train": "Tren",
+    "Boat": "Barco", "Truck": "Camión", "Helicopter": "Helicóptero", "Taxi": "Taxi",
+    "Motorcycle": "Moto", "Rocket": "Cohete", "Tractor": "Tractor", "Ambulance": "Ambulancia",
+    "Fire truck": "Camión de bomberos", "Police car": "Carro de policía", "Scooter": "Patineta",
+    # body
+    "Eye": "Ojo", "Ear": "Oreja", "Nose": "Nariz", "Mouth": "Boca", "Hand": "Mano",
+    "Foot": "Pie", "Leg": "Pierna", "Arm": "Brazo", "Tooth": "Diente", "Tongue": "Lengua",
+    # clothes
+    "T-shirt": "Camiseta", "Jeans": "Jeans", "Dress": "Vestido", "Sneakers": "Tenis",
+    "Cap": "Gorra", "Socks": "Medias", "Coat": "Abrigo", "Scarf": "Bufanda", "Gloves": "Guantes",
+    "Boots": "Botas", "Glasses": "Gafas", "Tie": "Corbata", "Backpack": "Morral",
+    "Swimsuit": "Vestido de baño", "Shorts": "Pantaloneta", "Hat": "Sombrero",
+    # nature
+    "Sun": "Sol", "Rain": "Lluvia", "Snow": "Nieve", "Cloud": "Nube", "Wind": "Viento",
+    "Rainbow": "Arcoíris", "Storm": "Tormenta", "Moon": "Luna", "Star": "Estrella",
+    "Tree": "Árbol", "Flower": "Flor", "Mountain": "Montaña", "Sea": "Mar", "Fire": "Fuego",
+    "Leaf": "Hoja", "Umbrella": "Sombrilla",
+    # school
+    "Book": "Libro", "Pencil": "Lápiz", "Pen": "Lapicero", "Ruler": "Regla", "Scissors": "Tijeras",
+    "Notebook": "Cuaderno", "Crayon": "Crayola", "Paintbrush": "Pincel", "Computer": "Computador",
+    "Clock": "Reloj", "Calculator": "Calculadora", "Globe": "Globo terráqueo",
+    # sports
+    "Soccer": "Fútbol", "Basketball": "Baloncesto", "Baseball": "Béisbol", "Tennis": "Tenis",
+    "Volleyball": "Voleibol", "Swimming": "Natación", "Running": "Atletismo", "Cycling": "Ciclismo",
+    "Skating": "Patinaje", "Skiing": "Esquí", "Boxing": "Boxeo", "Golf": "Golf",
+    "Bowling": "Bolos", "Ping-pong": "Ping-pong", "Surfing": "Surf", "Football": "Fútbol americano",
+    # home
+    "House": "Casa", "Bed": "Cama", "Chair": "Silla", "Door": "Puerta", "Window": "Ventana",
+    "Sofa": "Sofá", "Bathtub": "Bañera", "Toilet": "Inodoro", "Key": "Llave", "TV": "Televisor",
+    "Phone": "Celular", "Mirror": "Espejo", "Light": "Bombillo",
 }
 
 # ---------------------------------------------------------------------------
@@ -610,36 +687,128 @@ def clave_leccion(unidad: str, leccion: int) -> str:
 
 
 def _preguntas_vocabulario(unidad: str) -> list[list[dict]]:
-    """5 lecciones: 1 y 2 = imagen → palabra (palabras 1–8 y 9–16), 3 = palabra → imagen,
-    4 = repaso mezclado y 5 = desafío (mezcla con otras palabras y otras opciones).
-    Los mundos con menos de 16 palabras completan con repaso."""
+    """5 lecciones de 8 preguntas, cada una con un enfoque distinto para que no se repitan:
+
+    1. **Conoce**: imagen → palabra (palabras 1–8).
+    2. **Encuentra**: las palabras nuevas (9–16): imagen → palabra y palabra → imagen.
+    3. **Traduce**: «perro» → Dog y dog → «perro».
+    4. **Escribe**: ¿cuál está bien escrita? y la letra que falta (D_g).
+    5. **Desafío**: ¿sí o no?, ¿cuál NO es…?, y un poco de todo lo anterior.
+
+    Los mundos con menos de 16 palabras completan la lección 2 con palabras de la 1."""
     datos = VOCABULARIO[unidad]
     palabras = datos["palabras"]
     azar = random.Random(unidad)  # determinista: sembrar dos veces da el mismo contenido
     n = PREGUNTAS_POR_LECCION
+    tipos = _tipos_de_pregunta(unidad, azar)
+
+    leccion_1 = [tipos["imagen_a_palabra"](*p) for p in palabras[:n]]
+
+    nuevas = palabras[n:2 * n]
+    relleno = azar.sample(palabras[:n], n - len(nuevas))
+    mitad = len(nuevas) // 2
+    leccion_2 = [tipos["imagen_a_palabra"](*p) for p in nuevas[:mitad]] + [
+        tipos["palabra_a_imagen"](*p) for p in nuevas[mitad:] + relleno
+    ]
+
+    traducir = azar.sample(palabras, n)
+    leccion_3 = [tipos["espanol_a_ingles"](*p) for p in traducir[:n // 2]] + [
+        tipos["ingles_a_espanol"](*p) for p in traducir[n // 2:]
+    ]
+
+    escribibles = [p for p in palabras if len(_letras(p[0])) >= 2]  # 3 letras o más
+    escribir = azar.sample(escribibles, min(n, len(escribibles)))
+    leccion_4 = [tipos["ortografia"](*p) for p in escribir[:n // 2]] + [
+        tipos["letra_que_falta"](*p) for p in escribir[n // 2:]
+    ]
+    leccion_4 += [tipos["imagen_a_palabra"](*p) for p in azar.sample(palabras, n - len(leccion_4))]
+
+    desafio = azar.sample(escribibles, n)
+    plan = ["si_o_no", "si_o_no", "intruso", "intruso", "espanol_a_ingles",
+            "ingles_a_espanol", "letra_que_falta", "palabra_a_imagen"]
+    leccion_5 = [tipos[tipo](*p) for tipo, p in zip(plan, desafio)]
+
+    # Fuera de la primera (que presenta las palabras en orden), los tipos se intercalan.
+    for leccion in (leccion_2, leccion_3, leccion_4, leccion_5):
+        azar.shuffle(leccion)
+    return [leccion_1, leccion_2, leccion_3, leccion_4, leccion_5]
+
+
+VOCALES = "aeiou"
+
+
+def _letras(palabra: str) -> list[int]:
+    """Posiciones de las letras (sin la primera), las que se pueden cambiar u ocultar."""
+    return [i for i, c in enumerate(palabra) if c.isalpha() and i > 0]
+
+
+def _mal_escritas(palabra: str, azar: random.Random) -> list[str]:
+    """Tres errores de ortografía creíbles: falta una letra, una letra doble, dos letras
+    al revés o una vocal cambiada (Elephant → Elefant, Elephnat, Elepant...)."""
+    posiciones = _letras(palabra)
+    candidatas = set()
+    for i in posiciones:
+        candidatas.add(palabra[:i] + palabra[i + 1:])
+        candidatas.add(palabra[:i] + palabra[i] + palabra[i:])
+        if i + 1 < len(palabra) and palabra[i + 1].isalpha():
+            candidatas.add(palabra[:i] + palabra[i + 1] + palabra[i] + palabra[i + 2:])
+        if palabra[i].lower() in VOCALES:
+            candidatas.update(palabra[:i] + v + palabra[i + 1:] for v in VOCALES if v != palabra[i].lower())
+    candidatas = sorted(c for c in candidatas if c.lower() != palabra.lower())
+    return azar.sample(candidatas, 3)
+
+
+def _tipos_de_pregunta(unidad: str, azar: random.Random) -> dict:
+    """Generadores de cada tipo de pregunta para un mundo: reciben (palabra, emoji)."""
+    datos = VOCABULARIO[unidad]
+    palabras = datos["palabras"]
+    otras_palabras = lambda palabra: [p for p, _ in palabras if p != palabra]  # noqa: E731
+    otros_emojis = lambda palabra: [e for p, e in palabras if p != palabra]  # noqa: E731
+    intrusos = [e for u in INTRUSOS.get(unidad, INTRUSOS_POR_DEFECTO) for _, e in VOCABULARIO[u]["palabras"]]
+
+    def pregunta(texto, icono, correcta, distractores, formato="texto"):
+        return {"pregunta": texto, "icono": icono, "respuesta_correcta": correcta,
+                "opciones": [correcta, *distractores], "formato_opciones": formato}
 
     def imagen_a_palabra(palabra, emoji):
-        otras = [p for p, _ in palabras if p != palabra]
-        return {"pregunta": datos["pregunta"], "icono": emoji, "respuesta_correcta": palabra,
-                "opciones": [palabra, *azar.sample(otras, 3)], "formato_opciones": "texto"}
+        return pregunta(datos["pregunta"], emoji, palabra, azar.sample(otras_palabras(palabra), 3))
 
     def palabra_a_imagen(palabra, emoji):
-        otras = [e for p, e in palabras if p != palabra]
-        return {"pregunta": f"Which one is “{palabra.lower()}”?", "icono": None,
-                "respuesta_correcta": emoji, "opciones": [emoji, *azar.sample(otras, 3)],
-                "formato_opciones": "emoji"}
+        return pregunta(f"Which one is “{palabra.lower()}”?", None, emoji,
+                        azar.sample(otros_emojis(palabra), 3), "emoji")
 
-    leccion_1 = [imagen_a_palabra(*p) for p in palabras[:n]]
-    resto = palabras[n:2 * n]
-    leccion_2 = [imagen_a_palabra(*p) for p in resto] + [
-        palabra_a_imagen(*p) for p in azar.sample(palabras[:n], n - len(resto))
-    ]
-    leccion_3 = [palabra_a_imagen(*p) for p in azar.sample(palabras, n)]
-    mezcla = azar.sample(palabras, n)
-    leccion_4 = [imagen_a_palabra(*p) if i % 2 else palabra_a_imagen(*p) for i, p in enumerate(mezcla)]
-    desafio = azar.sample(palabras, n)
-    leccion_5 = [palabra_a_imagen(*p) if i % 2 else imagen_a_palabra(*p) for i, p in enumerate(desafio)]
-    return [leccion_1, leccion_2, leccion_3, leccion_4, leccion_5]
+    def espanol_a_ingles(palabra, emoji):
+        return pregunta(f"¿Cómo se dice «{TRADUCCIONES[palabra].lower()}» en inglés?", None, palabra,
+                        azar.sample(otras_palabras(palabra), 3))
+
+    def ingles_a_espanol(palabra, emoji):
+        otras = [TRADUCCIONES[p] for p in otras_palabras(palabra)]
+        return pregunta(f"What does “{palabra.lower()}” mean?", None, TRADUCCIONES[palabra], azar.sample(otras, 3))
+
+    def ortografia(palabra, emoji):
+        return pregunta("How do you spell it?", emoji, palabra, _mal_escritas(palabra, azar))
+
+    def letra_que_falta(palabra, emoji):
+        posiciones = _letras(palabra)
+        vocales = [i for i in posiciones if palabra[i].lower() in VOCALES]
+        i = azar.choice(vocales or posiciones)
+        letra = palabra[i].lower()
+        grupo = VOCALES if letra in VOCALES else "bcdfghlmnprst"
+        distractores = azar.sample([c for c in grupo if c != letra], 3)
+        return pregunta(f"What letter is missing? {palabra[:i]}_{palabra[i + 1:]}", emoji, letra, distractores)
+
+    def si_o_no(palabra, emoji):
+        # La mitad de las veces el dibujo no corresponde a la palabra.
+        if azar.random() < 0.5:
+            return pregunta(f"Is it “{palabra.lower()}”?", emoji, "Yes", ["No"])
+        return pregunta(f"Is it “{palabra.lower()}”?", azar.choice(otros_emojis(palabra)), "No", ["Yes"])
+
+    def intruso(palabra, emoji):
+        propios = [emoji, *azar.sample(otros_emojis(palabra), 2)]
+        return pregunta(datos["intruso"], None, azar.choice(intrusos), propios, "emoji")
+
+    return {f.__name__: f for f in (imagen_a_palabra, palabra_a_imagen, espanol_a_ingles, ingles_a_espanol,
+                                    ortografia, letra_que_falta, si_o_no, intruso)}
 
 
 def _preguntas_gramatica(unidad: str) -> list[list[dict]]:

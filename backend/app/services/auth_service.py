@@ -13,7 +13,9 @@ Hay dos tipos de token, ambos enviados como `Authorization: Bearer <token>`:
    `usuarios` por su campo `auth_uid`.
 
 `current_user()` intenta decodificar primero como token propio (rápido, sin
-red) y si no es válido intenta verificarlo como ID token de Firebase.
+red) y si no es válido intenta verificarlo como ID token de Firebase. Además
+exige que un adulto haya confirmado su correo (ver `verificacion_service.py`);
+`usuario_autenticado()` es lo mismo sin esa exigencia.
 """
 import hashlib
 from datetime import datetime, timedelta, timezone
@@ -80,7 +82,12 @@ def _decodificar_token_propio(token: str) -> dict | None:
         payload = jwt.decode(token, _settings.jwt_secret, algorithms=["HS256"])
     except jwt.InvalidTokenError:
         return None
-    return {"id_usuario": payload["sub"], "rol": payload["rol"]}
+    usuario = {"id_usuario": payload["sub"], "rol": payload["rol"], "email_verificado": True}
+    if payload["rol"] != "estudiante":
+        # Adultos con token propio: solo el login de desarrollo (USE_FAKE_DB=true).
+        datos = get_firestore_client().collection("usuarios").document(payload["sub"]).get().to_dict() or {}
+        usuario["email_verificado"] = datos.get("email_verificado", True)
+    return usuario
 
 
 def _decodificar_token_firebase(token: str) -> dict | None:
@@ -97,14 +104,23 @@ def _decodificar_token_firebase(token: str) -> dict | None:
     if not docs:
         return None
     data = docs[0].to_dict()
-    return {"id_usuario": docs[0].id, "rol": data.get("rol")}
+    return {"id_usuario": docs[0].id, "rol": data.get("rol"), "email_verificado": data.get("email_verificado", True)}
 
 
-def current_user(authorization: str | None = Header(default=None)) -> dict:
+def usuario_autenticado(authorization: str | None = Header(default=None)) -> dict:
+    """Quién llama, aunque todavía no haya confirmado su correo. Solo para la sesión y
+    los endpoints de verificación; todo lo demás usa `current_user()`."""
     token = _extraer_token(authorization)
     usuario = _decodificar_token_propio(token) or _decodificar_token_firebase(token)
     if usuario is None:
         raise HTTPException(401, "Token inválido o expirado")
+    return usuario
+
+
+def current_user(authorization: str | None = Header(default=None)) -> dict:
+    usuario = usuario_autenticado(authorization)
+    if not usuario["email_verificado"]:
+        raise HTTPException(403, "Primero confirma tu correo con el código que te enviamos")
     return usuario
 
 
