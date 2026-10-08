@@ -20,7 +20,10 @@ Este módulo solo DEFINE el contenido. Las preguntas viven en Firestore (colecci
 import random
 
 PREGUNTAS_POR_LECCION = 8
-VIDAS_POR_LECCION = 3  # errores permitidos: al perder las 3 vidas la lección se reinicia
+# Vidas (estilo Duolingo): se guardan entre lecciones, cada error gasta una y se recarga
+# una cada MINUTOS_POR_VIDA minutos hasta VIDAS_MAX. Ver lecciones_service.estado_vidas.
+VIDAS_MAX = 5
+MINUTOS_POR_VIDA = 30
 PUNTOS_POR_ACIERTO = 10
 
 # ---------------------------------------------------------------------------

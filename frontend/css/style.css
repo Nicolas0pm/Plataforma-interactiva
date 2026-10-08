@@ -1867,3 +1867,17 @@ main.panel-nino {
     grid-column: span 2;
   }
 }
+
+/* Vidas en el panel del niño */
+.vidas-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.vidas-panel .vidas {
+  font-size: 1.4rem;
+  letter-spacing: 0.1em;
+}

@@ -5,12 +5,14 @@ import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import { volver } from "../nav.js";
 import { exigirRol } from "../session.js";
 import { alternarSonido, sonar, sonidoActivo } from "../sonidos.js";
+import { corazones, minutosHasta } from "../vidas.js";
 
 // Lección estilo Duolingo (sin audios):
 // - La lección la elige el servidor (sin parámetros). Con ?unidad=&leccion= solo se puede
 //   repetir una lección ya aprobada (práctica).
 // - Un intento por pregunta: si se equivoca se muestra el error y la respuesta correcta, y
-//   pierde una vida ❤️. Sin vidas, la lección termina y se repite.
+//   pierde una vida ❤️. Las vidas se guardan entre lecciones y se recarga una cada 30 min;
+//   sin vidas, la lección termina. Practicar (repetir una aprobada) no gasta vidas.
 // - Al final se envían las respuestas y el servidor califica.
 
 const sesion = exigirRol("estudiante");
@@ -53,7 +55,11 @@ async function cargar() {
   try {
     leccion = await apiFetch(`/api/lecciones/jugar${consulta}`);
   } catch (err) {
-    tarjeta.innerHTML = `<p>${esc(err.message)}</p>`;
+    // P. ej. "Te quedaste sin vidas…": se explica y se ofrece volver al mapa.
+    tarjeta.innerHTML = `<span class="hero-emoji">${err.message.includes("❤️") ? "💔" : "⚠️"}</span>
+      <p>${esc(err.message)}</p>
+      <button type="button" id="btn-al-mapa">${t("activity.back_dashboard")}</button>`;
+    document.getElementById("btn-al-mapa").addEventListener("click", irAlMapa);
     return;
   }
   vidas = leccion.vidas;
@@ -81,8 +87,7 @@ function mostrarExplicacion(titulo) {
 }
 
 function pintarVidas() {
-  document.getElementById("vidas").textContent =
-    "❤️".repeat(vidas) + "🤍".repeat(Math.max(0, leccion.vidas - vidas));
+  document.getElementById("vidas").textContent = corazones(vidas, leccion.vidas_max);
   document.getElementById("vidas").setAttribute("aria-label", `${vidas} ${t("activity.lives")}`);
 }
 
@@ -184,6 +189,9 @@ async function terminar() {
         : `+${resultado.puntos_ganados} ⭐ ${t("activity.points_for_shop")}`
     );
     if (resultado.subio_de_nivel) extra.push(t("activity.level_up"));
+    extra.push(`${corazones(resultado.vidas.actuales, resultado.vidas.maximo)}${
+      resultado.vida_recuperada ? ` · ${t("activity.practice_life")}` : ""
+    }`);
 
     const mundo = resultado.mundo_completado;
     if (mundo) {
@@ -201,13 +209,27 @@ async function terminar() {
     lanzarConfeti();
   } else {
     sonar("perder");
-    mostrarModal({
-      emoji: "💔",
-      titulo: t("activity.out_of_lives"),
-      extra: [t("activity.try_again_hint")],
-      principal: [t("activity.try_again"), () => window.location.reload()],
-      secundario: [t("activity.back_dashboard"), irAlMapa],
-    });
+    const v = resultado.vidas;
+    if (resultado.modo !== "practica" && v.actuales === 0) {
+      // Sin vidas: toca esperar la recarga (o practicar una lección ya aprobada).
+      mostrarModal({
+        emoji: "💔",
+        titulo: t("activity.out_of_lives"),
+        extra: [
+          t("activity.lives_wait").replace("{min}", v.minutos_por_vida).replace("{proxima}", minutosHasta(v.proxima_vida)),
+          t("activity.lives_practice"),
+        ],
+        principal: [t("activity.back_dashboard"), irAlMapa],
+      });
+    } else {
+      mostrarModal({
+        emoji: "💔",
+        titulo: t("activity.out_of_lives"),
+        extra: [t("activity.try_again_hint")],
+        principal: [t("activity.try_again"), () => window.location.reload()],
+        secundario: [t("activity.back_dashboard"), irAlMapa],
+      });
+    }
   }
 }
 

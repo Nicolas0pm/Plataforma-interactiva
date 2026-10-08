@@ -141,7 +141,10 @@ docente. Los mundos del docente arman sus lecciones solos, en grupos de 8 pregun
 - El niño **elige el apartado**; dentro de él, la plataforma elige la lección: la primera no
   aprobada, o cada 3 lecciones nuevas un **repaso** de la que le fue peor (< 80 %).
 - Puede **repetir** lecciones aprobadas (práctica): cuenta para su precisión, no da puntos.
-- **3 vidas**: cada error quita una; sin vidas la lección se pierde y se repite.
+- **5 vidas** que se guardan entre lecciones: cada error gasta una y se recupera una cada
+  30 minutos. Sin vidas la lección se pierde y no se pueden empezar lecciones nuevas hasta
+  recuperar alguna; practicar una lección ya aprobada no gasta vidas y, si se aprueba,
+  devuelve una (`VIDAS_MAX` y `MINUTOS_POR_VIDA` en `app/curriculo.py`).
 - **El servidor califica**: el navegador manda las respuestas y la API las compara con las
   correctas guardadas; no se confía en un puntaje del cliente.
 - Guarda qué respondió mal cada niño: es lo que ve el docente como "errores frecuentes".

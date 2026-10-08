@@ -4,6 +4,7 @@ import { esc, porcentaje } from "../html.js";
 import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
 import { exigirRol, salir } from "../session.js";
+import { actualizarVidas, corazones, minutosHasta } from "../vidas.js";
 
 const sesion = exigirRol("estudiante");
 inicializarLangToggle();
@@ -58,6 +59,13 @@ async function iniciar(sesion) {
   pintarEstadisticas(resumen);
   pintarRecientes(resumen.recientes);
   pintarSeccion();
+  // Las vidas se recargan con el tiempo: se revisa cada 20 s sin volver a pedir nada al servidor.
+  setInterval(() => {
+    const antes = resumen.vidas.actuales;
+    resumen.vidas = actualizarVidas(resumen.vidas);
+    pintarVidas();
+    if (resumen.vidas.actuales !== antes) pintarSeccion();
+  }, 20000);
 }
 
 function pintarSeccion() {
@@ -100,9 +108,26 @@ function pintarProxima(siguiente, seccion) {
     `${nombreSeccion} · ${t("path.lesson")} ${siguiente.leccion} ${t("path.of")} ${info.lecciones}${modo}`;
   // Solo el apartado: la lección la vuelve a elegir el servidor al abrir la actividad.
   boton.onclick = () => (window.location.href = `activity.html?seccion=${seccion}`);
+  // Sin vidas no puede empezar lecciones nuevas ni repasos (practicar sí, desde el camino).
+  const sinVidas = resumen.vidas.actuales === 0;
+  boton.disabled = sinVidas;
+  if (sinVidas) {
+    document.getElementById("proxima-detalle").textContent = t("path.no_lives").replace(
+      "{min}", minutosHasta(resumen.vidas.proxima_vida)
+    );
+  }
+}
+
+function pintarVidas() {
+  const v = resumen.vidas;
+  document.getElementById("mis-vidas").textContent = corazones(v.actuales, v.maximo);
+  document.getElementById("mis-vidas").setAttribute("aria-label", `${v.actuales} ${t("activity.lives")}`);
+  document.getElementById("proxima-vida").textContent =
+    v.actuales < v.maximo ? t("path.next_life").replace("{min}", minutosHasta(v.proxima_vida)) : t("path.lives_full");
 }
 
 function pintarEstadisticas(resumen) {
+  pintarVidas();
   document.getElementById("stat-nivel").textContent = resumen.nivel_logrado;
   document.getElementById("stat-puntos").textContent = resumen.puntaje_total;
   document.getElementById("stat-precision").textContent = porcentaje(resumen.precision);

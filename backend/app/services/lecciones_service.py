@@ -8,8 +8,11 @@ Camino de aprendizaje guiado (estilo Duolingo).
   aprobada con menos del 80 % de aciertos, le toca un **repaso** de la más débil.
 - Sí puede **repetir** lecciones que ya aprobó (modo "practica"): cuenta para su precisión
   y su mejor resultado, pero no da puntos.
-- Cada lección tiene `VIDAS_POR_LECCION` vidas: cada error quita una. Si se equivoca
-  3 veces la lección se pierde y se repite; si termina con al menos una vida, la aprueba.
+- **Vidas** (`VIDAS_MAX`): se guardan entre lecciones y cada error gasta una. Si se
+  queda sin vidas a mitad de una lección, la pierde; si la termina con al menos una vida,
+  la aprueba. Se recupera una vida cada `MINUTOS_POR_VIDA` minutos. Con 0 vidas no puede
+  empezar lecciones nuevas ni repasos, pero sí **practicar** (repetir una ya aprobada):
+  practicar no gasta vidas y, si la aprueba, le devuelve una.
 - El servidor califica comparando las respuestas con las correctas guardadas en Firestore.
 - **Premios**: los puntos se gastan en la tienda del perfil (`tienda_service.py`). El premio
   real llega al **completar un mundo** (todas sus lecciones): si el estudiante tiene una
@@ -21,14 +24,15 @@ Progreso guardado en `usuarios/{id}/resultados/actual`:
   respuestas_totales, respuestas_correctas
   aprobadas_desde_repaso: { "vocabulario": n, "gramatica": n, "profesor": n }
   mundos_completados: { "animals": fecha }
+  vidas: { cantidad, desde }   # vidas en el instante `desde` (None si están llenas)
 Cada intento queda además en la colección `intentos_leccion` (con sus errores), que es lo
 que ve el docente como "en qué va bien y en qué va mal".
 """
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException
 
-from app.curriculo import PUNTOS_POR_ACIERTO, SECCIONES, VIDAS_POR_LECCION, clave_leccion
+from app.curriculo import MINUTOS_POR_VIDA, PUNTOS_POR_ACIERTO, SECCIONES, VIDAS_MAX, clave_leccion
 from app.services.catalogo_service import (
     SECCION_PROFESOR,
     SECCIONES_TODAS,
@@ -43,6 +47,46 @@ from app.services.recompensas_service import recompensa_por_mundo
 REPASO_CADA = 3
 MAX_RECIENTES = 20
 UMBRAL_REPASO = 0.8
+
+
+RECARGA = timedelta(minutes=MINUTOS_POR_VIDA)
+
+
+def _como_utc(fecha: datetime) -> datetime:
+    return fecha if fecha.tzinfo else fecha.replace(tzinfo=timezone.utc)
+
+
+def _vidas_ahora(progreso: dict, ahora: datetime) -> tuple[int, datetime | None]:
+    """(vidas que tiene ahora, desde cuándo corre la recarga de la siguiente)."""
+    guardadas = progreso.get("vidas") or {}
+    cantidad = guardadas.get("cantidad", VIDAS_MAX)
+    desde = guardadas.get("desde")
+    if cantidad >= VIDAS_MAX or desde is None:
+        return VIDAS_MAX, None
+    desde = _como_utc(desde)
+    recargadas = int((ahora - desde) / RECARGA)
+    cantidad = min(VIDAS_MAX, cantidad + recargadas)
+    if cantidad >= VIDAS_MAX:
+        return VIDAS_MAX, None
+    return cantidad, desde + recargadas * RECARGA
+
+
+def estado_vidas(progreso: dict, ahora: datetime | None = None) -> dict:
+    """Lo que ven el niño y el frontend: cuántas tiene y cuándo llega la próxima."""
+    actuales, desde = _vidas_ahora(progreso, ahora or datetime.now(timezone.utc))
+    return {
+        "actuales": actuales,
+        "maximo": VIDAS_MAX,
+        "minutos_por_vida": MINUTOS_POR_VIDA,
+        "proxima_vida": desde + RECARGA if desde else None,
+    }
+
+
+def _sin_vidas(progreso: dict, ahora: datetime) -> HTTPException:
+    proxima = estado_vidas(progreso, ahora)["proxima_vida"]
+    minutos = max(1, -(-int((proxima - ahora).total_seconds()) // 60))
+    return HTTPException(409, f"Te quedaste sin vidas ❤️. La próxima llega en {minutos} min. "
+                              "Mientras tanto puedes practicar una lección que ya aprobaste.")
 
 
 def _ref_progreso(db, id_usuario: str):
@@ -146,11 +190,17 @@ def armar_leccion(
             raise HTTPException(404, "¡Terminaste todo este apartado!")
         unidad, leccion = siguiente["unidad"], siguiente["leccion"]
     modo = modo_para(progreso, cat, unidad, leccion)
+    ahora = datetime.now(timezone.utc)
+    vidas, _ = _vidas_ahora(progreso, ahora)
+    if modo != "practica" and vidas == 0:
+        raise _sin_vidas(progreso, ahora)
     return {
         "unidad": buscar_unidad(cat, unidad),
         "leccion": leccion,
         "modo": modo,
-        "vidas": VIDAS_POR_LECCION,
+        # Practicar no gasta vidas: se juega con todas.
+        "vidas": VIDAS_MAX if modo == "practica" else vidas,
+        "vidas_max": VIDAS_MAX,
         "preguntas": [
             {
                 "id_actividad": p["id_actividad"],
@@ -173,6 +223,11 @@ def registrar_resultado(db, id_usuario: str, unidad: str, leccion: int, respuest
     modo = modo_para(progreso, cat, unidad, leccion)
     info = buscar_unidad(cat, unidad)
     seccion = info["seccion"]
+    ahora = datetime.now(timezone.utc)
+    vidas, recarga_desde = _vidas_ahora(progreso, ahora)
+    if modo != "practica" and vidas == 0:
+        raise _sin_vidas(progreso, ahora)
+    vidas_al_empezar = VIDAS_MAX if modo == "practica" else vidas
     preguntas = {p["id_actividad"]: p for p in _preguntas(db, unidad, leccion)}
 
     ids = [r["id_actividad"] for r in respuestas]
@@ -197,8 +252,15 @@ def registrar_resultado(db, id_usuario: str, unidad: str, leccion: int, respuest
             })
 
     total = len(preguntas)
-    aprobada = len(errores) < VIDAS_POR_LECCION and aciertos + len(errores) >= total
-    ahora = datetime.now(timezone.utc)
+    aprobada = len(errores) < vidas_al_empezar and aciertos + len(errores) >= total
+
+    # --- Vidas: cada error gasta una; practicar no gasta y, si aprueba, devuelve una ---
+    if modo == "practica":
+        nuevas = min(VIDAS_MAX, vidas + (1 if aprobada else 0))
+    else:
+        nuevas = max(0, vidas - len(errores))
+    # La recarga corre desde que dejó de tener todas (si ya corría, sigue igual).
+    progreso["vidas"] = {"cantidad": nuevas, "desde": None if nuevas >= VIDAS_MAX else (recarga_desde or ahora)}
 
     # --- Progreso por lección ---
     clave = clave_leccion(unidad, leccion)
@@ -287,6 +349,8 @@ def registrar_resultado(db, id_usuario: str, unidad: str, leccion: int, respuest
         "subio_de_nivel": nuevo_nivel > nivel_anterior,
         "mundo_completado": mundo_completado,
         "siguiente": siguiente_leccion(progreso, cat, seccion),
+        "vidas": estado_vidas(progreso, ahora),
+        "vida_recuperada": modo == "practica" and nuevas > vidas,
     }
 
 
@@ -382,6 +446,7 @@ def resumen_aprendizaje(db, id_usuario: str, progreso: dict | None = None, cat: 
         "precision": round(progreso["respuestas_correctas"] / progreso["respuestas_totales"], 2)
         if progreso["respuestas_totales"] else None,
         "puntaje_total": progreso["puntaje_total"],
+        "vidas": estado_vidas(progreso),
         "perfil": perfil_de(progreso),
         "nivel_logrado": calcular_nivel(progreso["puntaje_total"]),
         "puntos_para_siguiente_nivel": puntos_para_siguiente_nivel(progreso["puntaje_total"]),

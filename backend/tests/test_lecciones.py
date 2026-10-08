@@ -1,4 +1,6 @@
 """Camino guiado de lecciones (app/services/lecciones_service.py)."""
+from datetime import datetime, timedelta, timezone
+
 from app.services.lecciones_service import sembrar_temario
 
 
@@ -42,7 +44,7 @@ def test_la_plataforma_elige_la_primera_leccion(client, db):
     leccion = client.get("/api/lecciones/jugar", headers=_auth(token)).json()
     assert (leccion["unidad"]["id"], leccion["leccion"], leccion["modo"]) == ("animals", 1, "nueva")
     assert len(leccion["preguntas"]) == 8
-    assert leccion["vidas"] == 3
+    assert leccion["vidas"] == 5 and leccion["vidas_max"] == 5
 
 
 def test_aprobar_suma_puntos_y_avanza(client, db):
@@ -60,13 +62,46 @@ def test_no_se_puede_saltar_a_una_leccion_bloqueada(client, db):
     assert r.status_code == 403
 
 
-def test_perder_las_tres_vidas_repite_la_leccion(client, db):
+def _recargar_vidas(db, id_nino, cantidad=5, hace_minutos=0):
+    """Deja al niño con `cantidad` vidas, como si la recarga hubiera empezado hace `hace_minutos`."""
+    ref = db.collection("usuarios").document(id_nino).collection("resultados").document("actual")
+    desde = datetime.now(timezone.utc) - timedelta(minutes=hace_minutos)
+    ref.update({"vidas": {"cantidad": cantidad, "desde": None if cantidad >= 5 else desde}})
+
+
+def test_perder_todas_las_vidas_repite_la_leccion(client, db):
     _, _, nino, token = _preparar(client, db)
-    _, r = _jugar(client, token, errores=3)
+    _, r = _jugar(client, token, errores=5)
     datos = r.json()
     assert datos["aprobada"] is False and datos["puntos_ganados"] == 0
     assert (datos["siguiente"]["unidad"], datos["siguiente"]["leccion"]) == ("animals", 1)
-    assert len(datos["errores"]) == 3
+    assert len(datos["errores"]) == 5
+    assert datos["vidas"]["actuales"] == 0 and datos["vidas"]["proxima_vida"] is not None
+
+
+def test_las_vidas_se_guardan_entre_lecciones_y_se_recargan(client, db):
+    _, _, nino, token = _preparar(client, db)
+    _, r = _jugar(client, token, errores=2)          # aprueba, pero gasta 2 vidas
+    assert r.json()["aprobada"] is True and r.json()["vidas"]["actuales"] == 3
+    leccion, _ = _jugar(client, token, errores=0)    # la siguiente empieza con 3, no con 5
+    assert leccion["vidas"] == 3
+
+    # Sin vidas no puede empezar lecciones nuevas...
+    _recargar_vidas(db, nino["id_usuario"], cantidad=0)
+    r = client.get("/api/lecciones/jugar", headers=_auth(token))
+    assert r.status_code == 409 and "sin vidas" in r.json()["detail"]
+    # ...pero sí practicar, que no gasta vidas y al aprobar devuelve una.
+    practica, r = _jugar(client, token, unidad="animals", leccion=1, errores=1)
+    assert practica["modo"] == "practica" and r.json()["aprobada"] is True
+    assert r.json()["vidas"]["actuales"] == 1 and r.json()["vida_recuperada"] is True
+
+    # Cada 30 minutos vuelve una vida (hasta 5).
+    _recargar_vidas(db, nino["id_usuario"], cantidad=0, hace_minutos=65)
+    resumen = client.get(f"/api/lecciones/resumen/{nino['id_usuario']}", headers=_auth(token)).json()
+    assert resumen["vidas"]["actuales"] == 2
+    _recargar_vidas(db, nino["id_usuario"], cantidad=0, hace_minutos=600)
+    resumen = client.get(f"/api/lecciones/resumen/{nino['id_usuario']}", headers=_auth(token)).json()
+    assert resumen["vidas"]["actuales"] == 5 and resumen["vidas"]["proxima_vida"] is None
 
 
 def test_repetir_una_leccion_aprobada_es_practica_sin_puntos(client, db):
@@ -216,8 +251,9 @@ def test_preguntas_del_profe_pueden_llevar_imagen(client, db):
 
 def test_docente_ve_quien_necesita_ayuda_y_por_que(client, db):
     docente, token_docente, nino, token = _preparar(client, db)
-    _jugar(client, token, errores=3)
-    _jugar(client, token, errores=3)
+    _jugar(client, token, errores=5)
+    _recargar_vidas(db, nino["id_usuario"])
+    _jugar(client, token, errores=5)
     resumen = client.get(f"/api/lecciones/docente/{docente['id_usuario']}", headers=_auth(token_docente)).json()
     fila = resumen["estudiantes"][0]
     assert fila["nombre"] == "Ana" and fila["necesita_ayuda"] is True
