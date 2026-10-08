@@ -158,8 +158,9 @@ function pintarCamino(resumen, seccion, contenedor) {
       b.type = "button";
       b.className = `burbuja ${leccion.estado}`;
       if (leccion.estado === "actual") {
-        b.textContent = "▶";
-        b.title = t("path.start");
+        // Si toca repasar una lección ya aprobada, se ve 🔁 (no ▶, que es lección nueva).
+        b.textContent = leccion.aprobada ? "🔁" : "▶";
+        b.title = leccion.aprobada ? `${t("path.review")} · ${leccion.mejor}/${leccion.total}` : t("path.start");
         b.addEventListener("click", () => (window.location.href = `activity.html?seccion=${seccion}`));
       } else if (leccion.aprobada) {
         b.textContent = "✅";

@@ -124,12 +124,20 @@ def test_respuestas_duplicadas_se_rechazan(client, db):
 
 
 def test_repaso_automatico_de_la_leccion_mas_debil(client, db):
-    _, _, _, token = _preparar(client, db)
+    _, _, nino, token = _preparar(client, db)
     _jugar(client, token, errores=2)          # animals-1 aprobada con 6/8 (75 %)
     _jugar(client, token)                     # animals-2
     _, r = _jugar(client, token)              # animals-3 → ya van 3 nuevas
-    siguiente = r.json()["siguiente"]
-    assert siguiente == {"unidad": "animals", "leccion": 1, "modo": "repaso"}
+    # animals-1 se acaba de jugar: todavía no se repasa (parecería que no se guardó).
+    assert r.json()["siguiente"] == {"unidad": "animals", "leccion": 4, "modo": "nueva"}
+
+    # Pasada una hora, sí le toca el repaso de la más débil.
+    ref = db.collection("usuarios").document(nino["id_usuario"]).collection("resultados").document("actual")
+    progreso = ref.get().to_dict()
+    progreso["lecciones"]["animals-1"]["ultima"] = datetime.now(timezone.utc) - timedelta(hours=2)
+    ref.set(progreso)
+    leccion = client.get("/api/lecciones/jugar", headers=_auth(token)).json()
+    assert (leccion["unidad"]["id"], leccion["leccion"], leccion["modo"]) == ("animals", 1, "repaso")
 
 
 def _completar_mundo(client, token, lecciones=5):

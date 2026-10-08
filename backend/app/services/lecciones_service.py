@@ -5,7 +5,9 @@ Camino de aprendizaje guiado (estilo Duolingo).
   docente del estudiante, ver `catalogo_service.py`). El niño elige el apartado; dentro de
   él NO elige lecciones nuevas: `siguiente_leccion()` decide. Normalmente es la primera que
   aún no aprueba; pero cada `REPASO_CADA` lecciones nuevas de ese apartado, si hay alguna
-  aprobada con menos del 80 % de aciertos, le toca un **repaso** de la más débil.
+  aprobada con menos del 80 % de aciertos, le toca un **repaso** de la más débil. Solo se
+  repasa una lección si pasó al menos `ESPERA_REPASO` desde su último intento (repasar
+  justo la que acaba de hacer parecería que no se guardó).
 - Sí puede **repetir** lecciones que ya aprobó (modo "practica"): cuenta para su precisión
   y su mejor resultado, pero no da puntos.
 - **Vidas** (`VIDAS_MAX`): se guardan entre lecciones y cada error gasta una. Si se
@@ -45,6 +47,7 @@ from app.services.progreso_service import calcular_nivel, puntos_para_siguiente_
 from app.services.recompensas_service import recompensa_por_mundo
 
 REPASO_CADA = 3
+ESPERA_REPASO = timedelta(hours=1)
 MAX_RECIENTES = 20
 UMBRAL_REPASO = 0.8
 
@@ -135,6 +138,11 @@ def _proporcion(estado: dict) -> float:
     return estado.get("mejor", 0) / estado["total"] if estado.get("total") else 0.0
 
 
+def _jugada_despues(estado: dict, fecha: datetime) -> bool:
+    ultima = estado.get("ultima")
+    return ultima is not None and _como_utc(ultima) > fecha
+
+
 def siguiente_leccion(progreso: dict, cat: dict, seccion: str) -> dict | None:
     """La lección que le toca en ese apartado: {unidad, leccion, modo: "nueva" | "repaso"}."""
     lecciones = progreso["lecciones"]
@@ -142,11 +150,13 @@ def siguiente_leccion(progreso: dict, cat: dict, seccion: str) -> dict | None:
     pendiente = next(
         ((u, n) for u, n in orden if not lecciones.get(clave_leccion(u, n), {}).get("aprobada")), None
     )
+    hace_poco = datetime.now(timezone.utc) - ESPERA_REPASO
     debiles = sorted(
         (_proporcion(lecciones[clave_leccion(u, n)]), u, n)
         for u, n in orden
         if lecciones.get(clave_leccion(u, n), {}).get("aprobada")
         and _proporcion(lecciones[clave_leccion(u, n)]) < UMBRAL_REPASO
+        and not _jugada_despues(lecciones[clave_leccion(u, n)], hace_poco)
     )
     toca_repaso = progreso["aprobadas_desde_repaso"][seccion] >= REPASO_CADA or pendiente is None
     if toca_repaso and debiles:
