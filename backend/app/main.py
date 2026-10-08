@@ -77,4 +77,7 @@ async def manejador_errores_no_controlados(request: Request, exc: Exception):
 
 @app.get("/")
 def salud():
-    return {"status": "ok", "servicio": "plataforma-ingles-kids-api"}
+    from app.services.correo_service import proveedor
+
+    # "correo" dice cómo salen los correos (brevo, smtp o log = no se envían). Sin secretos.
+    return {"status": "ok", "servicio": "plataforma-ingles-kids-api", "correo": proveedor()}

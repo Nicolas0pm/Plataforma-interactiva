@@ -62,6 +62,9 @@ class UsuarioOut(UsuarioBase):
         default=True,
         description="Docentes/padres: False hasta que confirmen su correo con el código.",
     )
+    aviso_correo: Optional[str] = Field(
+        default=None, description="Solo al registrarse: por qué no se pudo enviar el código."
+    )
 
 
 class PinLoginRequest(BaseModel):

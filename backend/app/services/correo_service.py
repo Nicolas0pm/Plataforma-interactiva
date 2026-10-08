@@ -8,11 +8,13 @@ Se elige el proveedor según las variables de entorno (ver `.env.example`):
 - **SMTP** (`SMTP_HOST`, `SMTP_USUARIO`, `SMTP_CLAVE`): cualquier servidor SMTP, por
   ejemplo Gmail con una "contraseña de aplicación".
 - **Ninguno**: el correo no se envía; se escribe en el log del servidor. Sirve para
-  desarrollar en local (con `USE_FAKE_DB=true` el código aparece en la consola).
+  desarrollar en local (con `USE_FAKE_DB=true` el código aparece en la consola). En
+  producción además cuenta como error, para que la persona vea que el correo no salió.
 """
 import json
 import logging
 import smtplib
+import urllib.error
 import urllib.request
 from email.message import EmailMessage
 
@@ -44,7 +46,10 @@ def enviar_correo(destino: str, asunto: str, texto: str, html: str) -> None:
                 _enviar_smtp(destino, asunto, texto, html)
             case _:
                 log.warning("Sin proveedor de correo configurado. Correo para %s — %s:\n%s", destino, asunto, texto)
-    except CorreoNoEnviado:
+                if not _settings.use_fake_db:
+                    raise CorreoNoEnviado("No hay proveedor de correo configurado (BREVO_API_KEY o SMTP_HOST)")
+    except CorreoNoEnviado as exc:
+        log.error("No se pudo enviar el correo a %s: %s", destino, exc)
         raise
     except Exception as exc:  # red, credenciales, remitente no verificado...
         log.exception("No se pudo enviar el correo a %s", destino)
@@ -65,9 +70,13 @@ def _enviar_brevo(destino: str, asunto: str, texto: str, html: str) -> None:
         headers={"api-key": _settings.brevo_api_key, "Content-Type": "application/json", "Accept": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(peticion, timeout=15) as respuesta:
-        if respuesta.status >= 300:
-            raise CorreoNoEnviado(f"Brevo respondió {respuesta.status}")
+    try:
+        with urllib.request.urlopen(peticion, timeout=15) as respuesta:
+            if respuesta.status >= 300:
+                raise CorreoNoEnviado(f"Brevo respondió {respuesta.status}")
+    except urllib.error.HTTPError as exc:
+        # Brevo explica el motivo en el cuerpo (API key inválida, remitente no verificado...).
+        raise CorreoNoEnviado(f"Brevo respondió {exc.code}: {exc.read().decode(errors='replace')[:300]}") from exc
 
 
 def _enviar_smtp(destino: str, asunto: str, texto: str, html: str) -> None:

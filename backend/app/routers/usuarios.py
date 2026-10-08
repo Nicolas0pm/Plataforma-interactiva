@@ -100,11 +100,13 @@ def crear_usuario(payload: UsuarioCreate, authorization: str | None = Header(def
     ref = db.collection("usuarios").document()
     ref.set(data)
 
+    aviso_correo = None
     if not data.get("email_verificado", True):
         try:
             enviar_codigo(db, ref.id, data, forzar=True)
-        except HTTPException:
-            pass  # la cuenta queda creada; desde la pantalla de confirmación puede pedir otro código
+        except HTTPException as exc:
+            # La cuenta queda creada; desde la pantalla de confirmación puede pedir otro código.
+            aviso_correo = exc.detail
 
     if payload.rol == "estudiante":
         ref.collection("resultados").document("actual").set(
@@ -117,7 +119,7 @@ def crear_usuario(payload: UsuarioCreate, authorization: str | None = Header(def
         )
         registrar_auditoria(db, tipo="estudiante_creado", actor=None, detalle={"id_usuario": ref.id})
 
-    return {**data, "id_usuario": ref.id}
+    return {**data, "id_usuario": ref.id, "aviso_correo": aviso_correo}
 
 
 @router.post("/login-pin", response_model=SesionOut)

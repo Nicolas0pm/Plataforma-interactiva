@@ -96,11 +96,13 @@ function entrar(idToken, perfil) {
 
 function mostrarVerificacion(idToken, perfil) {
   pendiente = { idToken, perfil };
+  // El registro avisa si el código no se pudo enviar: se dice y se deja pedir otro ya.
+  document.getElementById("error-verificar").textContent = perfil.aviso_correo || "";
   for (const id of ["card-login", "card-registro", "card-dev"]) document.getElementById(id)?.classList.add("oculto");
   document.getElementById("card-verificar").classList.remove("oculto");
   document.getElementById("verificar-texto").textContent = t("verify.sent_to").replace("{email}", perfil.email || "");
   document.getElementById("codigo-verificacion").focus();
-  esperarParaReenviar(60);
+  esperarParaReenviar(perfil.aviso_correo ? 0 : 60);
 }
 
 document.getElementById("form-verificar").addEventListener("submit", async (e) => {

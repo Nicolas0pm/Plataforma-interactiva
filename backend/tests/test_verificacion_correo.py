@@ -99,3 +99,15 @@ def test_cuentas_de_prueba_sin_correo_y_perfiles_antiguos_no_piden_codigo(client
     viejo.set({"nombre": "Antiguo", "rol": "padre", "email": "a@b.co", "activo": True})
     token_viejo = client.post("/api/usuarios/login-dev", json={"id_usuario": "viejo", "rol": "padre"}).json()["token"]
     assert client.get("/api/usuarios/padre/viejo/hijos", headers=_auth(token_viejo)).status_code == 200
+
+
+def test_si_el_correo_no_sale_avisa_y_deja_reintentar(client, monkeypatch):
+    def falla(*_):
+        raise correo_service.CorreoNoEnviado("remitente no verificado")
+
+    monkeypatch.setattr(verificacion_service, "enviar_correo", falla)
+    perfil, token = _registrar(client)
+    assert perfil["email_verificado"] is False and "No pudimos enviar" in perfil["aviso_correo"]
+    # Sin esperar el minuto: el intento fallido no cuenta.
+    r = client.post("/api/usuarios/verificacion/reenviar", headers=_auth(token))
+    assert r.status_code == 502

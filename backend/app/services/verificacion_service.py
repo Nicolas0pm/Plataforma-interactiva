@@ -58,6 +58,9 @@ def enviar_codigo(db, id_usuario: str, datos: dict, forzar: bool = False) -> Non
     try:
         _enviar(datos["email"], datos.get("nombre") or "", codigo)
     except CorreoNoEnviado as exc:
+        # Si no salió, no cuenta para la espera: puede volver a intentarlo de una vez.
+        ref = db.collection("usuarios").document(id_usuario)
+        ref.update({"verificacion_email": {**ref.get().to_dict()["verificacion_email"], "enviado_en": None}})
         raise HTTPException(502, "No pudimos enviar el correo. Intenta de nuevo en un momento.") from exc
 
 
