@@ -19,68 +19,74 @@
     </div>
   </div>
 
-  <main>
-    <!-- El niño elige el apartado; dentro de él, la plataforma elige la lección -->
-    <div class="pestanas selector-seccion" role="tablist" aria-label="Apartado">
-      <button type="button" role="tab" data-seccion="vocabulario" aria-selected="true">
-        📚 <span data-i18n="path.vocabulary">Vocabulario</span></button>
-      <button type="button" role="tab" data-seccion="gramatica" aria-selected="false">
-        ✏️ <span data-i18n="path.grammar">Gramática</span></button>
-      <button type="button" role="tab" data-seccion="profesor" aria-selected="false">
-        👩‍🏫 <span data-i18n="path.teacher">Del profe</span></button>
-    </div>
-
-    <div class="card centrado hero-leccion" id="proxima" aria-live="polite">
-      <p class="hint" data-i18n="path.next_title">Tu próxima lección</p>
-      <span class="hero-emoji" id="proxima-emoji">🦊</span>
-      <h2 id="proxima-titulo">…</h2>
-      <p class="hint" id="proxima-detalle"></p>
-      <button type="button" id="btn-empezar" data-i18n="path.start">¡Empezar!</button>
-    </div>
-
-    <div class="card centrado">
-      <a href="rewards.html" class="avatar-enlace" aria-label="Tienda">
-        <div class="avatar-perfil grande" id="mi-avatar">🦊</div>
-      </a>
-      <p class="saldo">⭐ <strong id="saldo">0</strong> <span data-i18n="shop.to_spend">puntos para gastar</span></p>
-      <div class="stat-row">
-        <div class="stat-tile azul">
-          <span class="valor" id="stat-nivel">1</span>
-          <span class="etiqueta" data-i18n="dash.level">Nivel</span>
-        </div>
-        <div class="stat-tile amarillo">
-          <span class="valor" id="stat-puntos">0</span>
-          <span class="etiqueta" data-i18n="dash.points">Puntos</span>
-        </div>
-        <div class="stat-tile verde">
-          <span class="valor" id="stat-lecciones">0</span>
-          <span class="etiqueta" data-i18n="path.lessons">Lecciones</span>
-        </div>
-        <div class="stat-tile naranja">
-          <span class="valor" id="stat-precision">—</span>
-          <span class="etiqueta" data-i18n="path.accuracy">Aciertos</span>
-        </div>
-        <div class="stat-tile morado">
-          <span class="valor" id="stat-mundos">0</span>
-          <span class="etiqueta" data-i18n="path.worlds_done">Mundos completados</span>
-        </div>
+  <!-- En pantallas anchas: estadísticas a la izquierda y el camino a la derecha.
+       En el celular, una sola columna (primero el camino). -->
+  <main class="panel-nino">
+    <div class="panel-principal">
+      <!-- El niño elige el apartado; dentro de él, la plataforma elige la lección -->
+      <div class="pestanas selector-seccion" role="tablist" aria-label="Apartado">
+        <button type="button" role="tab" data-seccion="vocabulario" aria-selected="true">
+          📚 <span data-i18n="path.vocabulary">Vocabulario</span></button>
+        <button type="button" role="tab" data-seccion="gramatica" aria-selected="false">
+          ✏️ <span data-i18n="path.grammar">Gramática</span></button>
+        <button type="button" role="tab" data-seccion="profesor" aria-selected="false">
+          👩‍🏫 <span data-i18n="path.teacher">Del profe</span></button>
       </div>
-      <div class="progress-bar"><div class="progress-bar-fill" id="barra-nivel" style="width:0%"></div></div>
-      <p class="hint" id="texto-siguiente-nivel"></p>
-      <button type="button" class="secundario" onclick="location.href='rewards.html'" data-i18n="dash.rewards_link">🛍️ Tienda y premios</button>
-      <p class="hint oculto" id="mi-codigo" style="margin-top:1rem"><span aria-hidden="true">🪪</span> <span data-i18n="dash.my_code">Tu código para entrar</span>: <strong id="mi-codigo-valor" style="letter-spacing:0.15em"></strong></p>
+
+      <div class="card centrado hero-leccion" id="proxima" aria-live="polite">
+        <p class="hint" data-i18n="path.next_title">Tu próxima lección</p>
+        <span class="hero-emoji" id="proxima-emoji">🦊</span>
+        <h2 id="proxima-titulo">…</h2>
+        <p class="hint" id="proxima-detalle"></p>
+        <button type="button" id="btn-empezar" data-i18n="path.start">¡Empezar!</button>
+      </div>
+
+      <div class="card">
+        <h2 id="camino-titulo"></h2>
+        <p class="hint" data-i18n="path.repeat_hint">Toca una lección con ✅ para repetirla y practicar.</p>
+        <div class="camino" id="camino"></div>
+      </div>
     </div>
 
-    <div class="card">
-      <h2 id="camino-titulo"></h2>
-      <p class="hint" data-i18n="path.repeat_hint">Toca una lección con ✅ para repetirla y practicar.</p>
-      <div class="camino" id="camino"></div>
-    </div>
+    <aside class="panel-lateral" aria-label="Mi progreso">
+      <div class="card centrado">
+        <a href="rewards.html" class="avatar-enlace" aria-label="Tienda">
+          <div class="avatar-perfil grande" id="mi-avatar">🦊</div>
+        </a>
+        <p class="saldo">⭐ <strong id="saldo">0</strong> <span data-i18n="shop.to_spend">puntos para gastar</span></p>
+        <div class="stat-row">
+          <div class="stat-tile azul">
+            <span class="valor" id="stat-nivel">1</span>
+            <span class="etiqueta" data-i18n="dash.level">Nivel</span>
+          </div>
+          <div class="stat-tile amarillo">
+            <span class="valor" id="stat-puntos">0</span>
+            <span class="etiqueta" data-i18n="dash.points">Puntos</span>
+          </div>
+          <div class="stat-tile verde">
+            <span class="valor" id="stat-lecciones">0</span>
+            <span class="etiqueta" data-i18n="path.lessons">Lecciones</span>
+          </div>
+          <div class="stat-tile naranja">
+            <span class="valor" id="stat-precision">—</span>
+            <span class="etiqueta" data-i18n="path.accuracy">Aciertos</span>
+          </div>
+          <div class="stat-tile morado">
+            <span class="valor" id="stat-mundos">0</span>
+            <span class="etiqueta" data-i18n="path.worlds_done">Mundos completados</span>
+          </div>
+        </div>
+        <div class="progress-bar"><div class="progress-bar-fill" id="barra-nivel" style="width:0%"></div></div>
+        <p class="hint" id="texto-siguiente-nivel"></p>
+        <button type="button" class="secundario" onclick="location.href='rewards.html'" data-i18n="dash.rewards_link">🛍️ Tienda y premios</button>
+        <p class="hint oculto" id="mi-codigo" style="margin-top:1rem"><span aria-hidden="true">🪪</span> <span data-i18n="dash.my_code">Tu código para entrar</span>: <strong id="mi-codigo-valor" style="letter-spacing:0.15em"></strong></p>
+      </div>
 
-    <div class="card">
-      <h2 data-i18n="path.recent">Mis últimos intentos</h2>
-      <ul class="lista-intentos" id="recientes"></ul>
-    </div>
+      <div class="card">
+        <h2 data-i18n="path.recent">Mis últimos intentos</h2>
+        <ul class="lista-intentos" id="recientes"></ul>
+      </div>
+    </aside>
   </main>
 
   <script type="module" src="js/pages/kid-dashboard.js"></script>

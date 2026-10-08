@@ -4,6 +4,7 @@ import { esc, miniMarkdown } from "../html.js";
 import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import { volver } from "../nav.js";
 import { exigirRol } from "../session.js";
+import { alternarSonido, sonar, sonidoActivo } from "../sonidos.js";
 
 // Lección estilo Duolingo (sin audios):
 // - La lección la elige el servidor (sin parámetros). Con ?unidad=&leccion= solo se puede
@@ -14,6 +15,21 @@ import { exigirRol } from "../session.js";
 
 const sesion = exigirRol("estudiante");
 inicializarLangToggle();
+
+// Botón 🔊/🔇 para silenciar los sonidos (queda guardado).
+const botonSonido = document.getElementById("btn-sonido");
+function pintarBotonSonido() {
+  const activo = sonidoActivo();
+  botonSonido.textContent = activo ? "🔊" : "🔇";
+  botonSonido.setAttribute("aria-pressed", String(activo));
+  botonSonido.setAttribute("aria-label", t(activo ? "activity.sound_off" : "activity.sound_on"));
+  botonSonido.title = botonSonido.getAttribute("aria-label");
+}
+pintarBotonSonido();
+botonSonido.addEventListener("click", () => {
+  if (alternarSonido()) sonar("acierto"); // para que escuche que volvió el sonido
+  pintarBotonSonido();
+});
 
 const params = new URLSearchParams(window.location.search);
 const SECCIONES = ["vocabulario", "gramatica", "profesor"];
@@ -111,6 +127,7 @@ function responder(boton, opcion, pregunta) {
 
   const correcta = opcion === pregunta.respuesta_correcta;
   if (correcta) {
+    sonar("acierto");
     boton.classList.add("correcta");
     mostrarAviso(true, `✅ ${t("activity.correct")}`);
     setTimeout(avanzar, 1100);
@@ -121,8 +138,11 @@ function responder(boton, opcion, pregunta) {
   boton.classList.add("incorrecta");
   botones.find((b) => b.dataset.opcion === pregunta.respuesta_correcta)?.classList.add("correcta");
   vidas -= 1;
+  sonar("error");
   pintarVidas();
-  mostrarAviso(false, `❌ ${t("activity.wrong")} ${t("activity.right_answer")}: <strong>${esc(pregunta.respuesta_correcta)}</strong>`);
+  mostrarAviso(false, `❌ ${t("activity.wrong")} ${t("activity.right_answer")}: <strong>${
+    pregunta.formato_opciones === "emoji" ? emojiHtml(pregunta.respuesta_correcta) : esc(pregunta.respuesta_correcta)
+  }</strong>`);
   document.getElementById("btn-aviso").onclick = avanzar;
 }
 
@@ -177,8 +197,10 @@ async function terminar() {
     } else {
       mostrarModal({ emoji: "🏆", titulo: t("activity.lesson_passed"), extra, principal: [t("activity.continue"), irAlMapa] });
     }
+    sonar("ganar");
     lanzarConfeti();
   } else {
+    sonar("perder");
     mostrarModal({
       emoji: "💔",
       titulo: t("activity.out_of_lives"),

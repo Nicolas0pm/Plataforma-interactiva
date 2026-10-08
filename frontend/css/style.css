@@ -1825,3 +1825,52 @@ input.campo-codigo {
   flex: 1 1 12rem;
   margin: 0;
 }
+
+/* Panel del niño (kid-dashboard.html): en el celular, una columna con el orden de siempre
+   (apartados, próxima lección, mi progreso, camino, intentos); en pantallas anchas, el
+   progreso queda en una columna a la izquierda y el camino a la derecha. */
+main.panel-nino {
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-principal,
+.panel-lateral {
+  display: contents;
+}
+
+.panel-principal > .selector-seccion { order: 1; }
+.panel-principal > .hero-leccion { order: 2; }
+.panel-lateral > :first-child { order: 3; }
+.panel-principal > :last-child { order: 4; }
+.panel-lateral > :last-child { order: 5; }
+
+@media (min-width: 900px) {
+  main.panel-nino {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    grid-template-areas: "lateral principal";
+    gap: 1.5rem;
+    align-items: start;
+    max-width: 1100px;
+  }
+
+  .panel-principal,
+  .panel-lateral {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .panel-principal { grid-area: principal; }
+
+  .panel-lateral { grid-area: lateral; }
+
+  .panel-lateral .stat-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .panel-lateral .stat-row > :last-child:nth-child(odd) {
+    grid-column: span 2;
+  }
+}
