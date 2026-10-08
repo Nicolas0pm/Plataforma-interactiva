@@ -55,8 +55,6 @@ admin sin Firebase real) — deshabilitado por completo si `USE_FAKE_DB` no est�
 | POST | `/api/usuarios/login-pin` | Público (valida el PIN) | RF01 CA3 |
 | POST | `/api/usuarios/login-dev` | Público, solo si `USE_FAKE_DB=true` | — (solo dev) |
 | GET | `/api/usuarios/sesion` | Cualquier usuario autenticado (aunque no haya confirmado su correo) | Restaurar sesión |
-| POST | `/api/usuarios/verificacion/confirmar` | Docente/padre con el correo sin confirmar | Confirma el correo con el código de 6 dígitos |
-| POST | `/api/usuarios/verificacion/reenviar` | Docente/padre con el correo sin confirmar | Envía un código nuevo (1 por minuto) |
 | GET | `/api/usuarios/{id}/progreso` | El propio estudiante, su docente, sus padres o admin | RF06/RF07/RF09 |
 | GET | `/api/usuarios/docente/{id}/estudiantes` | Ese docente o admin | RF06 |
 | GET | `/api/usuarios/docente/{id}/estadisticas` | Ese docente o admin | RF06/RF09 |

@@ -60,10 +60,8 @@ class UsuarioOut(UsuarioBase):
     )
     email_verificado: bool = Field(
         default=True,
-        description="Docentes/padres: False hasta que confirmen su correo con el código.",
-    )
-    aviso_correo: Optional[str] = Field(
-        default=None, description="Solo al registrarse: por qué no se pudo enviar el código."
+        description="Docentes/padres: False hasta que confirmen su correo con el enlace que "
+        "les envía Firebase Authentication.",
     )
 
 
@@ -78,10 +76,6 @@ class DevLoginRequest(BaseModel):
     sin necesitar un proyecto de Firebase Authentication real."""
     id_usuario: str
     rol: Literal["docente", "padre", "admin"]
-
-
-class CodigoVerificacion(BaseModel):
-    codigo: str = Field(pattern=r"^\s*\d{6}\s*$", description="Código de 6 dígitos enviado al correo")
 
 
 class SesionOut(BaseModel):

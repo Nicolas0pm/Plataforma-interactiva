@@ -19,13 +19,14 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendEmailVerification,
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged };
+export { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, signOut, onAuthStateChanged };
 
 /** true si `firebaseConfig` sigue con los valores de ejemplo (no configurado). */
 export const firebaseConfigurado = firebaseConfig.apiKey !== "TU_API_KEY";

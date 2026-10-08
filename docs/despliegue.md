@@ -24,8 +24,6 @@ Cada servicio se vuelve a desplegar solo con cada `git push`, y uno no afecta al
    | `FIREBASE_CREDENTIALS_JSON` | El **contenido completo** de `backend/serviceAccountKey.json` (ábrelo, copia todo y pégalo). |
    | `PIN_PEPPER` | **El mismo valor** que está en tu `backend/.env`. Si pones otro, los PIN de los niños ya registrados dejan de funcionar. |
 
-   | `BREVO_API_KEY` | La API key de Brevo, para enviar el código de confirmación del correo (ver abajo). |
-   | `EMAIL_REMITENTE` | El correo que verificaste como remitente en Brevo. |
 
    `JWT_SECRET` y `DEVICE_SHARED_SECRET` los genera Render solo.
 5. **Apply** y espera a que los dos queden en verde ("Live").
@@ -45,22 +43,14 @@ Firebase Authentication solo acepta inicios de sesión desde dominios autorizado
 **Firebase Console → Authentication → Configuración → Dominios autorizados → Agregar dominio**
 y agrega `plataforma-ingles-kids.onrender.com` (o la URL que te haya dado Render).
 
-## Correo de confirmación (código de 6 dígitos)
+## Correo de confirmación
 
-Al crear una cuenta, cada docente o padre recibe un código en su correo y debe escribirlo
-para poder entrar. El plan gratis de Render **bloquea el envío por SMTP**, así que el correo
-sale por la API de [Brevo](https://www.brevo.com) (gratis, 300 correos al día):
-
-1. Crea una cuenta en Brevo.
-2. **Senders, domains & dedicated IPs → Senders → Add a sender**: agrega el correo que
-   aparecerá como remitente (puede ser un Gmail) y confírmalo desde el correo que te llega.
-3. **SMTP & API → API keys → Generate a new API key**.
-4. En Render (servicio `plataforma-ingles-kids-api` → Environment) pon `BREVO_API_KEY` y
-   `EMAIL_REMITENTE` (el remitente del paso 2) y guarda.
-
-Si no se configura, el correo **no se envía**: el código queda escrito en los logs del
-backend en Render (sirve para probar, no para usuarios reales). Las cuentas creadas antes de
-este cambio no necesitan confirmar nada.
+Al crear una cuenta, cada docente o padre recibe un correo de **Firebase Authentication**
+con un enlace para confirmar su dirección; hasta abrirlo no puede usar su panel. No hay
+que configurar nada: Firebase envía el correo (remitente `noreply@plataforma-ingles-kids.firebaseapp.com`).
+Para cambiar el texto o el nombre del remitente: **Firebase Console → Authentication →
+Templates → Email address verification**. Las cuentas creadas antes de este cambio no
+necesitan confirmar nada.
 
 ## Alternativa: frontend en Firebase Hosting
 
@@ -73,7 +63,7 @@ está autorizado en Firebase y en `CORS_ORIGINS`).
 
 - Abre <https://plataforma-ingles-kids.onrender.com> y entra como niño (`2MFE4D` / `1234`).
 - Entra como docente y como padre con sus correos.
-- Crea una cuenta nueva y comprueba que llega el código al correo.
+- Crea una cuenta nueva y comprueba que llega el correo de confirmación (revisa spam).
 - Si algo falla con un error de CORS en la consola del navegador, revisa que
   `CORS_ORIGINS` en Render tenga exactamente la URL del frontend (sin `/` al final).
 

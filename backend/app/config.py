@@ -51,17 +51,6 @@ class Settings:
     # una cuenta de usuario completa (fase futura, ver esp32/README.md).
     device_shared_secret: str = os.getenv("DEVICE_SHARED_SECRET", "")
 
-    # Correo (código para confirmar el correo de docentes y padres, ver correo_service.py).
-    # Con BREVO_API_KEY se usa Brevo; si no, con SMTP_HOST se usa SMTP; si no hay ninguno,
-    # el correo solo se escribe en el log del servidor.
-    email_remitente: str = os.getenv("EMAIL_REMITENTE", "")
-    email_remitente_nombre: str = os.getenv("EMAIL_REMITENTE_NOMBRE", "¡Aprendamos inglés!")
-    brevo_api_key: str = os.getenv("BREVO_API_KEY", "")
-    smtp_host: str = os.getenv("SMTP_HOST", "")
-    smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
-    smtp_usuario: str = os.getenv("SMTP_USUARIO", "")
-    smtp_clave: str = os.getenv("SMTP_CLAVE", "")
-
     # Modo de desarrollo: usa una base de datos en memoria en vez de Firestore real,
     # para poder correr y probar la API sin credenciales de Firebase (ver
     # app/services/fake_firestore.py). NUNCA activar en producción.

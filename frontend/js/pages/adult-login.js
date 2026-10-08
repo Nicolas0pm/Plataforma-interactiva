@@ -2,6 +2,7 @@ import {
   auth,
   createUserWithEmailAndPassword,
   firebaseConfigurado,
+  sendEmailVerification,
   signInWithEmailAndPassword,
   signOut,
 } from "../firebase-config.js";
@@ -65,6 +66,8 @@ document.getElementById("form-registro").addEventListener("submit", async (e) =>
     const cred = await createUserWithEmailAndPassword(
       auth, email, document.getElementById("reg-password").value
     );
+    // Firebase envía el correo con el enlace de confirmación (no hace falta otro servicio).
+    await enviarEnlace(cred.user);
     const idToken = await cred.user.getIdToken();
     const perfil = await apiFetch("/api/usuarios", {
       method: "POST",
@@ -80,7 +83,7 @@ document.getElementById("form-registro").addEventListener("submit", async (e) =>
   }
 });
 
-// ---------- Confirmar el correo con el código de 6 dígitos ----------
+// ---------- Confirmar el correo con el enlace que envía Firebase ----------
 // Mientras no lo confirme, la API no deja usar el panel: se muestra esta tarjeta en vez
 // de entrar. La sesión se guarda solo cuando el correo queda confirmado.
 let pendiente = null; // { idToken, perfil }
@@ -94,39 +97,54 @@ function entrar(idToken, perfil) {
   irADestino(perfil.rol);
 }
 
+/** Pide a Firebase que envíe el correo. Al abrir el enlace, el botón "Continuar" de la
+ *  página de Firebase trae a la persona de vuelta a este login. */
+async function enviarEnlace(usuario) {
+  const volver = { url: `${window.location.origin}${window.location.pathname}?rol=${rolElegido}` };
+  try {
+    await sendEmailVerification(usuario, volver);
+  } catch (err) {
+    // Si el dominio no está autorizado para volver, se envía igual pero sin el botón.
+    if (err.code === "auth/unauthorized-continue-uri") await sendEmailVerification(usuario);
+    else throw err;
+  }
+}
+
 function mostrarVerificacion(idToken, perfil) {
   pendiente = { idToken, perfil };
-  // El registro avisa si el código no se pudo enviar: se dice y se deja pedir otro ya.
-  document.getElementById("error-verificar").textContent = perfil.aviso_correo || "";
   for (const id of ["card-login", "card-registro", "card-dev"]) document.getElementById(id)?.classList.add("oculto");
   document.getElementById("card-verificar").classList.remove("oculto");
   document.getElementById("verificar-texto").textContent = t("verify.sent_to").replace("{email}", perfil.email || "");
-  document.getElementById("codigo-verificacion").focus();
-  esperarParaReenviar(perfil.aviso_correo ? 0 : 60);
+  document.getElementById("btn-ya-confirme").focus();
+  esperarParaReenviar(60);
 }
 
-document.getElementById("form-verificar").addEventListener("submit", async (e) => {
-  e.preventDefault();
+function mensajeFirebase(err) {
+  return err.code === "auth/too-many-requests" ? t("verify.too_many") : err.message;
+}
+
+// "Ya lo confirmé": se recarga el usuario de Firebase y se pide un token nuevo, que ya
+// trae email_verified; con él la API marca el perfil como verificado.
+document.getElementById("btn-ya-confirme").addEventListener("click", async () => {
   const errorEl = document.getElementById("error-verificar");
   errorEl.textContent = "";
-  const campo = document.getElementById("codigo-verificacion");
-  try {
-    await apiFetch("/api/usuarios/verificacion/confirmar", {
-      method: "POST",
-      tokenOverride: pendiente.idToken,
-      body: { codigo: campo.value.trim() },
-    });
-    entrar(pendiente.idToken, { ...pendiente.perfil, email_verificado: true });
-  } catch (err) {
-    errorEl.textContent = err.message;
-    campo.select();
+  const usuario = auth?.currentUser;
+  if (!usuario) {
+    errorEl.textContent = t("verify.login_again");
+    return;
   }
-});
-
-// Solo dígitos, y al completar los 6 se envía solo.
-document.getElementById("codigo-verificacion").addEventListener("input", (e) => {
-  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
-  if (e.target.value.length === 6) document.getElementById("form-verificar").requestSubmit();
+  try {
+    await usuario.reload();
+    if (!usuario.emailVerified) {
+      errorEl.textContent = t("verify.not_yet");
+      return;
+    }
+    const idToken = await usuario.getIdToken(true);
+    const perfil = await apiFetch("/api/usuarios/sesion", { tokenOverride: idToken });
+    entrar(idToken, perfil);
+  } catch (err) {
+    errorEl.textContent = mensajeFirebase(err);
+  }
 });
 
 let temporizador = null;
@@ -150,12 +168,16 @@ document.getElementById("btn-reenviar").addEventListener("click", async () => {
   const errorEl = document.getElementById("error-verificar");
   aviso.textContent = "";
   errorEl.textContent = "";
+  if (!auth?.currentUser) {
+    errorEl.textContent = t("verify.login_again");
+    return;
+  }
   try {
-    await apiFetch("/api/usuarios/verificacion/reenviar", { method: "POST", tokenOverride: pendiente.idToken });
+    await enviarEnlace(auth.currentUser);
     aviso.textContent = t("verify.resent");
     esperarParaReenviar(60);
   } catch (err) {
-    errorEl.textContent = err.message;
+    errorEl.textContent = mensajeFirebase(err);
   }
 });
 

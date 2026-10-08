@@ -24,12 +24,7 @@
     <div class="card oculto" id="card-verificar">
       <h2>📧 <span data-i18n="verify.title">Confirma tu correo</span></h2>
       <p id="verificar-texto"></p>
-      <form id="form-verificar">
-        <label for="codigo-verificacion" data-i18n="verify.code">Código de 6 dígitos</label>
-        <input id="codigo-verificacion" class="campo-codigo" type="text" inputmode="numeric" pattern="\d{6}"
-               maxlength="6" required autocomplete="one-time-code" placeholder="123456" />
-        <button type="submit" data-i18n="verify.submit">Confirmar</button>
-      </form>
+      <button type="button" id="btn-ya-confirme" data-i18n="verify.done">Ya lo confirmé</button>
       <p class="error-msg" id="error-verificar" role="alert"></p>
       <p class="hint" id="verificar-aviso" role="status"></p>
       <div class="acciones-verificar">

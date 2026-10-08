@@ -14,8 +14,14 @@ Hay dos tipos de token, ambos enviados como `Authorization: Bearer <token>`:
 
 `current_user()` intenta decodificar primero como token propio (rápido, sin
 red) y si no es válido intenta verificarlo como ID token de Firebase. Además
-exige que un adulto haya confirmado su correo (ver `verificacion_service.py`);
-`usuario_autenticado()` es lo mismo sin esa exigencia.
+exige que un adulto haya confirmado su correo; `usuario_autenticado()` es lo
+mismo sin esa exigencia.
+
+**Confirmación del correo**: al registrarse, el frontend le pide a Firebase
+Authentication que envíe un enlace de confirmación (`sendEmailVerification`). El perfil
+queda con `email_verificado: False`; cuando la persona abre el enlace, sus nuevos ID
+tokens traen `email_verified: true` y `sincronizar_verificacion()` lo copia al perfil.
+Los perfiles creados antes de existir esto no tienen el campo y cuentan como verificados.
 """
 import hashlib
 from datetime import datetime, timedelta, timezone
@@ -74,7 +80,8 @@ def verificar_id_token_firebase_crudo(authorization: str | None) -> dict:
         decoded = get_firebase_auth().verify_id_token(token)
     except Exception as exc:
         raise HTTPException(401, "Token de Firebase inválido o expirado") from exc
-    return {"auth_uid": decoded.get("uid"), "email": decoded.get("email")}
+    return {"auth_uid": decoded.get("uid"), "email": decoded.get("email"),
+            "email_verified": bool(decoded.get("email_verified"))}
 
 
 def _decodificar_token_propio(token: str) -> dict | None:
@@ -104,7 +111,22 @@ def _decodificar_token_firebase(token: str) -> dict | None:
     if not docs:
         return None
     data = docs[0].to_dict()
-    return {"id_usuario": docs[0].id, "rol": data.get("rol"), "email_verificado": data.get("email_verificado", True)}
+    verificado = sincronizar_verificacion(db, docs[0].id, data, bool(decoded.get("email_verified")))
+    return {"id_usuario": docs[0].id, "rol": data.get("rol"), "email_verificado": verificado}
+
+
+def sincronizar_verificacion(db, id_usuario: str, data: dict, verificado_en_firebase: bool) -> bool:
+    """Si Firebase ya dice que el correo está confirmado y el perfil todavía no, lo marca
+    (una sola escritura, la primera vez). Devuelve si el perfil queda verificado."""
+    if data.get("email_verificado", True):
+        return True
+    if not verificado_en_firebase:
+        return False
+    db.collection("usuarios").document(id_usuario).update(
+        {"email_verificado": True, "email_verificado_en": datetime.now(timezone.utc)}
+    )
+    registrar_auditoria(db, tipo="email_verificado", actor=id_usuario)
+    return True
 
 
 def usuario_autenticado(authorization: str | None = Header(default=None)) -> dict:
@@ -120,7 +142,7 @@ def usuario_autenticado(authorization: str | None = Header(default=None)) -> dic
 def current_user(authorization: str | None = Header(default=None)) -> dict:
     usuario = usuario_autenticado(authorization)
     if not usuario["email_verificado"]:
-        raise HTTPException(403, "Primero confirma tu correo con el código que te enviamos")
+        raise HTTPException(403, "Primero confirma tu correo con el enlace que te enviamos")
     return usuario
 
 
