@@ -2,6 +2,7 @@ import {
   auth,
   createUserWithEmailAndPassword,
   firebaseConfigurado,
+  onAuthStateChanged,
   sendEmailVerification,
   signInWithEmailAndPassword,
   signOut,
@@ -100,7 +101,7 @@ function entrar(idToken, perfil) {
 /** Pide a Firebase que envíe el correo. Al abrir el enlace, el botón "Continuar" de la
  *  página de Firebase trae a la persona de vuelta a este login. */
 async function enviarEnlace(usuario) {
-  const volver = { url: `${window.location.origin}${window.location.pathname}?rol=${rolElegido}` };
+  const volver = { url: `${window.location.origin}${window.location.pathname}?rol=${rolElegido}&confirmado=1` };
   try {
     await sendEmailVerification(usuario, volver);
   } catch (err) {
@@ -123,29 +124,61 @@ function mensajeFirebase(err) {
   return err.code === "auth/too-many-requests" ? t("verify.too_many") : err.message;
 }
 
-// "Ya lo confirmé": se recarga el usuario de Firebase y se pide un token nuevo, que ya
-// trae email_verified; con él la API marca el perfil como verificado.
+/** Si el correo ya está confirmado en Firebase, entra al panel y devuelve true. Se pide un
+ *  token nuevo, que ya trae email_verified; con él la API marca el perfil como verificado. */
+async function entrarSiConfirmo(usuario) {
+  await usuario.reload();
+  if (!usuario.emailVerified) return false;
+  const idToken = await usuario.getIdToken(true);
+  entrar(idToken, await apiFetch("/api/usuarios/sesion", { tokenOverride: idToken }));
+  return true;
+}
+
+// "Ya lo confirmé"
 document.getElementById("btn-ya-confirme").addEventListener("click", async () => {
   const errorEl = document.getElementById("error-verificar");
   errorEl.textContent = "";
-  const usuario = auth?.currentUser;
-  if (!usuario) {
+  if (!auth?.currentUser) {
     errorEl.textContent = t("verify.login_again");
     return;
   }
   try {
-    await usuario.reload();
-    if (!usuario.emailVerified) {
-      errorEl.textContent = t("verify.not_yet");
-      return;
-    }
-    const idToken = await usuario.getIdToken(true);
-    const perfil = await apiFetch("/api/usuarios/sesion", { tokenOverride: idToken });
-    entrar(idToken, perfil);
+    if (!(await entrarSiConfirmo(auth.currentUser))) errorEl.textContent = t("verify.not_yet");
   } catch (err) {
     errorEl.textContent = mensajeFirebase(err);
   }
 });
+
+// Si confirmó en otra pestaña (la del correo), al volver a esta se revisa solo.
+window.addEventListener("focus", () => {
+  const esperando = !document.getElementById("card-verificar").classList.contains("oculto");
+  if (esperando && auth?.currentUser) entrarSiConfirmo(auth.currentUser).catch(() => {});
+});
+
+// Al abrir la página, Firebase recuerda a quien inició sesión en este navegador:
+// - viene del enlace del correo (?confirmado=1) → entra directo a su panel;
+// - se salió sin confirmar → se le muestra de una vez la tarjeta para confirmar o pedir otro correo.
+if (firebaseConfigurado && !sesionActual) {
+  const vieneDelEnlace = params.get("confirmado") === "1";
+  const dejarDeEscuchar = onAuthStateChanged(auth, async (usuario) => {
+    dejarDeEscuchar();
+    try {
+      if (!usuario) {
+        // Abrió el enlace en otro dispositivo: solo falta iniciar sesión.
+        if (vieneDelEnlace) document.getElementById("hint-firebase").textContent = `✅ ${t("verify.confirmed_login")}`;
+        return;
+      }
+      // Solo se entra solo al volver del enlace; después de "Cerrar sesión" no.
+      if (vieneDelEnlace && (await entrarSiConfirmo(usuario))) return;
+      if (usuario.emailVerified) return;
+      const idToken = await usuario.getIdToken();
+      const perfil = await apiFetch("/api/usuarios/sesion", { tokenOverride: idToken });
+      if (perfil.email_verificado === false) mostrarVerificacion(idToken, perfil);
+    } catch {
+      /* sin perfil o sin conexión: queda el formulario de siempre */
+    }
+  });
+}
 
 let temporizador = null;
 function esperarParaReenviar(segundos) {
