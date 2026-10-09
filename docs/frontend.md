@@ -47,10 +47,10 @@ vuelve a cargar para no mostrar datos viejos.
 |---|---|---|
 | `index.html` | todos | Elegir "Soy un niño / docente / padre". Si ya hay sesión: "¡Hola de nuevo! Continuar". |
 | `kid-login.html` | niño | Dos pasos: 🪪 **código** (Siguiente) y 🔒 **PIN** en un teclado de números, con botón **"✅ Entrar"** para confirmar. |
-| `kid-dashboard.html` | niño | Botones **📚 Vocabulario / ✏️ Gramática / 👩‍🏫 Del profe**, "Tu próxima lección", avatar con marco, puntos, camino de lecciones (✅ repetir, ▶ actual, 🔒 bloqueada) y últimos intentos. |
-| `activity.html` | niño | La lección: ❤️ vidas, preguntas de selección múltiple, "❌ Incorrecto, la respuesta era…", tarjeta "Cómo se usa" en gramática y felicitación al final (o "¡Completaste un mundo!"). |
+| `kid-dashboard.html` | niño | Botones **📚 Vocabulario / ✏️ Gramática / 👩‍🏫 Del profe**, "Tu próxima lección", avatar con marco, puntos, **❤️ vidas con "+1 ❤️ en N min"**, camino de lecciones (✅ repetir, ▶ nueva, 🔁 repaso, 🔒 bloqueada) y últimos intentos. En pantallas de 900 px o más, el progreso (avatar, vidas, estadísticas, intentos) va en una **columna a la izquierda** y el camino a la derecha; en el celular, una sola columna. Sin vidas, "¡Empezar!" se desactiva y dice cuándo llega la próxima. |
+| `activity.html` | niño | La lección: ❤️ vidas (las que le quedan), preguntas de selección múltiple con **ilustraciones**, "❌ Incorrecto, la respuesta era…", **sonidos** de acierto/error/ganar/perder (botón 🔊/🔇), tarjeta "Cómo se usa" en gramática y felicitación al final (o "¡Completaste un mundo!"). Sin vidas explica cuándo vuelve la próxima. |
 | `rewards.html` | niño | **Tienda** (avatares y marcos con puntos) y **mundos completados**. |
-| `adult-login.html` | docente, padre | Iniciar sesión o crear cuenta (con aceptación de términos). |
+| `adult-login.html` | docente, padre | Iniciar sesión o crear cuenta (con aceptación de términos). Al registrarse, Firebase envía un **correo con un enlace de confirmación**; mientras no lo abra, en vez del panel ve "📧 Confirma tu correo" con **"Ya lo confirmé"** y **"Enviar otro correo"**. Si se sale, la pantalla reaparece al volver; al abrir el enlace entra directo a su panel. |
 | `teacher.html` | docente | Botones de vista: **Estudiantes · Necesitan ayuda · Progreso · Activos hoy · Mis mundos**; máquina del salón; registrar / ingresar niños. |
 | `parent.html` | padre | Registrar / ingresar hijos y ver su progreso, últimos intentos y comentarios del docente. |
 | `terminos.html` | todos | Términos de uso y política de datos (Ley 1581). |
@@ -68,7 +68,9 @@ Cada página tiene su script en [`js/pages/`](../frontend/js/pages) con el mismo
 - **Progreso**: temas más difíciles del grupo y tabla de avance.
 - **Activos hoy**: quién jugó hoy y en qué sesiones ("9:10 – 9:40 p. m. · 5 lecciones").
 - **Mis mundos**: crear mundos y agregar preguntas de **selección múltiple** (2 a 4 opciones,
-  se marca la correcta). Cada 8 preguntas forman una lección.
+  se marca la correcta), con un emoji y/o una **imagen** opcional. La imagen se achica en el
+  navegador (máx. 480 px, JPEG) antes de subirla, con vista previa. Cada 8 preguntas forman
+  una lección.
 
 ---
 
@@ -84,6 +86,16 @@ Cada página tiene su script en [`js/pages/`](../frontend/js/pages) con el mismo
 | `tema.js` | Botón 🎨: temas Automático, Claro, Oscuro, Noche morada y Rosa dulce. |
 | `html.js` | `esc()` para mostrar texto de la base de datos sin riesgo (evita XSS), formato de porcentajes y horas ("hoy 3:45 p. m."). |
 | `estudiantes-ui.js` | Formularios de "Registrar niño" e "Ingresar niño con código" (docente y padre). |
+| `emoji.js` | `emojiHtml()`: muestra un emoji del temario con su **ilustración 3D** (`img/emoji/`), o como texto si no hay imagen. |
+| `sonidos.js` | `sonar("acierto" \| "error" \| "ganar" \| "perder")`: sonidos generados con Web Audio (sin archivos de audio); `alternarSonido()` para silenciar (queda guardado). |
+| `vidas.js` | Corazones (❤️🤍), minutos para la próxima vida y recarga local de la cuenta regresiva. |
+
+### Ilustraciones de los emojis
+
+[`img/emoji/`](../frontend/img/emoji) tiene 165 ilustraciones 3D de **Microsoft Fluent
+Emoji** (licencia **MIT**, ver `img/emoji/LICENSE`), en WebP de 160 px (~700 KB en total).
+Cada archivo se llama como el código Unicode del emoji (🐶 → `1f436.webp`). Cubren todos los
+emojis del temario; los demás (p. ej. los que escribe un docente) se muestran como texto.
 
 ## 4. Estilos
 

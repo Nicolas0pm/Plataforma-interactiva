@@ -20,8 +20,8 @@ despliegue (no es código de la app) — ❌ Pendiente.
 | RF05 | ✅ | `services/recompensas_service.py`, `services/tienda_service.py`, `rewards.html` | El premio real llega al **completar un mundo**: sin máquina, el niño recibe la felicitación; con máquina (ESP32, fase de hardware pendiente) se encola un pedido por premio. Los puntos se gastan en la **tienda del perfil** (avatares y marcos) sin bajar el nivel. |
 | RF06 | 🟡 | `teacher.html`, `routers/usuarios.py` (`/estadisticas`) | Métricas, lista de estudiantes, registro de estudiantes y feedback sí están. "Asignar actividad" (CA2) hoy es implícito: toda actividad activa de un nivel queda disponible para cualquier estudiante de ese nivel; no hay asignación 1 a 1 por estudiante todavía. |
 | RF07 | ✅ | `parent.html`, `routers/usuarios.py` (`/hijos`) | Incluye el bug corregido de `acudientes_ids` (ver más abajo). |
-| RF08 | 🟡 | `activity.js` (modal + confeti CSS) | Feedback visual inmediato sí; feedback auditivo (RNF-UX-03) no se implementó — no hay archivos de audio en el proyecto. |
-| RF09 | 🟡 | `historial_actividades`, `/estadisticas` | Guarda tiempo, intentos y puntaje por intento, y expone promedios/activos-hoy/necesitan-ayuda. No se calculan explícitamente "errores frecuentes" (CA1) como una estadística agregada aparte. |
+| RF08 | ✅ | `activity.js` (modal + confeti CSS), `js/sonidos.js` | Feedback visual inmediato y **auditivo**: sonidos de acierto, error, lección ganada y perdida, generados con Web Audio (sin archivos de audio), con botón 🔊/🔇 que se recuerda. |
+| RF09 | ✅ | `intentos_leccion`, `services/lecciones_service.py` (`resumen_aprendizaje`), `teacher.html` | Guarda cada intento con sus errores y expone precisión por tema, últimos intentos, **errores frecuentes** (qué respondió y cuál era la correcta), activos hoy y necesitan ayuda. |
 | RF11 | ✅ | `services/vinculacion_service.py`, `estudiantes-ui.js` (paneles de padre y docente) | El padre o docente escribe el código y el PIN del niño (demuestra que tiene acceso a su cuenta) y queda vinculado al instante; un niño puede tener varios acudientes; tras 5 intentos fallidos el código se bloquea 10 minutos. Si el niño no existe, el padre o docente lo registra desde el mismo panel. |
 
 ## Requisitos no funcionales
@@ -43,7 +43,7 @@ despliegue (no es código de la app) — ❌ Pendiente.
 | ID | Estado | Notas |
 |---|---|---|
 | RNF-SEG-01 | ⚙️ | HTTPS lo entrega el hosting (Firebase Hosting/Cloud Run lo dan por defecto); en desarrollo local se usa HTTP. |
-| RNF-SEG-02 | ✅ | Firebase Authentication + verificación de ID token en cada endpoint (`auth_service.py`). |
+| RNF-SEG-02 | ✅ | Firebase Authentication + verificación de ID token en cada endpoint (`auth_service.py`). Los adultos deben **confirmar su correo** con el enlace que envía Firebase antes de usar la plataforma (la API responde 403 hasta entonces). |
 | RNF-SEG-03 | ✅ | `require_role` / `verificar_acceso_estudiante` en todos los routers — antes de esta revisión NINGÚN endpoint validaba esto. |
 | RNF-SEG-04 | ✅ | Los tokens de PIN expiran a los 30 min (`JWT_PIN_EXP_MINUTOS`); el frontend cierra sesión automáticamente ante un 401. |
 
@@ -51,7 +51,7 @@ despliegue (no es código de la app) — ❌ Pendiente.
 | ID | Estado | Notas |
 |---|---|---|
 | RNF-UX-01/02/04/05 | ✅ | Interfaz infantil separada de los paneles de adultos, navegación de un clic, feedback visual inmediato. |
-| RNF-UX-03 | ❌ | No hay audio todavía (ni texto leído en voz alta). |
+| RNF-UX-03 | 🟡 | Hay sonidos de acierto, error, ganar y perder (`js/sonidos.js`, con botón para silenciar). Todavía no hay texto leído en voz alta. |
 
 ### Fiabilidad
 | ID | Estado | Notas |

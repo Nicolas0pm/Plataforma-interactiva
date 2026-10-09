@@ -23,6 +23,9 @@ usuarios/{id_usuario}
 ├── docente_id: string | null        // docente asignado (si rol = estudiante)
 ├── email: string | null             // solo docentes/padres/admin (login con Firebase Auth)
 ├── auth_uid: string | null          // uid de Firebase Auth, si aplica
+├── email_verificado: boolean        // solo adultos: false hasta abrir el enlace de confirmación
+│                                    // (si falta el campo, cuenta como true: cuentas anteriores)
+├── email_verificado_en: timestamp   // cuándo confirmó el correo
 ├── pin_hash: string | null          // hash del PIN de acceso simplificado (RF01) — nunca se guarda en texto plano
 ├── device_id: string | null        // dispensador ESP32 asignado (si rol = estudiante, fase futura del hardware).
 │                                    // Si es null, el frontend no promete una "recompensa física" al ganarla.
@@ -44,7 +47,9 @@ actividades/{id_actividad}
 ├── pregunta: string | null       // ej. "What animal is this?"
 ├── opciones: array<string>        // ej. ["Dog", "Cat", "Bird", "Fish"]
 ├── respuesta_correcta: string | null
-└── icono: string | null           // emoji que ilustra la actividad, ej. "🐶"
+├── icono: string | null           // emoji que ilustra la actividad, ej. "🐶"
+├── imagen: string | null          // solo preguntas del docente: data URL (JPG/PNG/WEBP/GIF, ≤ ~300 KB)
+└── formato_opciones: "texto" | "emoji"  // "emoji": las opciones se muestran como ilustraciones
 ```
 
 El contenido (`pregunta`/`opciones`/`respuesta_correcta`/`icono`) lo interpreta
@@ -73,6 +78,9 @@ usuarios/{id_usuario}/resultados/actual
 ├── puntaje_total: number
 ├── nivel_logrado: number
 ├── actividades_completadas: number
+├── lecciones: map               // { "animals-1": { aprobada, mejor, total, intentos, fallos, ultima } }
+├── vidas: map                   // { cantidad, desde }: vidas en el instante `desde`
+│                                //   (desde = null si están llenas). Se recupera 1 cada 30 min, máx. 5.
 └── actualizado_en: timestamp
 ```
 

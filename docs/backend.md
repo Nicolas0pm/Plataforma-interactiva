@@ -17,7 +17,7 @@ premios) viven en un solo lugar y tienen pruebas automáticas.
 | Servicio | Para qué se usa |
 |---|---|
 | **Firestore** | Base de datos principal: usuarios, temario, progreso, intentos, comentarios, auditoría. |
-| **Authentication** | Inicio de sesión de docentes y padres con correo y contraseña. |
+| **Authentication** | Inicio de sesión de docentes y padres con correo y contraseña, y el correo de confirmación de la cuenta. |
 | **Realtime Database** | Reservada para la cola de premios de la máquina (fase futura). |
 
 ### La conexión: `firebase_service.py`
@@ -116,6 +116,14 @@ petición, revisan permisos y llaman a un servicio; los servicios tienen las reg
 Registrar un niño exige la **autorización de datos** del adulto (Ley 1581) y registrar un
 adulto exige aceptar los **términos**; ambas quedan guardadas con fecha y versión.
 
+**Confirmación del correo de los adultos.** Al registrarse, el frontend le pide a Firebase
+Authentication que envíe un enlace de confirmación (`sendEmailVerification`); el perfil queda
+con `email_verificado: false`. Mientras tanto, `current_user()` responde **403** a todo salvo
+`GET /api/usuarios/sesion` (que usa `usuario_autenticado()`), así que no puede usar ningún
+panel. Cuando abre el enlace, sus nuevos ID tokens traen `email_verified: true` y
+`sincronizar_verificacion()` lo copia al perfil (una sola escritura). Los perfiles creados
+antes de esta función no tienen el campo y cuentan como verificados.
+
 ---
 
 ## 4. El temario y las lecciones
@@ -139,12 +147,19 @@ docente. Los mundos del docente arman sus lecciones solos, en grupos de 8 pregun
 ### Camino guiado ([`lecciones_service.py`](../backend/app/services/lecciones_service.py))
 
 - El niño **elige el apartado**; dentro de él, la plataforma elige la lección: la primera no
-  aprobada, o cada 3 lecciones nuevas un **repaso** de la que le fue peor (< 80 %).
+  aprobada, o cada 3 lecciones nuevas un **repaso** de la que le fue peor (< 80 %). Una
+  lección solo se repasa si pasó al menos **1 hora** desde su último intento
+  (`ESPERA_REPASO`), para no pedir de repaso la que se acaba de jugar.
 - Puede **repetir** lecciones aprobadas (práctica): cuenta para su precisión, no da puntos.
 - **5 vidas** que se guardan entre lecciones: cada error gasta una y se recupera una cada
   30 minutos. Sin vidas la lección se pierde y no se pueden empezar lecciones nuevas hasta
   recuperar alguna; practicar una lección ya aprobada no gasta vidas y, si se aprueba,
   devuelve una (`VIDAS_MAX` y `MINUTOS_POR_VIDA` en `app/curriculo.py`).
+- **Preguntas de vocabulario variadas**: cada mundo tiene 5 lecciones con un enfoque distinto:
+  1 *Conoce* (imagen → palabra), 2 *Encuentra* (palabras nuevas, imagen ↔ palabra),
+  3 *Traduce* («perro» → Dog y dog → «perro»), 4 *Escribe* (ortografía y letra que falta)
+  y 5 *Desafío* (¿sí o no?, "¿cuál NO es…?" y mezcla). Las traducciones y las preguntas
+  "intruso" están en `curriculo.py` (`TRADUCCIONES`, `_INTRUSO`).
 - **El servidor califica**: el navegador manda las respuestas y la API las compara con las
   correctas guardadas; no se confía en un puntaje del cliente.
 - Guarda qué respondió mal cada niño: es lo que ve el docente como "errores frecuentes".
@@ -176,7 +191,7 @@ La documentación interactiva está en `/docs` (Swagger) cuando corre la API.
 | `POST /api/lecciones/resultado` | niño | Enviar respuestas; la API califica |
 | `GET /api/lecciones/resumen/{id}` | niño, docente, padre | Camino, precisión, intentos, errores |
 | `GET /api/lecciones/docente/{id}` | docente | Todo el panel del docente en una llamada |
-| `GET/POST/DELETE /api/mundos…` | docente | Crear mundos y preguntas de selección múltiple |
+| `GET/POST/DELETE /api/mundos…` | docente | Crear mundos y preguntas de selección múltiple (con imagen opcional: data URL JPG/PNG/WEBP/GIF de hasta ~300 KB) |
 | `GET /api/tienda` · `POST /api/tienda/comprar` · `/equipar` | niño | Tienda del perfil |
 | `GET /api/recompensas/estudiante/{id}` | niño, docente, padre | Mundos completados |
 | `POST /api/feedback` · `GET /api/feedback/estudiante/{id}` | docente, padre | Comentarios |
@@ -189,6 +204,8 @@ La documentación interactiva está en `/docs` (Swagger) cuando corre la API.
 cd backend && USE_FAKE_DB=true .venv/bin/python -m pytest -q
 ```
 
-39 pruebas cubren: login con PIN y bloqueo, permisos por rol, vinculación, camino guiado,
-vidas, repasos, práctica sin puntos, respuestas duplicadas, mundos completados, tienda,
-mundos del docente (solo selección múltiple) y el panel del docente.
+45 pruebas cubren: login con PIN y bloqueo, permisos por rol, vinculación, camino guiado,
+vidas que se guardan y se recargan, repasos (y su espera de 1 hora), práctica sin puntos,
+respuestas duplicadas, mundos completados, tienda, mundos del docente (solo selección
+múltiple, con imagen), variedad y validez de las preguntas de vocabulario, confirmación del
+correo de los adultos y el panel del docente.
