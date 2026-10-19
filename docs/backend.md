@@ -1,7 +1,7 @@
 # Backend (API en Python)
 
 La API está en [`backend/`](../backend). Está hecha con **FastAPI** (Python 3.12) y es la
-única parte que habla con la base de datos: el frontend nunca lee ni escribe Firestore
+única parte que habla con la base de datos: el frontend nunca lee ni escribe en ella
 directamente, siempre pasa por aquí. Así las reglas del juego (niveles, puntos, vidas,
 premios) viven en un solo lugar y tienen pruebas automáticas.
 
@@ -12,65 +12,48 @@ premios) viven en un solo lugar y tienen pruebas automáticas.
 
 ## 1. Cómo se conecta a la base de datos
 
-### Firebase: tres servicios
+### Dónde están los datos
 
-| Servicio | Para qué se usa |
-|---|---|
-| **Firestore** | Base de datos principal: usuarios, temario, progreso, intentos, comentarios, auditoría. |
-| **Authentication** | Inicio de sesión de docentes y padres con correo y contraseña, y el correo de confirmación de la cuenta. |
-| **Realtime Database** | Reservada para la cola de premios de la máquina (fase futura). |
+Todo está en **PostgreSQL (Neon)**: usuarios, contraseñas (cifradas), temario, progreso,
+intentos, comentarios, premios y auditoría. Ver [`data-model.md`](data-model.md). La
+plataforma ya no usa Firebase: el login y la cola de la máquina de premios los resuelve la
+propia API.
 
-### La conexión: `firebase_service.py`
+### La conexión a PostgreSQL: `db.py`
 
-[`app/services/firebase_service.py`](../backend/app/services/firebase_service.py) inicializa
-el **Firebase Admin SDK** una sola vez y entrega el cliente de Firestore al resto de la API.
+[`app/db.py`](../backend/app/db.py) crea la conexión con **SQLAlchemy** a partir de la
+variable `DATABASE_URL` (la cadena de conexión que da Neon). Las tablas están en
+[`app/models/tablas.py`](../backend/app/models/tablas.py) y se crean solas al arrancar si
+no existen; si la base está vacía, también se carga el temario.
 
-El Admin SDK se autentica con una **cuenta de servicio** (una clave privada del proyecto) y
-tiene permisos de administrador: por eso **solo el backend** la usa y nunca se sube a GitHub.
-La clave se carga de una de dos formas ([`config.py`](../backend/app/config.py)):
+Cada petición recibe su propia **sesión** (`Depends(get_db)`) y todo lo que escribe va en
+**una transacción**:
 
-| Dónde corre | De dónde sale la clave |
-|---|---|
-| Tu computador | El archivo `backend/serviceAccountKey.json` (variable `FIREBASE_CREDENTIALS_PATH`). |
-| Render (producción) | La variable de entorno `FIREBASE_CREDENTIALS_JSON`, con el contenido del JSON. |
+- Si la petición termina bien, se guarda (justo antes de responder, ver `RutaConTransaccion`).
+- Si termina con un error esperado (`HTTPException`: PIN incorrecto, sin permiso...), también
+  se guarda lo que alcanzó a escribir, como el contador de PIN fallidos o la auditoría.
+- Si falla por un error inesperado, se deshace todo: no quedan datos a medias.
+
+Neon "duerme" la base tras unos minutos sin uso; la conexión revisa que siga viva antes de
+usarla (`pool_pre_ping`), así que la primera consulta después de un rato solo tarda un poco más.
 
 Toda la configuración sale de variables de entorno (`backend/.env` en local, el panel de
 Render en producción). Ver [`despliegue.md`](despliegue.md).
 
-### Modo de prueba sin Firebase
+### Modo de prueba sin Neon
 
-Con `USE_FAKE_DB=true` la API usa una base de datos **en memoria**
-([`fake_firestore.py`](../backend/app/services/fake_firestore.py)) que imita la interfaz de
-Firestore. Sirve para desarrollar sin tocar los datos reales y es la que usan las pruebas
-automáticas. Al arrancar en este modo se carga el temario solo.
-
-### Colecciones de Firestore
-
-| Colección | Qué guarda |
-|---|---|
-| `usuarios/{id}` | Niños, docentes y padres: nombre, rol, código de acceso y PIN cifrado (niños), docente y acudientes vinculados, autorización de datos / términos aceptados. |
-| `usuarios/{id}/resultados/actual` | **Todo el progreso del niño en un solo documento**: puntos, lecciones aprobadas, precisión por tema, mundos completados, últimos 20 intentos y su perfil (avatar, marco, puntos gastados). |
-| `actividades` | Las preguntas: las del temario fijo (id como `animals-1-1`) y las que crean los docentes. |
-| `mundos_docente` | Los mundos que crea cada docente (con el contador `n_preguntas`). |
-| `intentos_leccion` | Historial completo de cada lección jugada, con sus errores (para análisis de la prueba piloto). |
-| `feedback` | Comentarios del docente sobre un niño. |
-| `historial_recompensas` | Cada mundo completado (el "premio"). |
-| `auditoria` | Registro de solo-inserción: logins, registros, lecciones, compras, errores. |
-| `intentos_pin` | Contador de PIN fallidos por código (bloqueo de 10 minutos tras 5 fallos). |
-
-Las reglas de [`firebase/firestore.rules`](../firebase/firestore.rules) cierran la escritura
-desde el navegador: aunque alguien tenga la configuración web de Firebase, no puede escribir
-en la base de datos. Solo la API (Admin SDK) escribe.
+Con `USE_FAKE_DB=true` (y `DATABASE_URL` vacío) la API usa **SQLite en memoria**, con las
+mismas tablas, y permite un login de desarrollo sin contraseña. Sirve para desarrollar
+sin tocar los datos reales y es lo que usan las pruebas automáticas. Al arrancar en este
+modo se carga el temario solo.
 
 ### Rendimiento
 
-La API corre en Render (EE. UU.) y Firestore en São Paulo, así que cada consulta cruza el
-continente. Por eso:
-
 - El temario fijo se arma en memoria al arrancar (no se consulta).
-- El progreso del niño y sus últimos intentos van en **un solo documento**.
-- El panel del docente trae el progreso de **todos** sus estudiantes en una sola consulta
-  (`get_all`) y los mundos del docente una sola vez.
+- El panel del docente trae el progreso de **todos** sus estudiantes con una consulta por
+  tabla (no una por niño), y los últimos intentos de cada uno con una sola consulta.
+- Neon conviene crearlo en la misma región que la API de Render (Oregón → AWS `us-west-2`)
+  para que cada consulta tarde pocos milisegundos.
 - Las respuestas van comprimidas (gzip) y marcadas `Cache-Control: no-store` (son datos
   personales y de progreso: ningún navegador debe guardarlos).
 
@@ -82,19 +65,21 @@ continente. Por eso:
 backend/
 ├── app/
 │   ├── main.py              Arranque: rutas, CORS, gzip, manejo de errores
-│   ├── config.py            Variables de entorno (Firebase, secretos, umbrales)
+│   ├── config.py            Variables de entorno (base de datos, secretos, umbrales)
+│   ├── db.py                Conexión a PostgreSQL y transacción por petición
 │   ├── curriculo.py         El temario: vocabulario y gramática
 │   ├── gramatica_extra.py   Lecciones 3 y 4 de cada tema de gramática
 │   ├── models/schemas.py    Qué datos entran y salen (validación con Pydantic)
+│   ├── models/tablas.py     Las tablas de la base de datos (SQLAlchemy)
 │   ├── routers/             Las rutas HTTP (una por tema)
 │   └── services/            La lógica de negocio
-├── scripts/                 Herramientas (verificar Firebase, cargar temario)
+├── scripts/                 Herramientas (verificar la conexión, cargar temario, contraseñas)
 ├── tests/                   Pruebas automáticas (pytest)
 ├── Dockerfile               Imagen para desplegar en Render
 └── requirements.txt
 ```
 
-La arquitectura es por capas: **rutas → servicios → Firestore**. Las rutas solo reciben la
+La arquitectura es por capas: **rutas → servicios → base de datos**. Las rutas solo reciben la
 petición, revisan permisos y llaman a un servicio; los servicios tienen las reglas.
 
 ---
@@ -103,26 +88,31 @@ petición, revisan permisos y llaman a un servicio; los servicios tienen las reg
 
 [`auth_service.py`](../backend/app/services/auth_service.py) decide quién es cada petición:
 
-- **Docentes y padres** inician sesión con Firebase Authentication en el navegador y mandan
-  su *ID token*; la API lo verifica con el Admin SDK.
+- **Docentes y padres** inician sesión con **correo + contraseña** (`POST /api/usuarios/login`):
+  - La contraseña (mínimo 8 caracteres) se guarda como **hash scrypt** con sal propia, nunca
+    en texto plano.
+  - Un correo inexistente y una contraseña equivocada dan la misma respuesta (y tardan lo
+    mismo), para no revelar qué correos tienen cuenta.
+  - Tras 5 intentos fallidos seguidos, ese correo se bloquea 10 minutos.
+  - Si es correcto, la API entrega su propio token (JWT) que vence a las 8 horas
+    (`JWT_ADULTO_EXP_MINUTOS`). Puede cambiar su contraseña desde su panel.
+  - No hay correos: si alguien olvida su contraseña, el admin le asigna una temporal con
+    `python scripts/asignar_password.py <correo>`. Las cuentas de admin se crean con el
+    mismo script (`--crear-admin "Nombre"`); nadie puede registrarse como admin.
 - **Niños** entran con **código + PIN** ([`estudiantes_service.py`](../backend/app/services/estudiantes_service.py)):
   - El código es de 6 letras y números sin caracteres confusos (sin 0/O ni 1/I).
   - El PIN (4 dígitos) se guarda **cifrado** (hash con un "pepper" secreto), nunca en texto.
   - Tras 5 PIN equivocados, el código se bloquea 10 minutos.
   - Si es correcto, la API entrega su propio token (JWT) que vence a los 30 minutos.
+- Con cada petición se revisa que el token sea válido y la cuenta siga activa: desactivar
+  una cuenta cierra sus sesiones.
 - Cada ruta exige un rol (`require_role`) y, para datos de un niño, que quien pregunta sea el
   propio niño, su docente o un padre vinculado (`verificar_acceso_estudiante`).
 
 Registrar un niño exige la **autorización de datos** del adulto (Ley 1581) y registrar un
 adulto exige aceptar los **términos**; ambas quedan guardadas con fecha y versión.
 
-**Confirmación del correo de los adultos.** Al registrarse, el frontend le pide a Firebase
-Authentication que envíe un enlace de confirmación (`sendEmailVerification`); el perfil queda
-con `email_verificado: false`. Mientras tanto, `current_user()` responde **403** a todo salvo
-`GET /api/usuarios/sesion` (que usa `usuario_autenticado()`), así que no puede usar ningún
-panel. Cuando abre el enlace, sus nuevos ID tokens traen `email_verified: true` y
-`sincronizar_verificacion()` lo copia al perfil (una sola escritura). Los perfiles creados
-antes de esta función no tienen el campo y cuentan como verificados.
+El correo de los adultos **no se confirma** (la plataforma no envía correos).
 
 ---
 
@@ -136,8 +126,9 @@ antes de esta función no tienen el campo y cuentan como verificados.
 | ✏️ **Gramática** | 10 temas (to be, artículos, plurales, posesivos, presente simple, preposiciones, there is/are, can, presente continuo, pasado simple) × **4 lecciones**, cada uno con su explicación "Cómo se usa". |
 | 👩‍🏫 **Del profe** | Los mundos que crea el docente del niño. |
 
-El temario fijo se define en código y se **carga en Firestore** con
-`python scripts/verificar_firebase.py --sembrar` (es seguro repetirlo: usa ids fijos).
+El temario fijo se define en código y se **carga en la tabla `actividades`** sola al arrancar
+con una base vacía; después de cambiarlo, `python scripts/verificar_conexion.py --sembrar`
+lo actualiza (es seguro repetirlo: usa ids fijos).
 
 ### Catálogo ([`catalogo_service.py`](../backend/app/services/catalogo_service.py))
 

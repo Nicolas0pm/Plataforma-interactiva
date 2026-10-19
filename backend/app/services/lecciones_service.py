@@ -15,24 +15,27 @@ Camino de aprendizaje guiado (estilo Duolingo).
   la aprueba. Se recupera una vida cada `MINUTOS_POR_VIDA` minutos. Con 0 vidas no puede
   empezar lecciones nuevas ni repasos, pero sí **practicar** (repetir una ya aprobada):
   practicar no gasta vidas y, si la aprueba, le devuelve una.
-- El servidor califica comparando las respuestas con las correctas guardadas en Firestore.
+- El servidor califica comparando las respuestas con las correctas guardadas en la base de datos.
 - **Premios**: los puntos se gastan en la tienda del perfil (`tienda_service.py`). El premio
   real llega al **completar un mundo** (todas sus lecciones): si el estudiante tiene una
   máquina asignada, se le pide que suelte un juguete; si no, se le felicita.
 
-Progreso guardado en `usuarios/{id}/resultados/actual`:
+El progreso se maneja como un diccionario que `progreso_db.py` arma desde sus tablas:
   lecciones: { "animals-1": {aprobada, mejor, total, intentos, fallos, ultima} }
   unidades:  { "animals": {respuestas, correctas} }      # precisión por tema
   respuestas_totales, respuestas_correctas
   aprobadas_desde_repaso: { "vocabulario": n, "gramatica": n, "profesor": n }
   mundos_completados: { "animals": fecha }
   vidas: { cantidad, desde }   # vidas en el instante `desde` (None si están llenas)
-Cada intento queda además en la colección `intentos_leccion` (con sus errores), que es lo
-que ve el docente como "en qué va bien y en qué va mal".
+  recientes: [ últimos intentos ]
+Cada intento queda en la tabla `intentos_leccion` (y sus errores en `errores_intento`), que
+es lo que ve el docente como "en qué va bien y en qué va mal".
 """
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.curriculo import MINUTOS_POR_VIDA, PUNTOS_POR_ACIERTO, SECCIONES, VIDAS_MAX, clave_leccion
 from app.services.catalogo_service import (
@@ -43,12 +46,13 @@ from app.services.catalogo_service import (
     lecciones_de,
     preguntas_de_leccion,
 )
+from app.models.tablas import Actividad
+from app.services.progreso_db import MAX_RECIENTES, guardar_progreso_crudo, leer_progresos_crudos, registrar_intento
 from app.services.progreso_service import calcular_nivel, puntos_para_siguiente_nivel
 from app.services.recompensas_service import recompensa_por_mundo
 
 REPASO_CADA = 3
 ESPERA_REPASO = timedelta(hours=1)
-MAX_RECIENTES = 20
 UMBRAL_REPASO = 0.8
 
 
@@ -92,16 +96,12 @@ def _sin_vidas(progreso: dict, ahora: datetime) -> HTTPException:
                               "Mientras tanto puedes practicar una lección que ya aprobaste.")
 
 
-def _ref_progreso(db, id_usuario: str):
-    return db.collection("usuarios").document(id_usuario).collection("resultados").document("actual")
+def leer_progreso(db: Session, id_usuario: str) -> dict:
+    return leer_progresos(db, [id_usuario])[id_usuario]
 
 
-def leer_progreso(db, id_usuario: str) -> dict:
-    return _completar_progreso(_ref_progreso(db, id_usuario).get().to_dict())
-
-
-def guardar_progreso(db, id_usuario: str, progreso: dict) -> None:
-    _ref_progreso(db, id_usuario).set(progreso)
+def guardar_progreso(db: Session, id_usuario: str, progreso: dict) -> None:
+    guardar_progreso_crudo(db, id_usuario, progreso)
 
 
 def _completar_progreso(datos: dict | None) -> dict:
@@ -117,21 +117,13 @@ def _completar_progreso(datos: dict | None) -> dict:
     if not isinstance(contador, dict):  # progreso guardado antes de separar los apartados
         contador = {"vocabulario": contador}
     datos["aprobadas_desde_repaso"] = {s: contador.get(s, 0) for s in SECCIONES_TODAS}
+    datos.setdefault("recientes", [])
     return datos
 
 
-def leer_progresos(db, ids: list[str]) -> dict[str, dict]:
-    """Progreso de varios estudiantes en UNA sola ida a Firestore (panel del docente)."""
-    refs = [_ref_progreso(db, i) for i in ids]
-    if not refs:
-        return {}
-    if not hasattr(db, "get_all"):  # base de datos en memoria (modo de prueba)
-        return {i: _completar_progreso(r.get().to_dict()) for i, r in zip(ids, refs)}
-    por_id = {}
-    for snap in db.get_all(refs):
-        # usuarios/{id}/resultados/actual → el id del estudiante es el "abuelo" del documento
-        por_id[snap.reference.parent.parent.id] = _completar_progreso(snap.to_dict() if snap.exists else None)
-    return {i: por_id.get(i) or _completar_progreso(None) for i in ids}
+def leer_progresos(db: Session, ids: list[str]) -> dict[str, dict]:
+    """Progreso de varios estudiantes con una consulta por tabla (panel del docente)."""
+    return {i: _completar_progreso(datos) for i, datos in leer_progresos_crudos(db, ids).items()}
 
 
 def _proporcion(estado: dict) -> float:
@@ -180,7 +172,7 @@ def modo_para(progreso: dict, cat: dict, unidad: str, leccion: int) -> str:
     raise HTTPException(403, "Esa lección todavía no está desbloqueada")
 
 
-def _preguntas(db, unidad: str, leccion: int) -> list[dict]:
+def _preguntas(db: Session, unidad: str, leccion: int) -> list[dict]:
     preguntas = preguntas_de_leccion(db, unidad, leccion)
     if not preguntas:
         raise HTTPException(404, "Esta lección no tiene preguntas cargadas")
@@ -188,7 +180,7 @@ def _preguntas(db, unidad: str, leccion: int) -> list[dict]:
 
 
 def armar_leccion(
-    db, id_usuario: str, unidad: str | None, leccion: int | None, seccion: str = "vocabulario"
+    db: Session, id_usuario: str, unidad: str | None, leccion: int | None, seccion: str = "vocabulario"
 ) -> dict:
     progreso = leer_progreso(db, id_usuario)
     cat = catalogo(db, id_usuario)
@@ -227,7 +219,7 @@ def armar_leccion(
     }
 
 
-def registrar_resultado(db, id_usuario: str, unidad: str, leccion: int, respuestas: list[dict]) -> dict:
+def registrar_resultado(db: Session, id_usuario: str, unidad: str, leccion: int, respuestas: list[dict]) -> dict:
     progreso = leer_progreso(db, id_usuario)
     cat = catalogo(db, id_usuario)
     modo = modo_para(progreso, cat, unidad, leccion)
@@ -345,7 +337,7 @@ def registrar_resultado(db, id_usuario: str, unidad: str, leccion: int, respuest
     guardar_progreso(db, id_usuario, progreso)
 
     # Historial completo (auditoría / análisis de la prueba piloto).
-    db.collection("intentos_leccion").document().set({"id_usuario": id_usuario, **intento})
+    registrar_intento(db, id_usuario, intento)
 
     return {
         "aprobada": aprobada,
@@ -364,14 +356,7 @@ def registrar_resultado(db, id_usuario: str, unidad: str, leccion: int, respuest
     }
 
 
-def intentos_recientes(db, id_usuario: str, limite: int = 20) -> list[dict]:
-    # Solo filtro por igualdad (no necesita índice compuesto); se ordena aquí.
-    docs = [d.to_dict() for d in db.collection("intentos_leccion").where("id_usuario", "==", id_usuario).stream()]
-    docs.sort(key=lambda d: d["fecha"], reverse=True)
-    return docs[:limite]
-
-
-def resumen_aprendizaje(db, id_usuario: str, progreso: dict | None = None, cat: dict | None = None) -> dict:
+def resumen_aprendizaje(db: Session, id_usuario: str, progreso: dict | None = None, cat: dict | None = None) -> dict:
     """Caminos con estados + estadísticas. Lo usan el niño, su docente y sus padres.
     El panel del docente pasa `progreso` y `cat` ya consultados para no repetir lecturas."""
     from app.services.tienda_service import perfil_de
@@ -417,9 +402,7 @@ def resumen_aprendizaje(db, id_usuario: str, progreso: dict | None = None, cat: 
                 if por_unidad.get("respuestas") else None,
             })
 
-    recientes = progreso.get("recientes")
-    if recientes is None:  # progreso guardado antes de llevar los intentos adentro
-        recientes = intentos_recientes(db, id_usuario)
+    recientes = progreso["recientes"]
     conteo_errores: dict[str, dict] = {}
     for intento in recientes:
         for error in intento.get("errores", []):
@@ -493,18 +476,28 @@ def motivos_de_ayuda(resumen: dict, ahora: datetime) -> list[str]:
     return motivos
 
 
-def sembrar_temario(db) -> dict:
-    """Carga el temario de `app/curriculo.py` en Firestore. Es idempotente: cada pregunta
-    usa un ID fijo ("animals-1-1"), así que volver a correrlo actualiza en vez de duplicar.
-    Las actividades antiguas sin unidad (catálogo anterior) quedan desactivadas."""
+def sembrar_temario(db: Session) -> dict:
+    """Carga el temario de `app/curriculo.py` en la tabla `actividades`. Es idempotente: cada
+    pregunta usa un ID fijo ("animals-1-1"), así que volver a correrlo actualiza en vez de
+    duplicar. Las actividades antiguas sin unidad (catálogo anterior) quedan desactivadas."""
     from app.curriculo import generar_actividades
 
     desactivadas = 0
-    for doc in db.collection("actividades").where("activo", "==", True).stream():
-        if not doc.to_dict().get("unidad"):
-            doc.reference.update({"activo": False})
-            desactivadas += 1
+    for actividad in db.scalars(select(Actividad).where(Actividad.activo, Actividad.unidad.is_(None))):
+        actividad.activo = False
+        desactivadas += 1
     actividades = generar_actividades()
-    for actividad in actividades:
-        db.collection("actividades").document(actividad["nombre"]).set(actividad)
+    existentes = {a.id_actividad: a for a in db.scalars(select(Actividad).where(Actividad.id_mundo.is_(None)))}
+    for datos in actividades:
+        fila = existentes.get(datos["nombre"])
+        if fila is None:
+            fila = Actividad(id_actividad=datos["nombre"])
+            db.add(fila)
+        for campo, valor in datos.items():
+            setattr(fila, campo, valor)
+    db.flush()
     return {"creadas_o_actualizadas": len(actividades), "antiguas_desactivadas": desactivadas}
+
+
+def temario_cargado(db: Session) -> bool:
+    return db.scalar(select(Actividad.id_actividad).where(Actividad.seccion == "vocabulario").limit(1)) is not None

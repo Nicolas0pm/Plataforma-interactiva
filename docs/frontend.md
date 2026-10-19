@@ -11,12 +11,10 @@ estático). Funciona en computador y en celular.
 
 ## 1. Cómo se conecta a la base de datos
 
-El frontend **no habla directamente con Firestore**: todo pasa por la API.
+El frontend **no habla directamente con la base de datos**: todo pasa por la API.
 
 ```
-Navegador ──fetch (JSON)──▶ API (Render) ──Admin SDK──▶ Firestore
-    │
-    └── Firebase Authentication (solo el login de docentes y padres)
+Navegador ──fetch (JSON)──▶ API (Render) ──SQL──▶ PostgreSQL (Neon)
 ```
 
 - [`js/config.js`](../frontend/js/config.js) decide a qué API llamar: en tu computador
@@ -27,10 +25,11 @@ Navegador ──fetch (JSON)──▶ API (Render) ──Admin SDK──▶ Fire
   - si la sesión venció (401), cierra sesión y vuelve al inicio;
   - si el servidor tarda más de 3 s (se estaba "despertando" en el plan gratis de Render),
     muestra el aviso "Despertando el servidor…".
-- [`js/firebase-config.js`](../frontend/js/firebase-config.js) tiene la configuración web de
-  Firebase, que se usa **solo** para que docentes y padres inicien sesión con correo y
-  contraseña. Esa configuración es pública por diseño; lo que protege los datos son las
-  reglas de Firestore y la API.
+- El frontend no tiene ninguna credencial: docentes y padres envían su correo y contraseña a
+  la API, que les devuelve un token de sesión. La base de datos solo acepta conexiones con
+  la contraseña que tiene el backend.
+- [`js/cambiar-password.js`](../frontend/js/cambiar-password.js) agrega a los paneles de
+  docentes y padres el botón **🔑 Contraseña** para cambiarla.
 
 ### Sesión
 
@@ -50,7 +49,7 @@ vuelve a cargar para no mostrar datos viejos.
 | `kid-dashboard.html` | niño | Botones **📚 Vocabulario / ✏️ Gramática / 👩‍🏫 Del profe**, "Tu próxima lección", avatar con marco, puntos, **❤️ vidas con "+1 ❤️ en N min"**, camino de lecciones (✅ repetir, ▶ nueva, 🔁 repaso, 🔒 bloqueada) y últimos intentos. En pantallas de 900 px o más, el progreso (avatar, vidas, estadísticas, intentos) va en una **columna a la izquierda** y el camino a la derecha; en el celular, una sola columna. Sin vidas, "¡Empezar!" se desactiva y dice cuándo llega la próxima. |
 | `activity.html` | niño | La lección: ❤️ vidas (las que le quedan), preguntas de selección múltiple con **ilustraciones**, "❌ Incorrecto, la respuesta era…", **sonidos** de acierto/error/ganar/perder (botón 🔊/🔇), tarjeta "Cómo se usa" en gramática y felicitación al final (o "¡Completaste un mundo!"). Sin vidas explica cuándo vuelve la próxima. |
 | `rewards.html` | niño | **Tienda** (avatares y marcos con puntos) y **mundos completados**. |
-| `adult-login.html` | docente, padre | Iniciar sesión o crear cuenta (con aceptación de términos). Al registrarse, Firebase envía un **correo con un enlace de confirmación**; mientras no lo abra, en vez del panel ve "📧 Confirma tu correo" con **"Ya lo confirmé"** y **"Enviar otro correo"**. Si se sale, la pantalla reaparece al volver; al abrir el enlace entra directo a su panel. |
+| `adult-login.html` | docente, padre | Iniciar sesión con correo y contraseña, o crear cuenta (contraseña de mínimo 8 caracteres y aceptación de términos). No hay correo de confirmación: al crear la cuenta entra directo a su panel. Si olvida la contraseña, el admin le asigna una temporal. |
 | `teacher.html` | docente | Botones de vista: **Estudiantes · Necesitan ayuda · Progreso · Activos hoy · Mis mundos**; máquina del salón; registrar / ingresar niños. |
 | `parent.html` | padre | Registrar / ingresar hijos y ver su progreso, últimos intentos y comentarios del docente. |
 | `terminos.html` | todos | Términos de uso y política de datos (Ley 1581). |

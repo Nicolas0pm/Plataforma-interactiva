@@ -1,14 +1,15 @@
 """
 RF03: carga el temario (app/curriculo.py: vocabulario + gramática, 26 lecciones) a
-través de la API (POST /api/actividades). Con Firebase real es más simple usar
-`python scripts/verificar_firebase.py --sembrar`, que lo hace directo con el Admin SDK.
+través de la API (POST /api/actividades). Normalmente no hace falta: la API carga el
+temario sola al arrancar con una base vacía, y `python scripts/verificar_conexion.py
+--sembrar` lo actualiza directo en PostgreSQL.
 
 Uso:
     # Contra el backend en modo de prueba (USE_FAKE_DB=true) — crea un docente
     # temporal y no necesita ningún token:
     python scripts/seed_actividades.py
 
-    # Contra un backend real (Firebase de verdad), pasa el token de un
+    # Contra un backend real (PostgreSQL de verdad), pasa el token de un
     # docente o admin ya autenticado:
     python scripts/seed_actividades.py --token "eyJ..." --base-url https://tu-api.com
 """

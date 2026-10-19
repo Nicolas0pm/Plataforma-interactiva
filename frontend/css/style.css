@@ -1881,3 +1881,19 @@ main.panel-nino {
   font-size: 1.4rem;
   letter-spacing: 0.1em;
 }
+
+/* Diálogo "Cambiar contraseña" de los paneles de adultos */
+dialog.dialogo {
+  width: min(26rem, calc(100vw - 2rem));
+  margin: auto;
+  color: var(--tinta);
+}
+dialog.dialogo::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+.acciones-dialogo {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}

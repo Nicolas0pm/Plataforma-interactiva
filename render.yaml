@@ -14,12 +14,8 @@ services:
     envVars:
       - key: USE_FAKE_DB
         value: "false"
-      - key: FIREBASE_PROJECT_ID
-        value: plataforma-ingles-kids
-      - key: FIREBASE_REALTIME_DB_URL
-        value: https://plataforma-ingles-kids-default-rtdb.firebaseio.com
       - key: CORS_ORIGINS
-        value: https://plataforma-ingles-kids.onrender.com,https://plataforma-ingles-kids.web.app
+        value: https://plataforma-ingles-kids.onrender.com
       - key: REWARD_THRESHOLD
         value: "100"
       - key: JWT_PIN_EXP_MINUTOS
@@ -31,8 +27,8 @@ services:
         sync: false
       - key: DEVICE_SHARED_SECRET
         generateValue: true
-      # Contenido de serviceAccountKey.json (se pega en el panel de Render)
-      - key: FIREBASE_CREDENTIALS_JSON
+      # Cadena de conexión de Neon (PostgreSQL), se pega en el panel de Render
+      - key: DATABASE_URL
         sync: false
 
   - type: web

@@ -1,7 +1,8 @@
 """Camino guiado de lecciones (app/services/lecciones_service.py)."""
 from datetime import datetime, timedelta, timezone
 
-from app.services.lecciones_service import sembrar_temario
+from app.models.tablas import Usuario
+from app.services.lecciones_service import guardar_progreso, leer_progreso, sembrar_temario
 
 
 def _auth(token):
@@ -10,11 +11,11 @@ def _auth(token):
 
 def _preparar(client, db):
     sembrar_temario(db)
+    db.commit()
     docente = client.post("/api/usuarios", json={
         "nombre": "Marta", "edad": 40, "rol": "docente", "acudientes_ids": [], "docente_id": None,
         "email": "marta@escuela.co", "acepta_terminos": True,
     }).json()
-    db.collection("usuarios").document(docente["id_usuario"]).update({"email_verificado": True})
     token_docente = client.post("/api/usuarios/login-dev", json={"id_usuario": docente["id_usuario"], "rol": "docente"}).json()["token"]
     nino = client.post("/api/usuarios", headers=_auth(token_docente), json={
         "nombre": "Ana", "edad": 7, "rol": "estudiante", "acudientes_ids": [], "docente_id": None,
@@ -64,9 +65,12 @@ def test_no_se_puede_saltar_a_una_leccion_bloqueada(client, db):
 
 def _recargar_vidas(db, id_nino, cantidad=5, hace_minutos=0):
     """Deja al niño con `cantidad` vidas, como si la recarga hubiera empezado hace `hace_minutos`."""
-    ref = db.collection("usuarios").document(id_nino).collection("resultados").document("actual")
+    db.commit()
+    progreso = leer_progreso(db, id_nino)
     desde = datetime.now(timezone.utc) - timedelta(minutes=hace_minutos)
-    ref.update({"vidas": {"cantidad": cantidad, "desde": None if cantidad >= 5 else desde}})
+    progreso["vidas"] = {"cantidad": cantidad, "desde": None if cantidad >= 5 else desde}
+    guardar_progreso(db, id_nino, progreso)
+    db.commit()
 
 
 def test_perder_todas_las_vidas_repite_la_leccion(client, db):
@@ -132,10 +136,11 @@ def test_repaso_automatico_de_la_leccion_mas_debil(client, db):
     assert r.json()["siguiente"] == {"unidad": "animals", "leccion": 4, "modo": "nueva"}
 
     # Pasada una hora, sí le toca el repaso de la más débil.
-    ref = db.collection("usuarios").document(nino["id_usuario"]).collection("resultados").document("actual")
-    progreso = ref.get().to_dict()
+    db.commit()
+    progreso = leer_progreso(db, nino["id_usuario"])
     progreso["lecciones"]["animals-1"]["ultima"] = datetime.now(timezone.utc) - timedelta(hours=2)
-    ref.set(progreso)
+    guardar_progreso(db, nino["id_usuario"], progreso)
+    db.commit()
     leccion = client.get("/api/lecciones/jugar", headers=_auth(token)).json()
     assert (leccion["unidad"]["id"], leccion["leccion"], leccion["modo"]) == ("animals", 1, "repaso")
 
@@ -157,11 +162,7 @@ def test_completar_un_mundo_sin_maquina_solo_felicita(client, db):
     assert r.json()["mundo_completado"] is None
 
 
-def test_completar_un_mundo_con_maquina_encola_un_juguete(client, db, monkeypatch):
-    from app.services import recompensas_service
-    from app.services.fake_firestore import _realtime_store
-
-    monkeypatch.setattr(recompensas_service._settings, "realtime_db_url", "https://fake-rtdb")
+def test_completar_un_mundo_con_maquina_encola_un_juguete(client, db):
     docente, token_docente, nino, token = _preparar(client, db)
     r = client.put(f"/api/usuarios/docente/{docente['id_usuario']}/dispensador",
                    json={"device_id": "aula-101"}, headers=_auth(token_docente))
@@ -169,16 +170,17 @@ def test_completar_un_mundo_con_maquina_encola_un_juguete(client, db, monkeypatc
 
     recompensa = _completar_mundo(client, token)[4]["mundo_completado"]["recompensa"]
     assert recompensa["device_id"] == "aula-101" and recompensa["estado"] == "pendiente"
-    # Cada premio es un nodo propio en la cola: no se pisan entre sí
-    clave = f"cola_recompensas/aula-101/{recompensa['id_historial']}"
-    assert _realtime_store[clave]["comando"] == "dispensar"
+    # La máquina ve el premio en su cola (y otra máquina no)
+    maquina = {"X-Device-Secret": "test-device-secret"}
+    assert client.get("/api/recompensas/cola/aula-101").status_code == 401  # sin secreto
+    cola = client.get("/api/recompensas/cola/aula-101", headers=maquina).json()
+    assert [(p["id_historial"], p["comando"]) for p in cola] == [(recompensa["id_historial"], "dispensar")]
+    assert client.get("/api/recompensas/cola/aula-7", headers=maquina).json() == []
 
-    # La máquina confirma la entrega y el pedido sale de la cola
-    from app.routers import recompensas as router_recompensas
-    monkeypatch.setattr(router_recompensas._settings, "realtime_db_url", "https://fake-rtdb")
-    ok = client.post(f"/api/recompensas/{recompensa['id_historial']}/confirmar-entrega",
-                     headers={"X-Device-Secret": "test-device-secret"})
-    assert ok.status_code == 200 and clave not in _realtime_store
+    # La máquina confirma la entrega y el premio sale de la cola
+    ok = client.post(f"/api/recompensas/{recompensa['id_historial']}/confirmar-entrega", headers=maquina)
+    assert ok.status_code == 200
+    assert client.get("/api/recompensas/cola/aula-101", headers=maquina).json() == []
 
 
 def test_ninos_nuevos_heredan_la_maquina_del_salon(client, db):
@@ -237,7 +239,6 @@ def test_mundos_del_profe_solo_seleccion_multiple(client, db):
     # Otro docente no puede tocar ese mundo
     otro = client.post("/api/usuarios", json={"nombre": "Otro", "edad": 30, "rol": "docente", "acudientes_ids": [],
                                               "docente_id": None, "email": "o@e.co", "acepta_terminos": True}).json()
-    db.collection("usuarios").document(otro["id_usuario"]).update({"email_verificado": True})
     token_otro = client.post("/api/usuarios/login-dev", json={"id_usuario": otro["id_usuario"], "rol": "docente"}).json()["token"]
     assert client.post(base, json={"pregunta": "x", "opciones": ["a", "b"], "respuesta_correcta": "a"},
                        headers=_auth(token_otro)).status_code == 403

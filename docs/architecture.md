@@ -5,32 +5,32 @@
 | Capa | Tecnología | Responsabilidad |
 |---|---|---|
 | Frontend | HTML + CSS + JavaScript (vanilla) | UI para niños, docentes y padres. Consume la API vía `fetch`. |
-| Autenticación | Firebase Authentication | Login de docentes, padres y administradores (email/contraseña). |
-| API | Python (FastAPI) | Reglas de negocio, validaciones, orquestación entre frontend y Firebase. |
-| Base de datos principal | Firestore | Usuarios, actividades, historial, resultados, recompensas, feedback. |
-| Base de datos de hardware | Realtime Database | Cola liviana de comandos de recompensa para el ESP32. |
-| Hardware (futuro) | ESP32 | Escucha la cola de recompensas y activa el dispensador físico. |
+| Autenticación | Propia de la API (JWT) | Docentes, padres y administradores: correo + contraseña (hash scrypt). Niños: código + PIN. |
+| API | Python (FastAPI) + SQLAlchemy | Reglas de negocio, validaciones, inicio de sesión, orquestación entre frontend y base de datos. |
+| Base de datos principal | PostgreSQL (Neon) | Usuarios, actividades, historial, resultados, recompensas, feedback. Relacional, ver `data-model.md`. |
+| Hardware (futuro) | ESP32 | Pregunta a la API por sus premios pendientes y activa el dispensador físico. |
 
-## Flujo típico: un niño completa una actividad
+## Flujo típico: un niño termina una lección
 
-1. El frontend envía `POST /api/actividades/{id}/completar` a la API con el resultado.
-2. La API valida el payload (Pydantic), calcula puntaje/nivel y llama a Firestore
-   (Admin SDK) para:
-   - crear un documento en `historial_actividades`
-   - actualizar `resultados` (puntaje_total, nivel_logrado) del usuario
-3. Si el puntaje acumulado alcanza el umbral de una recompensa, la API:
-   - crea un documento en `historial_recompensas` con `estado: "pendiente"`
-   - escribe un nodo en Realtime Database `cola_recompensas/{device_id}` con la orden
-4. El ESP32 (fase futura) tiene un listener en `cola_recompensas/{device_id}`, activa el
-   motor/dispensador, y al terminar actualiza el nodo (`estado: "entregada"`), lo cual la
-   API sincroniza de vuelta a Firestore.
-5. El panel de docente/padre lee de la API (que a su vez lee Firestore) y muestra el
+1. El frontend envía `POST /api/lecciones/resultado` a la API con sus respuestas.
+2. La API valida el payload (Pydantic), califica comparando con las respuestas correctas
+   guardadas y, en **una sola transacción** de PostgreSQL:
+   - agrega una fila en `intentos_leccion` (y sus errores en `errores_intento`)
+   - actualiza `progreso`, `progreso_lecciones` y `progreso_unidades` del niño
+3. Si con esa lección completó un mundo, la API:
+   crea una fila en `historial_recompensas` con `estado: "pendiente"` y el `device_id` de
+   la máquina del salón: esa es la cola de la máquina.
+4. El ESP32 (fase futura) pregunta cada pocos segundos `GET /api/recompensas/cola/{device_id}`,
+   activa el dispensador por cada premio y confirma la entrega a la API (`POST /api/recompensas/{id}/confirmar-entrega`), que
+   marca la fila como `entregada`.
+5. El panel de docente/padre lee de la API (que a su vez consulta PostgreSQL) y muestra el
    progreso y las recompensas obtenidas.
 
-## Por qué API intermedia en vez de que el frontend hable directo con Firestore
+## Por qué API intermedia en vez de que el frontend hable directo con la base de datos
 
-Es técnicamente posible que el JS del navegador use el SDK web de Firestore directamente.
-Se eligió meter una API en Python en medio porque:
+Un navegador no puede conectarse a PostgreSQL sin exponer la contraseña de la base de
+datos, y aunque se usara un servicio que lo permita, se eligió meter una API en Python
+en medio porque:
 
 - Los criterios de negocio del proyecto (niveles, umbrales de recompensa, estadísticas
   agregadas, feedback docente) conviene tenerlos centralizados y con tests, no repetidos
@@ -39,18 +39,15 @@ Se eligió meter una API en Python en medio porque:
   reintentos) que es más manejable en un backend.
 - Es más fácil integrar después analítica, notificaciones o el ESP32 vía HTTP/MQTT desde
   un backend Python que desde el navegador.
-- Las credenciales de administrador (Service Account) de Firebase **nunca** deben vivir en
-  el frontend; solo la API las usa.
-
-El frontend sí usa el SDK web de Firebase, pero **solo para Authentication** (login),
-nunca para leer/escribir datos de negocio directamente.
+- La cadena de conexión de la base de datos **nunca** debe vivir en el frontend; solo la
+  API la usa.
 
 ## Roles y permisos (alto nivel)
 
 Esta tabla ahora se hace cumplir en el backend (`app/services/auth_service.py`:
 `require_role`, `verificar_acceso_estudiante`), no es solo documentación aspiracional.
-Todo endpoint exige un token válido (Firebase ID token para docente/padre/admin, o
-el JWT propio de PIN para estudiantes) y, cuando aplica, la relación correcta.
+Todo endpoint exige un token válido (el JWT que entrega la API al iniciar sesión con
+correo y contraseña, o con código y PIN) y, cuando aplica, la relación correcta.
 
 | Rol | Puede |
 |---|---|
@@ -61,8 +58,8 @@ el JWT propio de PIN para estudiantes) y, cuando aplica, la relación correcta.
 
 ## Despliegue sugerido
 
-- **Frontend:** Firebase Hosting (gratis, HTTPS automático, CDN).
-- **API (Python):** Cloud Run, Render o Railway (cualquiera que corra un contenedor
-  Docker con FastAPI). Cloud Run es la opción más natural porque vive en el mismo
-  proyecto de Google/Firebase.
-- **Firestore / Auth / RTDB:** ya son servicios administrados de Firebase.
+Ver [`despliegue.md`](despliegue.md). En resumen:
+
+- **Frontend:** sitio estático en Render.
+- **API (Python):** Render, con Docker (sirve cualquier servicio que corra un contenedor).
+- **PostgreSQL:** Neon (plan gratis), en la misma región que la API.

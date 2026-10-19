@@ -1,40 +1,59 @@
 from fastapi import APIRouter, Depends, Header, HTTPException
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.config import get_settings
+from app.db import RutaConTransaccion, get_db
+from app.models.tablas import HistorialRecompensa
 from app.services.auth_service import current_user, registrar_auditoria, verificar_acceso_estudiante
-from app.services.firebase_service import get_firestore_client, get_realtime_ref
 
-router = APIRouter(prefix="/api/recompensas", tags=["recompensas"])
+router = APIRouter(prefix="/api/recompensas", tags=["recompensas"], route_class=RutaConTransaccion)
 _settings = get_settings()
 
 
-@router.get("/estudiante/{id_usuario}")
-def recompensas_de_estudiante(id_usuario: str, usuario: dict = Depends(current_user)):
-    """RF05/RF07: recompensas obtenidas, consultables por el estudiante, su
-    docente, sus padres vinculados o un admin."""
-    db = get_firestore_client()
-    verificar_acceso_estudiante(usuario, id_usuario, db)
-    query = db.collection("historial_recompensas").where("id_usuario", "==", id_usuario)
-    return [{**doc.to_dict(), "id_historial": doc.id} for doc in query.stream()]
-
-
-@router.post("/{id_historial}/confirmar-entrega")
-def confirmar_entrega(id_historial: str, x_device_secret: str | None = Header(default=None)):
-    """El ESP32 confirma que la recompensa física fue entregada. No usa un token
-    de usuario (el dispensador no tiene cuenta): se autentica con un secreto
-    compartido configurado en `DEVICE_SHARED_SECRET` (ver esp32/README.md)."""
+def _exigir_secreto_dispositivo(x_device_secret: str | None = Header(default=None)) -> None:
+    """La máquina de premios (ESP32) no tiene cuenta de usuario: se autentica con el
+    secreto compartido `DEVICE_SHARED_SECRET` (ver esp32/README.md)."""
     if not _settings.device_shared_secret or x_device_secret != _settings.device_shared_secret:
         raise HTTPException(401, "Secreto de dispositivo inválido o no configurado")
 
-    db = get_firestore_client()
-    ref = db.collection("historial_recompensas").document(id_historial)
-    if not ref.get().exists:
+
+@router.get("/estudiante/{id_usuario}")
+def recompensas_de_estudiante(id_usuario: str, usuario: dict = Depends(current_user), db: Session = Depends(get_db)):
+    """RF05/RF07: recompensas obtenidas, consultables por el estudiante, su
+    docente, sus padres vinculados o un admin."""
+    verificar_acceso_estudiante(usuario, id_usuario, db)
+    consulta = (
+        select(HistorialRecompensa).where(HistorialRecompensa.id_usuario == id_usuario)
+        .order_by(HistorialRecompensa.fecha_entrega)
+    )
+    return [r.a_dict() for r in db.scalars(consulta)]
+
+
+@router.get("/cola/{device_id}", dependencies=[Depends(_exigir_secreto_dispositivo)])
+def cola_de_la_maquina(device_id: str, db: Session = Depends(get_db)):
+    """Premios que la máquina `device_id` todavía tiene que soltar, del más antiguo al más
+    nuevo. El ESP32 la consulta cada pocos segundos; cada premio sale de la cola cuando la
+    máquina confirma su entrega."""
+    consulta = (
+        select(HistorialRecompensa)
+        .where(HistorialRecompensa.device_id == device_id, HistorialRecompensa.estado == "pendiente")
+        .order_by(HistorialRecompensa.fecha_entrega)
+    )
+    return [
+        {"id_historial": r.id_historial, "id_usuario": r.id_usuario, "comando": "dispensar",
+         "fecha": r.fecha_entrega, "emoji": r.emoji}
+        for r in db.scalars(consulta)
+    ]
+
+
+@router.post("/{id_historial}/confirmar-entrega", dependencies=[Depends(_exigir_secreto_dispositivo)])
+def confirmar_entrega(id_historial: str, db: Session = Depends(get_db)):
+    """El ESP32 confirma que soltó el juguete: el premio sale de su cola y ya no se vuelve
+    a entregar aunque la máquina se reinicie."""
+    recompensa = db.get(HistorialRecompensa, id_historial)
+    if recompensa is None:
         raise HTTPException(404, "Recompensa no encontrada")
-    datos = ref.get().to_dict()
-    ref.update({"estado": "entregada"})
-    # Se saca el pedido de la cola de la máquina para que no vuelva a soltar el juguete
-    # si se reinicia.
-    if datos.get("device_id") and _settings.realtime_db_url:
-        get_realtime_ref(f"cola_recompensas/{datos['device_id']}/{id_historial}").delete()
+    recompensa.estado = "entregada"
     registrar_auditoria(db, tipo="recompensa_entregada", actor="esp32", detalle={"id_historial": id_historial})
     return {"ok": True}

@@ -1,21 +1,10 @@
-import {
-  auth,
-  createUserWithEmailAndPassword,
-  firebaseConfigurado,
-  onAuthStateChanged,
-  sendEmailVerification,
-  signInWithEmailAndPassword,
-  signOut,
-} from "../firebase-config.js";
-import { apiFetch } from "../api.js";
+import { apiFetch, despertarServidor } from "../api.js";
 import { inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
-import { despertarServidor } from "../api.js";
+import { guardarSesion, obtenerSesion } from "../session.js";
 
 // Mientras la persona elige o escribe, el servidor va despertando (plan gratis de Render).
 despertarServidor();
-import { guardarSesion, obtenerSesion } from "../session.js";
-
 inicializarLangToggle();
 
 const params = new URLSearchParams(window.location.search);
@@ -27,196 +16,60 @@ const DESTINO_POR_ROL = { docente: "teacher.html", padre: "parent.html", admin: 
 const sesionActual = obtenerSesion();
 if (sesionActual && DESTINO_POR_ROL[sesionActual.rol]) window.location.replace(DESTINO_POR_ROL[sesionActual.rol]);
 
-if (!firebaseConfigurado) {
-  document.getElementById("hint-firebase").textContent =
-    "Este proyecto no tiene Firebase configurado todavía (frontend/js/firebase-config.js). " +
-    "Usa el modo de prueba de abajo mientras tanto.";
-  document.getElementById("form-login").querySelector("button").disabled = true;
-  document.getElementById("form-registro").querySelector("button").disabled = true;
+function entrar(sesion) {
+  guardarSesion({ token: sesion.token, id_usuario: sesion.id_usuario, rol: sesion.rol, nombre: sesion.nombre });
+  window.location.replace(DESTINO_POR_ROL[sesion.rol] || "index.html");
 }
 
-function irADestino(rol) {
-  window.location.replace(DESTINO_POR_ROL[rol] || "index.html");
+/** Deshabilita el botón mientras se espera la respuesta (evita registros dobles). */
+async function conBotonOcupado(formulario, accion) {
+  const boton = formulario.querySelector("button[type=submit]");
+  boton.disabled = true;
+  try {
+    await accion();
+  } finally {
+    boton.disabled = false;
+  }
 }
 
-document.getElementById("form-login").addEventListener("submit", async (e) => {
+function iniciarSesion(email, password) {
+  return apiFetch("/api/usuarios/login", { method: "POST", body: { email, password }, esLogin: true });
+}
+
+document.getElementById("form-login").addEventListener("submit", (e) => {
   e.preventDefault();
   const errorEl = document.getElementById("error-login");
   errorEl.textContent = "";
-  try {
-    const cred = await signInWithEmailAndPassword(
-      auth,
-      document.getElementById("email").value,
-      document.getElementById("password").value
-    );
-    const idToken = await cred.user.getIdToken();
-    const perfil = await apiFetch("/api/usuarios/sesion", { tokenOverride: idToken });
-    entrar(idToken, perfil);
-  } catch (err) {
-    errorEl.textContent = err.message;
-  }
+  conBotonOcupado(e.target, async () => {
+    try {
+      entrar(await iniciarSesion(document.getElementById("email").value, document.getElementById("password").value));
+    } catch (err) {
+      errorEl.textContent = err.message;
+    }
+  });
 });
 
-document.getElementById("form-registro").addEventListener("submit", async (e) => {
+document.getElementById("form-registro").addEventListener("submit", (e) => {
   e.preventDefault();
   const errorEl = document.getElementById("error-registro");
   errorEl.textContent = "";
-  try {
-    const nombre = document.getElementById("reg-nombre").value;
-    const email = document.getElementById("reg-email").value;
-    const cred = await createUserWithEmailAndPassword(
-      auth, email, document.getElementById("reg-password").value
-    );
-    // Firebase envía el correo con el enlace de confirmación (no hace falta otro servicio).
-    await enviarEnlace(cred.user);
-    const idToken = await cred.user.getIdToken();
-    const perfil = await apiFetch("/api/usuarios", {
-      method: "POST",
-      tokenOverride: idToken,
-      body: {
-        nombre, edad: 99, rol: rolElegido, acudientes_ids: [], docente_id: null, email,
-        acepta_terminos: document.getElementById("reg-terminos").checked,
-      },
-    });
-    entrar(idToken, perfil);
-  } catch (err) {
-    errorEl.textContent = err.message;
-  }
-});
-
-// ---------- Confirmar el correo con el enlace que envía Firebase ----------
-// Mientras no lo confirme, la API no deja usar el panel: se muestra esta tarjeta en vez
-// de entrar. La sesión se guarda solo cuando el correo queda confirmado.
-let pendiente = null; // { idToken, perfil }
-
-function entrar(idToken, perfil) {
-  if (perfil.email_verificado === false) {
-    mostrarVerificacion(idToken, perfil);
-    return;
-  }
-  guardarSesion({ token: idToken, id_usuario: perfil.id_usuario, rol: perfil.rol, nombre: perfil.nombre });
-  irADestino(perfil.rol);
-}
-
-/** Pide a Firebase que envíe el correo. Al abrir el enlace, el botón "Continuar" de la
- *  página de Firebase trae a la persona de vuelta a este login. */
-async function enviarEnlace(usuario) {
-  const volver = { url: `${window.location.origin}${window.location.pathname}?rol=${rolElegido}&confirmado=1` };
-  try {
-    await sendEmailVerification(usuario, volver);
-  } catch (err) {
-    // Si el dominio no está autorizado para volver, se envía igual pero sin el botón.
-    if (err.code === "auth/unauthorized-continue-uri") await sendEmailVerification(usuario);
-    else throw err;
-  }
-}
-
-function mostrarVerificacion(idToken, perfil) {
-  pendiente = { idToken, perfil };
-  for (const id of ["card-login", "card-registro", "card-dev"]) document.getElementById(id)?.classList.add("oculto");
-  document.getElementById("card-verificar").classList.remove("oculto");
-  document.getElementById("verificar-texto").textContent = t("verify.sent_to").replace("{email}", perfil.email || "");
-  document.getElementById("btn-ya-confirme").focus();
-  esperarParaReenviar(60);
-}
-
-function mensajeFirebase(err) {
-  return err.code === "auth/too-many-requests" ? t("verify.too_many") : err.message;
-}
-
-/** Si el correo ya está confirmado en Firebase, entra al panel y devuelve true. Se pide un
- *  token nuevo, que ya trae email_verified; con él la API marca el perfil como verificado. */
-async function entrarSiConfirmo(usuario) {
-  await usuario.reload();
-  if (!usuario.emailVerified) return false;
-  const idToken = await usuario.getIdToken(true);
-  entrar(idToken, await apiFetch("/api/usuarios/sesion", { tokenOverride: idToken }));
-  return true;
-}
-
-// "Ya lo confirmé"
-document.getElementById("btn-ya-confirme").addEventListener("click", async () => {
-  const errorEl = document.getElementById("error-verificar");
-  errorEl.textContent = "";
-  if (!auth?.currentUser) {
-    errorEl.textContent = t("verify.login_again");
-    return;
-  }
-  try {
-    if (!(await entrarSiConfirmo(auth.currentUser))) errorEl.textContent = t("verify.not_yet");
-  } catch (err) {
-    errorEl.textContent = mensajeFirebase(err);
-  }
-});
-
-// Si confirmó en otra pestaña (la del correo), al volver a esta se revisa solo.
-window.addEventListener("focus", () => {
-  const esperando = !document.getElementById("card-verificar").classList.contains("oculto");
-  if (esperando && auth?.currentUser) entrarSiConfirmo(auth.currentUser).catch(() => {});
-});
-
-// Al abrir la página, Firebase recuerda a quien inició sesión en este navegador:
-// - viene del enlace del correo (?confirmado=1) → entra directo a su panel;
-// - se salió sin confirmar → se le muestra de una vez la tarjeta para confirmar o pedir otro correo.
-if (firebaseConfigurado && !sesionActual) {
-  const vieneDelEnlace = params.get("confirmado") === "1";
-  const dejarDeEscuchar = onAuthStateChanged(auth, async (usuario) => {
-    dejarDeEscuchar();
+  conBotonOcupado(e.target, async () => {
     try {
-      if (!usuario) {
-        // Abrió el enlace en otro dispositivo: solo falta iniciar sesión.
-        if (vieneDelEnlace) document.getElementById("hint-firebase").textContent = `✅ ${t("verify.confirmed_login")}`;
-        return;
-      }
-      // Solo se entra solo al volver del enlace; después de "Cerrar sesión" no.
-      if (vieneDelEnlace && (await entrarSiConfirmo(usuario))) return;
-      if (usuario.emailVerified) return;
-      const idToken = await usuario.getIdToken();
-      const perfil = await apiFetch("/api/usuarios/sesion", { tokenOverride: idToken });
-      if (perfil.email_verificado === false) mostrarVerificacion(idToken, perfil);
-    } catch {
-      /* sin perfil o sin conexión: queda el formulario de siempre */
+      const email = document.getElementById("reg-email").value;
+      const password = document.getElementById("reg-password").value;
+      await apiFetch("/api/usuarios", {
+        method: "POST",
+        body: {
+          nombre: document.getElementById("reg-nombre").value, edad: 99, rol: rolElegido,
+          acudientes_ids: [], docente_id: null, email, password,
+          acepta_terminos: document.getElementById("reg-terminos").checked,
+        },
+      });
+      entrar(await iniciarSesion(email, password));
+    } catch (err) {
+      errorEl.textContent = err.message;
     }
   });
-}
-
-let temporizador = null;
-function esperarParaReenviar(segundos) {
-  const boton = document.getElementById("btn-reenviar");
-  clearInterval(temporizador);
-  const pintar = () => {
-    boton.disabled = segundos > 0;
-    boton.textContent = segundos > 0 ? `${t("verify.resend")} (${segundos} s)` : t("verify.resend");
-  };
-  pintar();
-  temporizador = setInterval(() => {
-    segundos -= 1;
-    pintar();
-    if (segundos <= 0) clearInterval(temporizador);
-  }, 1000);
-}
-
-document.getElementById("btn-reenviar").addEventListener("click", async () => {
-  const aviso = document.getElementById("verificar-aviso");
-  const errorEl = document.getElementById("error-verificar");
-  aviso.textContent = "";
-  errorEl.textContent = "";
-  if (!auth?.currentUser) {
-    errorEl.textContent = t("verify.login_again");
-    return;
-  }
-  try {
-    await enviarEnlace(auth.currentUser);
-    aviso.textContent = t("verify.resent");
-    esperarParaReenviar(60);
-  } catch (err) {
-    errorEl.textContent = mensajeFirebase(err);
-  }
-});
-
-document.getElementById("btn-otra-cuenta").addEventListener("click", async () => {
-  if (firebaseConfigurado) await signOut(auth).catch(() => {});
-  window.location.reload();
 });
 
 document.getElementById("form-dev-login").addEventListener("submit", async (e) => {
@@ -224,13 +77,11 @@ document.getElementById("form-dev-login").addEventListener("submit", async (e) =
   const errorEl = document.getElementById("error-dev-login");
   errorEl.textContent = "";
   try {
-    const sesion = await apiFetch("/api/usuarios/login-dev", {
+    entrar(await apiFetch("/api/usuarios/login-dev", {
       method: "POST",
       body: { id_usuario: document.getElementById("dev-id").value.trim(), rol: rolElegido },
-    });
-    // El modo de prueba también respeta la confirmación del correo.
-    const perfil = await apiFetch("/api/usuarios/sesion", { tokenOverride: sesion.token });
-    entrar(sesion.token, perfil);
+      esLogin: true,
+    }));
   } catch (err) {
     errorEl.textContent = err.message;
   }

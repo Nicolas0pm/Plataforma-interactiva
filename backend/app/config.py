@@ -3,6 +3,10 @@ from functools import lru_cache
 
 from dotenv import load_dotenv
 
+# La DATABASE_URL que viene de la terminal (no del archivo .env): en modo de prueba solo se
+# usa esta, para que USE_FAKE_DB=true nunca termine conectado a la base real del .env.
+_DATABASE_URL_EXPLICITA = os.environ.get("DATABASE_URL", "")
+
 load_dotenv()
 
 
@@ -11,16 +15,6 @@ def _parse_bool(value: str) -> bool:
 
 
 class Settings:
-    firebase_credentials_path: str = os.getenv(
-        "FIREBASE_CREDENTIALS_PATH", "serviceAccountKey.json"
-    )
-    # En un servidor (Render, Cloud Run...) no hay archivo serviceAccountKey.json: se pasa
-    # su contenido completo en esta variable (JSON tal cual, o codificado en base64).
-    # Si está definida, tiene prioridad sobre FIREBASE_CREDENTIALS_PATH.
-    firebase_credentials_json: str = os.getenv("FIREBASE_CREDENTIALS_JSON", "")
-    firebase_project_id: str = os.getenv("FIREBASE_PROJECT_ID", "")
-    realtime_db_url: str = os.getenv("FIREBASE_REALTIME_DB_URL", "")
-
     cors_origins: list[str] = [
         origen.strip() for origen in os.getenv("CORS_ORIGINS", "*").split(",") if origen.strip()
     ]
@@ -30,7 +24,7 @@ class Settings:
 
     # Versión vigente de frontend/terminos.html. Si cambia el texto, se sube la versión
     # para saber qué versión aceptó cada adulto (Ley 1581 / Decreto 1377).
-    terminos_version: str = "1.0"
+    terminos_version: str = "1.1"
 
     # Horas respecto a UTC para decidir qué es "hoy" (Colombia: -5, sin horario de verano).
     zona_horaria_utc: int = int(os.getenv("ZONA_HORARIA_UTC", "-5"))
@@ -45,16 +39,27 @@ class Settings:
     # Autenticación
     jwt_secret: str = os.getenv("JWT_SECRET", "dev-secret-cambiar-en-produccion")
     jwt_pin_exp_minutos: int = int(os.getenv("JWT_PIN_EXP_MINUTOS", "30"))  # RNF-SEG-04
+    # Docentes y padres: una jornada (el panel del docente se deja abierto en clase).
+    jwt_adulto_exp_minutos: int = int(os.getenv("JWT_ADULTO_EXP_MINUTOS", "480"))
     pin_pepper: str = os.getenv("PIN_PEPPER", "dev-pepper-cambiar-en-produccion")
 
     # Secreto compartido simple para que el ESP32 confirme entregas sin necesitar
     # una cuenta de usuario completa (fase futura, ver esp32/README.md).
     device_shared_secret: str = os.getenv("DEVICE_SHARED_SECRET", "")
 
-    # Modo de desarrollo: usa una base de datos en memoria en vez de Firestore real,
-    # para poder correr y probar la API sin credenciales de Firebase (ver
-    # app/services/fake_firestore.py). NUNCA activar en producción.
+    # Modo de desarrollo: base de datos SQLite en memoria y login de desarrollo sin
+    # contraseña, para poder correr y probar la API sin credenciales (ver app/db.py).
+    # NUNCA activar en producción.
     use_fake_db: bool = _parse_bool(os.getenv("USE_FAKE_DB", "false"))
+
+    # Base de datos relacional (PostgreSQL en Neon). Formato:
+    #   postgresql://usuario:clave@host/base?sslmode=require
+    # En modo de prueba se usa SQLite en memoria (se borra al apagar), salvo que la terminal
+    # pase otra DATABASE_URL a propósito (p. ej. las pruebas con TEST_DATABASE_URL).
+    database_url: str = (_DATABASE_URL_EXPLICITA or "sqlite://") if use_fake_db else os.getenv("DATABASE_URL", "")
+    if database_url.startswith(("postgres://", "postgresql://")):
+        # Neon entrega "postgresql://..."; SQLAlchemy necesita saber que el driver es psycopg 3.
+        database_url = "postgresql+psycopg://" + database_url.split("://", 1)[1]
 
 
 @lru_cache

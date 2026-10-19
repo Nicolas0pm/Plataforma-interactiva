@@ -21,19 +21,6 @@
   </div>
 
   <main>
-    <div class="card oculto" id="card-verificar">
-      <h2>📧 <span data-i18n="verify.title">Confirma tu correo</span></h2>
-      <p id="verificar-texto"></p>
-      <button type="button" id="btn-ya-confirme" data-i18n="verify.done">Ya lo confirmé</button>
-      <p class="error-msg" id="error-verificar" role="alert"></p>
-      <p class="hint" id="verificar-aviso" role="status"></p>
-      <div class="acciones-verificar">
-        <button type="button" class="secundario" id="btn-reenviar" data-i18n="verify.resend">Enviar otro código</button>
-        <button type="button" class="secundario" id="btn-otra-cuenta" data-i18n="verify.other_account">Usar otra cuenta</button>
-      </div>
-      <p class="hint" data-i18n="verify.spam_hint">¿No te llega? Revisa la carpeta de spam o correo no deseado.</p>
-    </div>
-
     <div class="card" id="card-login">
       <h2 data-i18n="login.title">Iniciar sesión</h2>
       <form id="form-login">
@@ -43,8 +30,8 @@
         <input id="password" type="password" required autocomplete="current-password" />
         <button type="submit" data-i18n="login.submit">Entrar</button>
       </form>
-      <p class="error-msg" id="error-login"></p>
-      <p class="hint" id="hint-firebase"></p>
+      <p class="error-msg" id="error-login" role="alert"></p>
+      <p class="hint" data-i18n="login.forgot">¿Olvidaste tu contraseña? Pídele al administrador de la plataforma una contraseña temporal.</p>
     </div>
 
     <div class="card" id="card-registro">
@@ -55,7 +42,8 @@
         <label for="reg-email" data-i18n="login.email">Correo</label>
         <input id="reg-email" type="email" required autocomplete="username" />
         <label for="reg-password" data-i18n="login.password">Contraseña</label>
-        <input id="reg-password" type="password" required minlength="6" autocomplete="new-password" />
+        <input id="reg-password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" aria-describedby="reg-password-hint" />
+        <p class="hint" id="reg-password-hint" data-i18n="login.password_hint">Mínimo 8 caracteres.</p>
         <label class="casilla">
           <input id="reg-terminos" type="checkbox" required />
           <span><span data-i18n="terms.accept">He leído y acepto los</span>
@@ -63,11 +51,11 @@
         </label>
         <button type="submit" data-i18n="login.create_account">Crear cuenta</button>
       </form>
-      <p class="error-msg" id="error-registro"></p>
+      <p class="error-msg" id="error-registro" role="alert"></p>
     </div>
 
     <details class="card" id="card-dev">
-      <summary data-i18n="login.dev_mode">Modo de prueba (sin Firebase)</summary>
+      <summary data-i18n="login.dev_mode">Modo de prueba (sin contraseña)</summary>
       <p class="hint" data-i18n="login.dev_hint">Solo funciona si el backend corre con USE_FAKE_DB=true.</p>
 
       <form id="form-dev-login">

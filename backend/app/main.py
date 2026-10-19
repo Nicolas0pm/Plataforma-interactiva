@@ -6,16 +6,17 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import get_settings
+from app.db import SesionLocal, crear_tablas
 from app.routers import actividades, auditoria, feedback, lecciones, mundos, recompensas, tienda, usuarios, vinculacion
 from app.services.auth_service import registrar_auditoria
-from app.services.firebase_service import get_firestore_client
+from app.services.lecciones_service import sembrar_temario, temario_cargado
 
 logger = logging.getLogger("plataforma-ingles-kids")
 settings = get_settings()
 
 app = FastAPI(
     title="API - Plataforma de Inglés con Recompensas Físicas",
-    description="API en Python (FastAPI) que conecta el frontend con Firebase.",
+    description="API en Python (FastAPI) que conecta el frontend con la base de datos PostgreSQL.",
     version="1.0.0",
 )
 
@@ -40,12 +41,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-if settings.use_fake_db:
-    # Modo de prueba: la base de datos en memoria arranca vacía; se carga el temario para
-    # que las lecciones se puedan jugar de inmediato.
-    from app.services.lecciones_service import sembrar_temario
-
-    sembrar_temario(get_firestore_client())
+# Crea las tablas que falten y, si la base está recién creada (o es la de prueba, que
+# arranca vacía), carga el temario para que las lecciones se puedan jugar de inmediato.
+# Para actualizar el temario después de cambiar app/curriculo.py: scripts/verificar_conexion.py --sembrar
+crear_tablas()
+with SesionLocal.begin() as _db:
+    if not temario_cargado(_db):
+        sembrar_temario(_db)
 
 app.include_router(usuarios.router)
 app.include_router(actividades.router)
@@ -64,12 +66,11 @@ async def manejador_errores_no_controlados(request: Request, exc: Exception):
     análisis posterior, sin exponer detalles internos al cliente."""
     logger.exception("Error no controlado en %s %s", request.method, request.url.path)
     try:
-        registrar_auditoria(
-            get_firestore_client(),
-            tipo="error_sistema",
-            actor=None,
-            detalle={"ruta": str(request.url.path), "error": str(exc)},
-        )
+        with SesionLocal.begin() as db:
+            registrar_auditoria(
+                db, tipo="error_sistema", actor=None,
+                detalle={"ruta": str(request.url.path), "error": str(exc)[:500]},
+            )
     except Exception:
         logger.exception("No se pudo registrar el error en auditoría")
     return JSONResponse(status_code=500, content={"detail": "Error interno del servidor"})

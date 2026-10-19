@@ -2,28 +2,29 @@
 RF05: Sistema de recompensas físicas.
 
 El premio real llega cuando el estudiante **completa un mundo** (`recompensa_por_mundo`):
-se crea un registro en `historial_recompensas` (Firestore, fuente de verdad) y, si el
-estudiante tiene una máquina de premios (ESP32) asignada, se encola un pedido en Realtime
-Database `cola_recompensas/{device_id}/{id_historial}` para que la máquina suelte un
-juguete. Sin máquina, el logro queda registrado como "celebrada" (solo felicitación).
+se crea un registro en `historial_recompensas`. Si el estudiante tiene una máquina de
+premios (ESP32) asignada, queda en estado "pendiente" con el `device_id` de la máquina:
+esa es su cola. La máquina pregunta cada pocos segundos por sus premios pendientes
+(`GET /api/recompensas/cola/{device_id}`), suelta un juguete por cada uno y confirma la
+entrega (ver `routers/recompensas.py` y `esp32/README.md`). Sin máquina, el logro queda
+registrado como "celebrada" (solo felicitación).
 
-Cada pedido es un nodo propio dentro de la cola del dispositivo: si dos niños ganan casi
-al mismo tiempo, ninguno sobrescribe al otro. La máquina borra el nodo al confirmar la
-entrega (ver `routers/recompensas.py` y `esp32/README.md`).
+Cada premio es una fila propia: si dos niños ganan casi al mismo tiempo, ninguno se pierde.
 
 (`evaluar_recompensa`, por umbral de puntos, queda solo para el endpoint antiguo
 `/api/actividades/completar`; los puntos ahora se gastan en la tienda del perfil.)
 """
-from datetime import datetime, timezone
+from sqlalchemy.orm import Session
 
 from app.config import get_settings
+from app.db import ahora
+from app.models.tablas import HistorialRecompensa, Usuario
 from app.services.auth_service import registrar_auditoria
-from app.services.firebase_service import get_firestore_client, get_realtime_ref
 
 _settings = get_settings()
 
 
-def evaluar_recompensa(id_usuario: str, puntaje_total: int, puntaje_anterior: int | None = None) -> dict | None:
+def evaluar_recompensa(db: Session, id_usuario: str, puntaje_total: int, puntaje_anterior: int | None = None) -> dict | None:
     """Genera una recompensa cada vez que el puntaje cruza un múltiplo del umbral.
 
     Con `puntaje_anterior` se detecta el cruce aunque el total no caiga justo en el
@@ -39,62 +40,36 @@ def evaluar_recompensa(id_usuario: str, puntaje_total: int, puntaje_anterior: in
     elif puntaje_total % umbral != 0:
         return None
 
-    db = get_firestore_client()
-    usuario = db.collection("usuarios").document(id_usuario).get().to_dict() or {}
-    device_id = usuario.get("device_id")  # se asigna cuando exista hardware asociado
+    usuario = db.get(Usuario, id_usuario)
+    device_id = usuario.device_id if usuario else None  # se asigna cuando exista hardware asociado
 
-    recompensa_ref = db.collection("historial_recompensas").document()
-    recompensa = {
-        "id_usuario": id_usuario,
-        "fecha_entrega": datetime.now(timezone.utc),
-        "puntos_consumidos": _settings.reward_threshold,
-        "estado": "pendiente",
-        "device_id": device_id,
-    }
-    recompensa_ref.set(recompensa)
+    recompensa = HistorialRecompensa(
+        id_usuario=id_usuario, tipo="umbral", fecha_entrega=ahora(),
+        puntos_consumidos=_settings.reward_threshold, estado="pendiente", device_id=device_id,
+    )
+    db.add(recompensa)
+    db.flush()  # asigna el id_historial
     registrar_auditoria(
         db, tipo="recompensa_generada", actor=id_usuario,
-        detalle={"id_historial": recompensa_ref.id, "puntos_consumidos": _settings.reward_threshold},
+        detalle={"id_historial": recompensa.id_historial, "puntos_consumidos": _settings.reward_threshold},
     )
-
-    _encolar_para_maquina(device_id, id_usuario, recompensa_ref.id)
-    return {**recompensa, "id_historial": recompensa_ref.id}
+    return recompensa.a_dict()
 
 
-def _encolar_para_maquina(device_id: str | None, id_usuario: str, id_historial: str) -> None:
-    if not (device_id and _settings.realtime_db_url):
-        return
-    get_realtime_ref(f"cola_recompensas/{device_id}/{id_historial}").set(
-        {
-            "id_usuario": id_usuario,
-            "id_historial_recompensa": id_historial,
-            "comando": "dispensar",
-            "estado": "pendiente",
-            "timestamp": datetime.now(timezone.utc).timestamp(),
-        }
-    )
-
-
-def recompensa_por_mundo(db, id_usuario: str, info_unidad: dict) -> dict:
+def recompensa_por_mundo(db: Session, id_usuario: str, info_unidad: dict) -> dict:
     """El estudiante completó un mundo: premio físico si tiene máquina, felicitación si no."""
-    usuario = db.collection("usuarios").document(id_usuario).get().to_dict() or {}
-    device_id = usuario.get("device_id")
-    recompensa = {
-        "id_usuario": id_usuario,
-        "tipo": "mundo",
-        "unidad": info_unidad["id"],
-        "titulo": info_unidad["titulo"],
-        "emoji": info_unidad["emoji"],
-        "fecha_entrega": datetime.now(timezone.utc),
-        "puntos_consumidos": 0,
-        "estado": "pendiente" if device_id else "celebrada",
-        "device_id": device_id,
-    }
-    ref = db.collection("historial_recompensas").document()
-    ref.set(recompensa)
+    usuario = db.get(Usuario, id_usuario)
+    device_id = usuario.device_id if usuario else None
+    recompensa = HistorialRecompensa(
+        id_usuario=id_usuario, tipo="mundo", unidad=info_unidad["id"],
+        titulo_es=info_unidad["titulo"]["es"], titulo_en=info_unidad["titulo"]["en"], emoji=info_unidad["emoji"],
+        fecha_entrega=ahora(), puntos_consumidos=0,
+        estado="pendiente" if device_id else "celebrada", device_id=device_id,
+    )
+    db.add(recompensa)
+    db.flush()
     registrar_auditoria(
         db, tipo="mundo_completado", actor=id_usuario,
-        detalle={"id_historial": ref.id, "unidad": info_unidad["id"], "con_maquina": bool(device_id)},
+        detalle={"id_historial": recompensa.id_historial, "unidad": info_unidad["id"], "con_maquina": bool(device_id)},
     )
-    _encolar_para_maquina(device_id, id_usuario, ref.id)
-    return {**recompensa, "id_historial": ref.id}
+    return recompensa.a_dict()

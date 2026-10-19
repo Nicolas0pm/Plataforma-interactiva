@@ -21,7 +21,7 @@ class SinCacheHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     def send_error(self, code, message=None, explain=None):
-        # Igual que Firebase Hosting: ante una ruta inexistente se muestra 404.html.
+        # Igual que el hosting publicado: ante una ruta inexistente se muestra 404.html.
         pagina = os.path.join(self.directory, "404.html")
         if code == 404 and os.path.isfile(pagina):
             with open(pagina, "rb") as f:

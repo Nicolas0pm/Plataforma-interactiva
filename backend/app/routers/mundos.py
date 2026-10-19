@@ -13,15 +13,23 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator, model_validator
+from sqlalchemy.orm import Session
 
+from app.db import RutaConTransaccion, get_db
+from app.models.tablas import Actividad, MundoDocente
 from app.services.auth_service import registrar_auditoria, require_role
-from app.services.catalogo_service import PREFIJO_PROFESOR, SECCION_PROFESOR, preguntas_activas
-from app.services.firebase_service import get_firestore_client
+from app.services.catalogo_service import (
+    PREFIJO_PROFESOR,
+    SECCION_PROFESOR,
+    contar_preguntas,
+    mundos_activos,
+    preguntas_activas,
+)
 
-router = APIRouter(prefix="/api/mundos", tags=["mundos del docente"])
+router = APIRouter(prefix="/api/mundos", tags=["mundos del docente"], route_class=RutaConTransaccion)
 
-# Imagen ya achicada en el navegador (~480 px). El límite deja espacio de sobra dentro del
-# máximo de 1 MB por documento de Firestore.
+# Imagen ya achicada en el navegador (~480 px). El límite evita que unas pocas fotos
+# llenen la base de datos (ver docs/data-model.md).
 MAX_IMAGEN = 300_000
 IMAGEN_VALIDA = re.compile(r"^data:image/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/]+=*$")
 
@@ -62,70 +70,58 @@ class PreguntaCrear(BaseModel):
         return self
 
 
-def _mundo_propio(db, id_mundo: str, usuario: dict):
-    ref = db.collection("mundos_docente").document(id_mundo)
-    doc = ref.get()
-    if not doc.exists or not doc.to_dict().get("activo", True):
+def _mundo_propio(db: Session, id_mundo: str, usuario: dict) -> MundoDocente:
+    mundo = db.get(MundoDocente, id_mundo)
+    if mundo is None or not mundo.activo:
         raise HTTPException(404, "No existe ese mundo")
-    if usuario["rol"] != "admin" and doc.to_dict().get("id_docente") != usuario["id_usuario"]:
+    if usuario["rol"] != "admin" and mundo.id_docente != usuario["id_usuario"]:
         raise HTTPException(403, "Ese mundo es de otro docente")
-    return ref, doc.to_dict()
+    return mundo
 
 
-def _contar(db, id_mundo: str) -> int:
-    """Recalcula y guarda cuántas preguntas activas tiene el mundo (lo lee el catálogo)."""
-    n = len(preguntas_activas(db, PREFIJO_PROFESOR + id_mundo))
-    db.collection("mundos_docente").document(id_mundo).update({"n_preguntas": n})
-    return n
-
-
-def _salida_mundo(db, id_mundo: str, datos: dict) -> dict:
-    n = datos.get("n_preguntas", 0)
+def _salida_mundo(mundo: MundoDocente, n: int) -> dict:
     return {
-        "id_mundo": id_mundo,
-        "titulo": datos.get("titulo"),
-        "emoji": datos.get("emoji"),
-        "descripcion": datos.get("descripcion", ""),
+        "id_mundo": mundo.id_mundo,
+        "titulo": mundo.titulo,
+        "emoji": mundo.emoji,
+        "descripcion": mundo.descripcion or "",
         "preguntas": n,
         "lecciones": -(-n // 8),
-        "creado_en": datos.get("creado_en"),
+        "creado_en": mundo.creado_en,
     }
 
 
+def _salida_pregunta(actividad: Actividad) -> dict:
+    return {"id_actividad": actividad.id_actividad,
+            **{k: getattr(actividad, k) for k in ("pregunta", "opciones", "respuesta_correcta", "icono", "imagen")}}
+
+
 @router.get("")
-def mis_mundos(usuario: dict = Depends(require_role("docente", "admin"))):
-    db = get_firestore_client()
-    docs = [
-        d for d in db.collection("mundos_docente").where("id_docente", "==", usuario["id_usuario"]).stream()
-        if d.to_dict().get("activo", True)
-    ]
-    docs.sort(key=lambda d: d.to_dict().get("creado_en"))
-    return [_salida_mundo(db, d.id, d.to_dict()) for d in docs]
+def mis_mundos(usuario: dict = Depends(require_role("docente", "admin")), db: Session = Depends(get_db)):
+    mundos = mundos_activos(db, usuario["id_usuario"])
+    conteo = contar_preguntas(db, [m.id_mundo for m in mundos])
+    return [_salida_mundo(m, conteo.get(m.id_mundo, 0)) for m in mundos]
 
 
 @router.post("", status_code=201)
-def crear_mundo(payload: MundoCrear, usuario: dict = Depends(require_role("docente", "admin"))):
-    db = get_firestore_client()
-    ref = db.collection("mundos_docente").document()
-    datos = {**payload.model_dump(), "id_docente": usuario["id_usuario"], "activo": True,
-             "creado_en": datetime.now(timezone.utc), "n_preguntas": 0}
-    ref.set(datos)
-    registrar_auditoria(db, tipo="mundo_creado", actor=usuario["id_usuario"], detalle={"id_mundo": ref.id})
-    return _salida_mundo(db, ref.id, datos)
+def crear_mundo(payload: MundoCrear, usuario: dict = Depends(require_role("docente", "admin")), db: Session = Depends(get_db)):
+    mundo = MundoDocente(**payload.model_dump(), id_docente=usuario["id_usuario"], activo=True,
+                         creado_en=datetime.now(timezone.utc))
+    db.add(mundo)
+    db.flush()
+    registrar_auditoria(db, tipo="mundo_creado", actor=usuario["id_usuario"], detalle={"id_mundo": mundo.id_mundo})
+    return _salida_mundo(mundo, 0)
 
 
 @router.delete("/{id_mundo}")
-def borrar_mundo(id_mundo: str, usuario: dict = Depends(require_role("docente", "admin"))):
-    db = get_firestore_client()
-    ref, _ = _mundo_propio(db, id_mundo, usuario)
-    ref.update({"activo": False})
+def borrar_mundo(id_mundo: str, usuario: dict = Depends(require_role("docente", "admin")), db: Session = Depends(get_db)):
+    _mundo_propio(db, id_mundo, usuario).activo = False
     registrar_auditoria(db, tipo="mundo_desactivado", actor=usuario["id_usuario"], detalle={"id_mundo": id_mundo})
     return {"ok": True}
 
 
 @router.get("/{id_mundo}/preguntas")
-def preguntas_del_mundo(id_mundo: str, usuario: dict = Depends(require_role("docente", "admin"))):
-    db = get_firestore_client()
+def preguntas_del_mundo(id_mundo: str, usuario: dict = Depends(require_role("docente", "admin")), db: Session = Depends(get_db)):
     _mundo_propio(db, id_mundo, usuario)
     return [
         {k: p.get(k) for k in ("id_actividad", "pregunta", "opciones", "respuesta_correcta", "icono", "imagen")}
@@ -134,44 +130,46 @@ def preguntas_del_mundo(id_mundo: str, usuario: dict = Depends(require_role("doc
 
 
 @router.post("/{id_mundo}/preguntas", status_code=201)
-def agregar_pregunta(id_mundo: str, payload: PreguntaCrear, usuario: dict = Depends(require_role("docente", "admin"))):
-    db = get_firestore_client()
-    _, mundo = _mundo_propio(db, id_mundo, usuario)
+def agregar_pregunta(
+    id_mundo: str, payload: PreguntaCrear, usuario: dict = Depends(require_role("docente", "admin")),
+    db: Session = Depends(get_db),
+):
+    mundo = _mundo_propio(db, id_mundo, usuario)
     ahora = datetime.now(timezone.utc)
-    ref = db.collection("actividades").document()
-    datos = {
-        "nombre": f"{mundo.get('titulo')} · {payload.pregunta[:30]}",
-        "descripcion": "",
-        "seccion": SECCION_PROFESOR,
-        "unidad": PREFIJO_PROFESOR + id_mundo,
-        "leccion": None,  # las lecciones se arman solas en grupos de 8
-        "orden": int(ahora.timestamp() * 1000),
-        "nivel": 1,
-        "tipo": "profesor",
-        "puntaje_maximo": 10,
-        "pregunta": payload.pregunta,
-        "opciones": payload.opciones,
-        "respuesta_correcta": payload.respuesta_correcta,
-        "icono": payload.icono,
-        "imagen": payload.imagen,
-        "formato_opciones": "texto",
-        "id_docente": usuario["id_usuario"],
-        "activo": True,
-        "creado_en": ahora,
-    }
-    ref.set(datos)
-    _contar(db, id_mundo)
-    return {"id_actividad": ref.id, **{k: datos[k] for k in ("pregunta", "opciones", "respuesta_correcta", "icono", "imagen")}}
+    actividad = Actividad(
+        nombre=f"{mundo.titulo} · {payload.pregunta[:30]}",
+        descripcion="",
+        seccion=SECCION_PROFESOR,
+        unidad=PREFIJO_PROFESOR + id_mundo,
+        leccion=None,  # las lecciones se arman solas en grupos de 8
+        orden=int(ahora.timestamp() * 1000),
+        nivel=1,
+        tipo="profesor",
+        puntaje_maximo=10,
+        pregunta=payload.pregunta,
+        opciones=payload.opciones,
+        respuesta_correcta=payload.respuesta_correcta,
+        icono=payload.icono,
+        imagen=payload.imagen,
+        formato_opciones="texto",
+        id_docente=usuario["id_usuario"],
+        id_mundo=id_mundo,
+        activo=True,
+        creado_en=ahora,
+    )
+    db.add(actividad)
+    db.flush()
+    return _salida_pregunta(actividad)
 
 
 @router.delete("/{id_mundo}/preguntas/{id_actividad}")
-def borrar_pregunta(id_mundo: str, id_actividad: str, usuario: dict = Depends(require_role("docente", "admin"))):
-    db = get_firestore_client()
+def borrar_pregunta(
+    id_mundo: str, id_actividad: str, usuario: dict = Depends(require_role("docente", "admin")),
+    db: Session = Depends(get_db),
+):
     _mundo_propio(db, id_mundo, usuario)
-    ref = db.collection("actividades").document(id_actividad)
-    doc = ref.get()
-    if not doc.exists or doc.to_dict().get("unidad") != PREFIJO_PROFESOR + id_mundo:
+    actividad = db.get(Actividad, id_actividad)
+    if actividad is None or actividad.id_mundo != id_mundo:
         raise HTTPException(404, "Esa pregunta no es de este mundo")
-    ref.update({"activo": False})
-    _contar(db, id_mundo)
+    actividad.activo = False
     return {"ok": True}

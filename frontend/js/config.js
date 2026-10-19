@@ -1,7 +1,7 @@
 // Dónde está la API. El frontend y el backend se despliegan por separado, así que
 // aquí se decide a qué URL llamar según dónde esté abierta la página:
 // - en tu computador (localhost) → la API local;
-// - publicada (Render o Firebase Hosting) → la API desplegada en Render.
+// - publicada (Render) → la API desplegada en Render.
 // `window.PIK_API_BASE_URL` permite forzar otra URL para pruebas.
 
 // ⚠️ Cambia esto por la URL que te dé Render al desplegar el backend.

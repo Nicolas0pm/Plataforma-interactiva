@@ -1,40 +1,32 @@
-from datetime import datetime, timezone
-
 from fastapi import APIRouter, Depends
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
+from app.db import RutaConTransaccion, get_db
 from app.models.schemas import FeedbackCreate, FeedbackOut
+from app.models.tablas import Feedback
 from app.services.auth_service import current_user, registrar_auditoria, require_role, verificar_acceso_estudiante
-from app.services.firebase_service import get_firestore_client
 
-router = APIRouter(prefix="/api/feedback", tags=["feedback"])
+router = APIRouter(prefix="/api/feedback", tags=["feedback"], route_class=RutaConTransaccion)
 
 
 @router.post("", response_model=FeedbackOut, status_code=201)
-def crear_feedback(payload: FeedbackCreate, usuario: dict = Depends(require_role("docente"))):
+def crear_feedback(payload: FeedbackCreate, usuario: dict = Depends(require_role("docente")), db: Session = Depends(get_db)):
     """Feedback del docente sobre el progreso de un estudiante, visible para padres."""
-    db = get_firestore_client()
     verificar_acceso_estudiante(usuario, payload.id_estudiante, db)
 
-    data = payload.model_dump()
-    data["id_docente"] = usuario["id_usuario"]
-    data["fecha"] = datetime.now(timezone.utc)
-    ref = db.collection("feedback").document()
-    ref.set(data)
-    registrar_auditoria(db, tipo="feedback_creado", actor=usuario["id_usuario"], detalle={"id_feedback": ref.id})
-    return {**data, "id_feedback": ref.id}
+    feedback = Feedback(**payload.model_dump(), id_docente=usuario["id_usuario"])
+    db.add(feedback)
+    db.flush()
+    registrar_auditoria(db, tipo="feedback_creado", actor=usuario["id_usuario"], detalle={"id_feedback": feedback.id_feedback})
+    return feedback.a_dict()
 
 
 @router.get("/estudiante/{id_estudiante}", response_model=list[FeedbackOut])
-def feedback_de_estudiante(id_estudiante: str, usuario: dict = Depends(current_user)):
-    db = get_firestore_client()
+def feedback_de_estudiante(id_estudiante: str, usuario: dict = Depends(current_user), db: Session = Depends(get_db)):
     verificar_acceso_estudiante(usuario, id_estudiante, db)
 
-    query = (
-        db.collection("feedback")
-        .where("id_estudiante", "==", id_estudiante)
-        .order_by("fecha", direction="DESCENDING")
-    )
-    resultados = [{**doc.to_dict(), "id_feedback": doc.id} for doc in query.stream()]
+    consulta = select(Feedback).where(Feedback.id_estudiante == id_estudiante)
     if usuario["rol"] == "padre":
-        resultados = [f for f in resultados if f.get("visible_para_padres", True)]
-    return resultados
+        consulta = consulta.where(Feedback.visible_para_padres)
+    return [f.a_dict() for f in db.scalars(consulta.order_by(Feedback.fecha.desc()))]

@@ -13,9 +13,10 @@ El niño elige el apartado (vocabulario o gramática); dentro de él no elige: e
 decide `ORDEN_VOCABULARIO` / `ORDEN_GRAMATICA` y `app/services/lecciones_service.py` elige
 la siguiente lección (o un repaso de lo que le fue peor).
 
-Este módulo solo DEFINE el contenido. Las preguntas viven en Firestore (colección
+Este módulo solo DEFINE el contenido. Las preguntas viven en la base de datos (tabla
 `actividades`) para que un docente pueda agregar o editar sin tocar código
-(RNF-ESC-01); `python scripts/verificar_firebase.py --sembrar` las crea a partir de aquí.
+(RNF-ESC-01); la API las carga al arrancar con una base vacía, y
+`python scripts/verificar_conexion.py --sembrar` las actualiza a partir de aquí.
 """
 import random
 
@@ -826,7 +827,7 @@ def _preguntas_gramatica(unidad: str) -> list[list[dict]]:
 
 
 def generar_actividades() -> list[dict]:
-    """Todas las preguntas del temario, listas para guardar en Firestore."""
+    """Todas las preguntas del temario, listas para guardar en la tabla `actividades`."""
     actividades = []
     for unidad in ORDEN_UNIDADES:
         indice = ORDEN_POR_SECCION[seccion_de(unidad)].index(unidad) + 1

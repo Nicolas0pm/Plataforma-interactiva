@@ -9,36 +9,32 @@ físicas para incentivar el aprendizaje del inglés en Niños de 6 a 8 Años"* (
 ## Arquitectura general
 
 ```
-┌───────────────┐      HTTPS/REST      ┌───────────────────┐      Admin SDK      ┌──────────────────┐
-│   Frontend    │ ───────────────────▶ │   API (Python /   │ ──────────────────▶ │    Firebase       │
-│ HTML/CSS/JS   │ ◀─────────────────── │     FastAPI)       │ ◀────────────────── │ Firestore + Auth  │
-└───────────────┘                      └───────────────────┘                      └──────────────────┘
-                                                 │                                          ▲
-                                                 │ escribe evento de recompensa             │ escucha en
-                                                 ▼                                          │ tiempo real
-                                        ┌───────────────────┐                     ┌──────────────────┐
-                                        │ Realtime Database │ ───────────────────▶│   ESP32 (futuro)  │
-                                        │  cola_recompensas │                     │ Dispensador físico│
-                                        └───────────────────┘                     └──────────────────┘
+┌───────────────┐      HTTPS/REST      ┌───────────────────┐    SQL (SQLAlchemy)   ┌──────────────────┐
+│   Frontend    │ ───────────────────▶ │   API (Python /   │ ────────────────────▶ │   PostgreSQL     │
+│ HTML/CSS/JS   │ ◀─────────────────── │     FastAPI)       │ ◀──────────────────── │     (Neon)       │
+└───────────────┘                      └───────────────────┘                       └──────────────────┘
+                                                 ▲
+                                                 │ HTTPS: "¿tengo premios pendientes?" / "ya lo entregué"
+                                       ┌──────────────────┐
+                                       │   ESP32 (futuro)  │
+                                       │ Dispensador físico│
+                                       └──────────────────┘
 ```
 
 **Por qué esta arquitectura:**
 
-- **Frontend (HTML/CSS/JS puro):** simple, sin build tools, fácil de desplegar en Firebase
-  Hosting o cualquier servidor estático. Habla con la API, nunca con Firebase directamente
-  (excepto Firebase Auth para login), así toda regla de negocio vive en un solo lugar.
+- **Frontend (HTML/CSS/JS puro):** simple, sin build tools, fácil de desplegar en cualquier
+  servidor estático. Solo habla con la API, así toda regla de negocio vive en un solo lugar.
 - **API en Python (FastAPI):** capa intermedia que valida reglas de negocio (niveles,
-  puntajes, generación de recompensas), protege las credenciales de administrador de
-  Firebase (Service Account) y expone endpoints REST limpios y documentados
+  puntajes, generación de recompensas), maneja el inicio de sesión de todos (contraseñas
+  y PIN cifrados), protege la contraseña de la base de datos y expone endpoints REST limpios y documentados
   automáticamente (Swagger en `/docs`).
-- **Firestore:** base de datos principal (equivalente NoSQL al modelo relacional del
-  documento de grado). Guarda usuarios, actividades, historial e informes de progreso.
-- **Firebase Authentication:** login de docentes/padres/administradores (los estudiantes
-  usan un acceso simplificado gestionado por la API, no cuentas de Firebase Auth propias).
-- **Realtime Database (pequeño, solo para hardware):** una única colección ligera
-  `cola_recompensas/{device_id}` que el ESP32 escucha en tiempo real para activar el
-  dispensador físico. Se usa RTDB y no Firestore para esto porque las librerías de
-  ESP32 (p. ej. `Firebase-ESP-Client`) tienen mejor soporte y menor latencia con RTDB.
+- **PostgreSQL (Neon):** base de datos principal, relacional, a partir del modelo del
+  documento de grado. Guarda usuarios, actividades, historial e informes de progreso.
+- **Login propio:** docentes, padres y administradores entran con correo y contraseña; los
+  estudiantes, con un código de 6 caracteres y un PIN de 4 dígitos.
+- **ESP32 (fase futura):** pregunta a la API cada pocos segundos si tiene premios
+  pendientes y confirma cada entrega (`esp32/README.md`).
 
 Ver el detalle completo en [`docs/architecture.md`](docs/architecture.md) y
 [`docs/data-model.md`](docs/data-model.md). Explicación de cada parte y de cómo se conecta a
@@ -48,9 +44,8 @@ la base de datos: [`docs/frontend.md`](docs/frontend.md) y [`docs/backend.md`](d
 
 ```
 plataforma-ingles-kids/
-├── backend/          API en Python (FastAPI) que habla con Firebase
+├── backend/          API en Python (FastAPI) que habla con PostgreSQL
 ├── frontend/          HTML/CSS/JS que consume la API
-├── firebase/           Reglas de seguridad, índices e instrucciones de configuración
 ├── esp32/             Placeholder y guía para la integración futura del hardware
 ├── docs/               Arquitectura y modelo de datos
 └── README.md
@@ -58,26 +53,24 @@ plataforma-ingles-kids/
 
 ## Cómo levantar el proyecto en local
 
-**Opción rápida, sin cuenta de Firebase (modo de prueba):**
+**Opción rápida, sin base de datos real (modo de prueba):**
 
 1. Backend: ver [`backend/README.md`](backend/README.md) — arranca con
-   `USE_FAKE_DB=true` para usar una base de datos en memoria.
+   `USE_FAKE_DB=true` para usar una base de datos SQLite en memoria.
 2. Frontend: sirve la carpeta `frontend/` con un servidor estático (ES modules no
    funcionan con `file://`). Usa `python frontend/dev-server.py` en vez de
    `python -m http.server`: este último no envía `Cache-Control`, así que el
    navegador puede seguir mostrando una versión vieja de un `.js`/`.css` después de
    editarlo. Abre `http://localhost:5500/index.html` y usa las secciones "Modo de
-   prueba (sin Firebase)" de la pantalla de login para crear cuentas sin configurar
+   prueba (sin contraseña)" de la pantalla de login para crear cuentas sin configurar
    nada más.
 
-**Para publicarlo en internet** (frontend en Firebase Hosting y backend en Render, por
-separado), sigue [`docs/despliegue.md`](docs/despliegue.md).
+**Para publicarlo en internet** (frontend y backend en Render, por separado, y la base de
+datos en Neon), sigue [`docs/despliegue.md`](docs/despliegue.md).
 
-**Con un proyecto de Firebase real (para producción):**
-
-1. Configura Firebase siguiendo [`firebase/README_FIREBASE.md`](firebase/README_FIREBASE.md).
-2. Levanta la API con `USE_FAKE_DB=false` (o sin definirla) y tu `serviceAccountKey.json`.
-3. Ajusta `frontend/js/firebase-config.js` con las credenciales web de tu proyecto.
+**Con la base de datos real:** pon en `backend/.env` la cadena de conexión de Neon
+(`DATABASE_URL`, ver [`docs/despliegue.md`](docs/despliegue.md)) y levanta la API con
+`USE_FAKE_DB=false`.
 
 ## Estado actual
 

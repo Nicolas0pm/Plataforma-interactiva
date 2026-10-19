@@ -31,19 +31,19 @@ despliegue (no es código de la app) — ❌ Pendiente.
 |---|---|---|
 | RNF-R-01 | ⚙️ | El frontend es estático (sin build), lo que favorece cargar rápido; el tiempo real depende del hosting elegido. |
 | RNF-R-02 | ✅ | Las actividades se piden con un solo `fetch` sin dependencias pesadas. |
-| RNF-R-03 | ⚙️ | Depende de la capacidad del backend/Firestore desplegado; no se hicieron pruebas de carga. |
+| RNF-R-03 | ⚙️ | Depende de la capacidad del backend y de PostgreSQL (Neon) desplegados; no se hicieron pruebas de carga. |
 | RNF-R-04 | ✅ | Cada actividad completada dispara `POST /completar` que persiste al instante. |
 
 ### Disponibilidad
 | ID | Estado | Notas |
 |---|---|---|
-| RNF-DISP-01/02/03 | ⚙️ | Horario de disponibilidad, backups automáticos y notificaciones de mantenimiento son políticas/servicios que se configuran en el hosting (Firebase/Cloud Run), no lógica de esta app. |
+| RNF-DISP-01/02/03 | ⚙️ | Horario de disponibilidad, backups automáticos y notificaciones de mantenimiento son políticas/servicios que se configuran en el hosting (Render y Neon), no lógica de esta app. |
 
 ### Seguridad
 | ID | Estado | Notas |
 |---|---|---|
-| RNF-SEG-01 | ⚙️ | HTTPS lo entrega el hosting (Firebase Hosting/Cloud Run lo dan por defecto); en desarrollo local se usa HTTP. |
-| RNF-SEG-02 | ✅ | Firebase Authentication + verificación de ID token en cada endpoint (`auth_service.py`). Los adultos deben **confirmar su correo** con el enlace que envía Firebase antes de usar la plataforma (la API responde 403 hasta entonces). |
+| RNF-SEG-01 | ⚙️ | HTTPS lo entrega el hosting (Render lo da por defecto, y Neon exige conexiones cifradas); en desarrollo local se usa HTTP. |
+| RNF-SEG-02 | ✅ | Login propio: los adultos entran con correo + contraseña (hash scrypt con sal) y los niños con código + PIN; cada endpoint verifica el token (JWT) y que la cuenta siga activa (`auth_service.py`). Tras 5 intentos fallidos seguidos el correo o el código se bloquea 10 minutos. El correo no se confirma (la plataforma no envía correos). |
 | RNF-SEG-03 | ✅ | `require_role` / `verificar_acceso_estudiante` en todos los routers — antes de esta revisión NINGÚN endpoint validaba esto. |
 | RNF-SEG-04 | ✅ | Los tokens de PIN expiran a los 30 min (`JWT_PIN_EXP_MINUTOS`); el frontend cierra sesión automáticamente ante un 401. |
 
@@ -70,14 +70,14 @@ despliegue (no es código de la app) — ❌ Pendiente.
 ### Escalabilidad
 | ID | Estado | Notas |
 |---|---|---|
-| RNF-ESC-01 | ✅ | Una actividad nueva es un documento Firestore (`POST /api/actividades`); el frontend la interpreta sin tocar código. |
-| RNF-ESC-02 | ⚙️ | Firestore escala horizontalmente de forma nativa; no se probó con volúmenes grandes. |
+| RNF-ESC-01 | ✅ | Una actividad nueva es una fila de la tabla `actividades` (`POST /api/actividades`); el frontend la interpreta sin tocar código. |
+| RNF-ESC-02 | ⚙️ | Neon escala la capacidad de PostgreSQL según el uso y el plan; no se probó con volúmenes grandes. |
 
 ### Portabilidad
 | ID | Estado | Notas |
 |---|---|---|
 | RNF-PRT-01/02/03/06 | ✅ | HTML/CSS/JS estándar, responsivo (grid/flex + media queries), sin dependencias de un navegador específico. |
-| RNF-PRT-04 | ✅ | FastAPI no depende de un proveedor de cómputo específico; solo Firestore/Auth atan a Firebase (documentado en `docs/architecture.md`). |
+| RNF-PRT-04 | ✅ | FastAPI no depende de un proveedor de cómputo específico y PostgreSQL es estándar (Neon se puede cambiar por cualquier PostgreSQL cambiando `DATABASE_URL`); ya no depende de Firebase (documentado en `docs/architecture.md`). |
 | RNF-PRT-05 | ✅ | Verificado corriendo en Windows en este entorno; Python/FastAPI son multiplataforma. |
 
 ### Compatibilidad
@@ -97,7 +97,7 @@ despliegue (no es código de la app) — ❌ Pendiente.
 | RNF-AUD-05 | ✅ | Cada recompensa generada se registra en `auditoria`. |
 | RNF-AUD-06 | ✅ | Manejador global de excepciones. |
 | RNF-AUD-07 | ✅ | `GET /api/auditoria/exportar.csv`, solo `admin`. |
-| RNF-AUD-08 | ✅ | `firestore.rules`: nadie puede escribir/editar `auditoria` desde el cliente; solo el Admin SDK del backend. |
+| RNF-AUD-08 | ✅ | La tabla `auditoria` solo se escribe desde la API (`registrar_auditoria`), que nunca edita ni borra filas; el navegador no tiene acceso a la base de datos. |
 | RNF-AUD-09 | ❌ | No hay purga automática por antigüedad (requeriría una Cloud Function programada fuera del alcance de este scaffold). |
 
 ### Localización
@@ -117,7 +117,7 @@ despliegue (no es código de la app) — ❌ Pendiente.
 | RNF-TF-01 | ✅ | Progreso guardado automáticamente tras cada actividad. |
 | RNF-TF-02/03/05/08/09 | 🟡 | El manejador global de excepciones evita que un error tumbe el servidor y el frontend muestra mensajes en vez de romperse; no se hicieron pruebas formales de inyección de fallos. |
 | RNF-TF-04 | 🟡 | Se conserva el progreso ya guardado; una pregunta a medio responder si se corta la conexión sí se pierde. |
-| RNF-TF-06 | ⚙️ | Firestore ofrece recuperación ante fallos como servicio administrado. |
+| RNF-TF-06 | ⚙️ | Neon ofrece recuperación ante fallos como servicio administrado (incluye restaurar la base a un momento anterior, dentro de la ventana del plan). |
 | RNF-TF-07 | ❌ | No hay diálogos de confirmación en acciones críticas del frontend todavía (p. ej. antes de registrar un estudiante). |
 
 ## Bugs corregidos en esta revisión
@@ -153,8 +153,8 @@ despliegue (no es código de la app) — ❌ Pendiente.
 ## Simplificaciones deliberadas (para no inflar el alcance)
 
 - El **modo de prueba** (`USE_FAKE_DB=true`, `POST /api/usuarios/login-dev`) existe
-  solo para poder desarrollar y probar todo el flujo sin un proyecto de Firebase
-  real; está deshabilitado por defecto y el backend lo rechaza explícitamente si
+  solo para poder desarrollar y probar todo el flujo sin la base de datos real
+  ni contraseñas; está deshabilitado por defecto y el backend lo rechaza explícitamente si
   `USE_FAKE_DB` no está activo.
 - El **PIN de los estudiantes** se guarda con `sha256(pepper + pin)`. Para un PIN de
   4 dígitos esto no es a prueba de fuerza bruta offline si alguien roba la base de

@@ -6,6 +6,9 @@ huecos de seguridad que se cerraron (guardas de rol, bug de `hijos_de_padre`).
 """
 
 
+from fastapi.testclient import TestClient
+
+
 def _crear_usuario(client, **kwargs):
     headers = kwargs.pop("headers", {})
     payload = {
@@ -23,11 +26,6 @@ def _crear_usuario(client, **kwargs):
     payload.update(kwargs)  # lo que quede (p. ej. pin_acceso) se agrega tal cual
     resp = client.post("/api/usuarios", json=payload, headers=headers)
     assert resp.status_code == 201, resp.text
-    if not resp.json()["email_verificado"]:
-        # La confirmación del correo se prueba en test_verificacion_correo.py.
-        from app.services.firebase_service import get_firestore_client
-
-        get_firestore_client().collection("usuarios").document(resp.json()["id_usuario"]).update({"email_verificado": True})
     return resp.json()
 
 
@@ -232,8 +230,68 @@ def test_registrar_nino_exige_autorizacion_de_datos(client, db):
     creado = _crear_usuario(
         client, nombre="Leo", edad=7, rol="estudiante", pin_acceso="1234", headers=_auth(token_docente)
     )
-    guardado = db.collection("usuarios").document(creado["id_usuario"]).get().to_dict()
-    assert guardado["autorizacion_datos"]["otorgada_por"] == docente["id_usuario"]
-    assert guardado["autorizacion_datos"]["version_terminos"] == "1.0"
-    docente_guardado = db.collection("usuarios").document(docente["id_usuario"]).get().to_dict()
-    assert docente_guardado["terminos_aceptados"]["version"] == "1.0"
+    from app.models.tablas import Usuario
+
+    guardado = db.get(Usuario, creado["id_usuario"])
+    assert guardado.autorizacion_otorgada_por == docente["id_usuario"]
+    assert guardado.autorizacion_version == "1.1"
+    assert db.get(Usuario, docente["id_usuario"]).terminos_version == "1.1"
+
+
+def test_intentos_fallidos_de_pin_se_guardan_aunque_la_peticion_falle(client):
+    """La petición con PIN incorrecto termina en 401, pero el contador de fallos y la
+    auditoría sí se guardan (ver app/db.get_db): al quinto fallo el código queda bloqueado."""
+    from app.services.auth_service import MAX_FALLOS
+
+    docente = _crear_usuario(client, nombre="Marta", rol="docente", email="marta4@escuela.co")
+    token_docente = _login_dev(client, docente["id_usuario"], "docente")
+    nino = _crear_usuario(client, nombre="Leo", edad=7, rol="estudiante", pin_acceso="1234", headers=_auth(token_docente))
+    for _ in range(MAX_FALLOS):
+        assert client.post("/api/usuarios/login-pin", json={"codigo": nino["codigo_acceso"], "pin": "0000"}).status_code == 401
+    bloqueado = client.post("/api/usuarios/login-pin", json={"codigo": nino["codigo_acceso"], "pin": "1234"})
+    assert bloqueado.status_code == 429
+
+
+def test_un_error_inesperado_deshace_lo_que_alcanzo_a_escribir(client, db, monkeypatch):
+    from sqlalchemy import func, select
+
+    from app.models.tablas import Auditoria, MundoDocente
+    from app.routers import mundos
+
+    docente = _crear_usuario(client, nombre="Marta", rol="docente", email="marta5@escuela.co")
+    token = _login_dev(client, docente["id_usuario"], "docente")
+
+    def _falla(*args, **kwargs):
+        raise RuntimeError("se cayó a mitad de camino")
+
+    monkeypatch.setattr(mundos, "registrar_auditoria", _falla)  # falla después de crear el mundo
+    r = TestClient(client.app, raise_server_exceptions=False).post(
+        "/api/mundos", json={"titulo": "A medias"}, headers=_auth(token)
+    )
+    assert r.status_code == 500
+    assert db.scalar(select(func.count()).select_from(MundoDocente)) == 0
+    # El error sí queda registrado en la auditoría.
+    assert db.scalar(select(func.count()).select_from(Auditoria).where(Auditoria.tipo == "error_sistema")) == 1
+
+
+def test_textos_mas_largos_que_su_columna_se_rechazan(client):
+    assert client.post("/api/usuarios/login-pin", json={"codigo": "A" * 50, "pin": "1234"}).status_code == 422
+    resp = client.post("/api/usuarios", json={"nombre": "x" * 500, "edad": 30, "rol": "padre", "acepta_terminos": True})
+    assert resp.status_code == 422
+
+
+def test_los_cambios_se_guardan_antes_de_responder(client, monkeypatch):
+    """Si guardar falla, la respuesta tiene que ser un error (no un 201 de algo que no quedó)."""
+    from sqlalchemy.orm import Session
+
+    docente = _crear_usuario(client, nombre="Marta", rol="docente", email="marta6@escuela.co")
+    token = _login_dev(client, docente["id_usuario"], "docente")
+
+    def _commit_que_falla(self):
+        raise RuntimeError("la base de datos no respondió")
+
+    monkeypatch.setattr(Session, "commit", _commit_que_falla)
+    r = TestClient(client.app, raise_server_exceptions=False).post(
+        "/api/mundos", json={"titulo": "No guardado"}, headers=_auth(token)
+    )
+    assert r.status_code == 500

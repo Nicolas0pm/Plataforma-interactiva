@@ -1,22 +1,29 @@
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Annotated, Literal, Optional
 
 from pydantic import BaseModel, Field
 
 Rol = Literal["estudiante", "docente", "padre", "admin"]
+# Los largos máximos coinciden con las columnas de app/models/tablas.py: PostgreSQL rechaza
+# un texto más largo que su columna, y así se responde 422 en vez de un error 500.
+IdUsuario = Annotated[str, Field(max_length=40)]
+Email = Annotated[str, Field(max_length=254, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")]
+# Contraseña de adultos: mínimo 8 caracteres; el máximo evita gastar CPU en el hash.
+Password = Annotated[str, Field(min_length=8, max_length=128)]
 
 
 class UsuarioBase(BaseModel):
-    nombre: str
+    nombre: str = Field(max_length=120)
     edad: int
     rol: Rol
-    acudientes_ids: list[str] = Field(
+    acudientes_ids: list[IdUsuario] = Field(
         default_factory=list, description="Uno o más padres/acudientes vinculados (RF11)"
     )
-    docente_id: Optional[str] = None
-    email: Optional[str] = None
+    docente_id: Optional[IdUsuario] = None
+    email: Optional[Email] = None
     device_id: Optional[str] = Field(
         default=None,
+        max_length=60,
         description="Solo estudiantes: dispensador ESP32 asignado (fase futura del hardware). "
         "Si es None, el estudiante no tiene un dispensador sincronizado y el frontend no le "
         "muestra el aviso de 'recompensa física' al ganar una recompensa.",
@@ -31,8 +38,10 @@ class UsuarioCreate(UsuarioBase):
         "login infantil solo admite 4). La API lo convierte a hash antes de guardarlo; "
         "nunca se devuelve ni se almacena en texto plano.",
     )
-    auth_uid: Optional[str] = Field(
-        default=None, description="UID de Firebase Authentication, para docentes/padres/admin"
+    password: Optional[Password] = Field(
+        default=None,
+        description="Docente/padre/admin: contraseña para entrar con su correo. Se guarda "
+        "como hash (scrypt) y nunca se devuelve.",
     )
     acepta_terminos: bool = Field(
         default=False,
@@ -58,23 +67,29 @@ class UsuarioOut(UsuarioBase):
         description="Solo estudiantes: código corto (6 caracteres) que el niño escribe "
         "en el login junto con su PIN.",
     )
-    email_verificado: bool = Field(
-        default=True,
-        description="Docentes/padres: False hasta que confirmen su correo con el enlace que "
-        "les envía Firebase Authentication.",
-    )
+
+
+class LoginRequest(BaseModel):
+    """Docente/padre/admin: inicio de sesión con correo y contraseña."""
+    email: str = Field(max_length=254)
+    password: str = Field(max_length=128)
+
+
+class CambiarPassword(BaseModel):
+    actual: str = Field(max_length=128)
+    nueva: Password
 
 
 class PinLoginRequest(BaseModel):
     """RF01 CA3: acceso simplificado del estudiante mediante código corto + PIN."""
-    codigo: str = Field(description="Código de acceso del estudiante (p. ej. K7M3QX)")
+    codigo: str = Field(max_length=20, description="Código de acceso del estudiante (p. ej. K7M3QX)")
     pin: str
 
 
 class DevLoginRequest(BaseModel):
     """Login de desarrollo (solo con USE_FAKE_DB=true) para docentes/padres/admin
-    sin necesitar un proyecto de Firebase Authentication real."""
-    id_usuario: str
+    sin contraseña."""
+    id_usuario: IdUsuario
     rol: Literal["docente", "padre", "admin"]
 
 
@@ -89,12 +104,12 @@ class SesionOut(BaseModel):
 class VincularConPin(BaseModel):
     """RF07/RF11: un padre o docente se vincula con un estudiante que ya existe,
     demostrando que tiene acceso a su cuenta (código de acceso + PIN del niño)."""
-    codigo: str
+    codigo: str = Field(max_length=20)
     pin: str
 
 
 class ActividadCreate(BaseModel):
-    nombre: str
+    nombre: str = Field(max_length=200)
     descripcion: str = ""
     nivel: int = Field(ge=1, le=10, description="El máximo alcanzable lo define config.nivel_umbrales")
     tipo: Literal["vocabulario", "gramatica"] = "vocabulario"
@@ -102,7 +117,7 @@ class ActividadCreate(BaseModel):
     # Ubicación en el temario (app/curriculo.py). Las actividades sin unidad quedan
     # fuera del camino guiado de lecciones.
     seccion: Optional[Literal["vocabulario", "gramatica"]] = None
-    unidad: Optional[str] = None
+    unidad: Optional[str] = Field(default=None, max_length=80)
     leccion: Optional[int] = Field(default=None, ge=1)
     orden: Optional[int] = Field(default=None, ge=1)
     formato_opciones: Literal["texto", "emoji"] = "texto"
@@ -113,7 +128,7 @@ class ActividadCreate(BaseModel):
     opciones: list[str] = Field(default_factory=list)
     respuesta_correcta: Optional[str] = None
     icono: Optional[str] = Field(
-        default=None, description="Emoji o ícono corto que ilustra la actividad/pregunta"
+        default=None, max_length=16, description="Emoji o ícono corto que ilustra la actividad/pregunta"
     )
 
 
@@ -124,7 +139,7 @@ class ActividadOut(ActividadCreate):
 
 class ResultadoActividad(BaseModel):
     """Payload que envía el frontend cuando un niño termina una actividad (RF03/RF04)."""
-    id_actividad: str
+    id_actividad: str = Field(max_length=80)
     tiempo_empleado: int = Field(ge=0, description="segundos")
     intentos: int = Field(ge=1)
     puntaje_obtenido: int = Field(ge=0)
@@ -145,7 +160,7 @@ class ResultadoLeccion(BaseModel):
 
 
 class FeedbackCreate(BaseModel):
-    id_estudiante: str
+    id_estudiante: IdUsuario
     comentario: str
     tipo: Literal["progreso", "conducta", "recomendacion"] = "progreso"
     visible_para_padres: bool = True

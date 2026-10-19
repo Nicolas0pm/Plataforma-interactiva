@@ -1,41 +1,44 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
+from app.db import RutaConTransaccion, get_db
 from app.models.schemas import ActividadCreate, ActividadOut, ResultadoActividad
+from app.models.tablas import Actividad, HistorialActividad, Progreso, Usuario
 from app.services.auth_service import current_user, registrar_auditoria, require_role
-from app.services.firebase_service import get_firestore_client
 from app.services.progreso_service import calcular_nivel
 from app.services.recompensas_service import evaluar_recompensa
 
-router = APIRouter(prefix="/api/actividades", tags=["actividades"])
+router = APIRouter(prefix="/api/actividades", tags=["actividades"], route_class=RutaConTransaccion)
 
 
 @router.post("", response_model=ActividadOut, status_code=201)
-def crear_actividad(payload: ActividadCreate, usuario: dict = Depends(require_role("docente", "admin"))):
-    """RNF-ESC-01: agregar actividades no requiere tocar código, solo un documento nuevo."""
-    db = get_firestore_client()
-    data = payload.model_dump()
-    data["activo"] = True
-    ref = db.collection("actividades").document()
-    ref.set(data)
-    registrar_auditoria(db, tipo="actividad_creada", actor=usuario["id_usuario"], detalle={"id_actividad": ref.id})
-    return {**data, "id_actividad": ref.id}
+def crear_actividad(
+    payload: ActividadCreate, usuario: dict = Depends(require_role("docente", "admin")), db: Session = Depends(get_db)
+):
+    """RNF-ESC-01: agregar actividades no requiere tocar código, solo una fila nueva."""
+    actividad = Actividad(**payload.model_dump(), activo=True)
+    db.add(actividad)
+    db.flush()
+    registrar_auditoria(db, tipo="actividad_creada", actor=usuario["id_usuario"], detalle={"id_actividad": actividad.id_actividad})
+    return actividad.a_dict()
 
 
 @router.get("", response_model=list[ActividadOut])
-def listar_actividades(nivel: int | None = None, usuario: dict = Depends(current_user)):
+def listar_actividades(nivel: int | None = None, usuario: dict = Depends(current_user), db: Session = Depends(get_db)):
     """RF04: actividades organizadas por nivel."""
-    db = get_firestore_client()
-    query = db.collection("actividades").where("activo", "==", True)
+    consulta = select(Actividad).where(Actividad.activo)
     if nivel is not None:
-        query = query.where("nivel", "==", nivel)
-    return [{**doc.to_dict(), "id_actividad": doc.id} for doc in query.stream()]
+        consulta = consulta.where(Actividad.nivel == nivel)
+    return [a.a_dict() for a in db.scalars(consulta.order_by(Actividad.id_actividad))]
 
 
 @router.post("/completar/{id_usuario}")
 def completar_actividad(
-    id_usuario: str, payload: ResultadoActividad, usuario: dict = Depends(require_role("estudiante"))
+    id_usuario: str, payload: ResultadoActividad, usuario: dict = Depends(require_role("estudiante")),
+    db: Session = Depends(get_db),
 ):
     """
     RF03/RF04/RF08/RF09: registra el intento de un estudiante, actualiza su progreso
@@ -46,50 +49,37 @@ def completar_actividad(
     if usuario["id_usuario"] != id_usuario:
         raise HTTPException(403, "Un estudiante solo puede registrar sus propios resultados")
 
-    db = get_firestore_client()
-
-    usuario_ref = db.collection("usuarios").document(id_usuario)
-    if not usuario_ref.get().exists:
+    if db.get(Usuario, id_usuario) is None:
         raise HTTPException(404, "Usuario no encontrado")
 
-    hist_ref = db.collection("historial_actividades").document()
-    hist_ref.set(
-        {
-            "id_usuario": id_usuario,
-            "id_actividad": payload.id_actividad,
-            "fecha": datetime.now(timezone.utc),
-            "tiempo_empleado": payload.tiempo_empleado,
-            "intentos": payload.intentos,
-            "puntaje_obtenido": payload.puntaje_obtenido,
-        }
+    ahora = datetime.now(timezone.utc)
+    historial = HistorialActividad(
+        id_usuario=id_usuario,
+        id_actividad=payload.id_actividad,
+        fecha=ahora,
+        tiempo_empleado=payload.tiempo_empleado,
+        intentos=payload.intentos,
+        puntaje_obtenido=payload.puntaje_obtenido,
     )
+    db.add(historial)
 
-    resultado_ref = usuario_ref.collection("resultados").document("actual")
-    resultado_actual = resultado_ref.get().to_dict() or {
-        "puntaje_total": 0,
-        "nivel_logrado": 1,
-        "actividades_completadas": 0,
-    }
-    nivel_anterior = resultado_actual["nivel_logrado"]
-    nuevo_total = resultado_actual["puntaje_total"] + payload.puntaje_obtenido
-    nuevo_nivel = calcular_nivel(nuevo_total)
+    progreso = db.get(Progreso, id_usuario)
+    if progreso is None:
+        progreso = Progreso(id_usuario=id_usuario, puntaje_total=0, nivel_logrado=1, actividades_completadas=0)
+        db.add(progreso)
+    nivel_anterior = progreso.nivel_logrado
+    progreso.puntaje_total += payload.puntaje_obtenido
+    progreso.nivel_logrado = calcular_nivel(progreso.puntaje_total)
+    progreso.actividades_completadas += 1
+    progreso.actualizado_en = ahora
+    db.flush()
 
-    resultado_ref.set(
-        {
-            "puntaje_total": nuevo_total,
-            "nivel_logrado": nuevo_nivel,
-            "actividades_completadas": resultado_actual["actividades_completadas"] + 1,
-            "actualizado_en": datetime.now(timezone.utc),
-        },
-        merge=True,
-    )
-
-    recompensa = evaluar_recompensa(id_usuario, nuevo_total)
+    recompensa = evaluar_recompensa(db, id_usuario, progreso.puntaje_total)
 
     return {
-        "id_historial": hist_ref.id,
-        "puntaje_total": nuevo_total,
-        "nivel_logrado": nuevo_nivel,
-        "subio_de_nivel": nuevo_nivel > nivel_anterior,
+        "id_historial": historial.id_historial,
+        "puntaje_total": progreso.puntaje_total,
+        "nivel_logrado": progreso.nivel_logrado,
+        "subio_de_nivel": progreso.nivel_logrado > nivel_anterior,
         "recompensa_generada": recompensa,
     }

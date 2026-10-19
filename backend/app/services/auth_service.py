@@ -1,61 +1,133 @@
 """
 Autenticación y autorización de la API.
 
-Hay dos tipos de token, ambos enviados como `Authorization: Bearer <token>`:
+Todos los tokens los emite esta misma API (JWT HS256) y se envían como
+`Authorization: Bearer <token>`:
 
-1. **Token propio (JWT HS256)**: lo emite esta misma API para el acceso
-   simplificado por PIN de los estudiantes (RF01 CA3) y, solo cuando
-   `USE_FAKE_DB=true`, para un login de desarrollo sin Firebase real.
-   Expira a los `JWT_PIN_EXP_MINUTOS` minutos (RNF-SEG-04).
-2. **ID token de Firebase Authentication (RS256)**: lo obtiene el frontend con
-   el SDK web tras `signInWithEmailAndPassword` (docentes/padres/admin). Se
-   valida contra Firebase y se resuelve a un usuario de la colección
-   `usuarios` por su campo `auth_uid`.
+- **Estudiantes**: entran con su código de acceso + PIN de 4 dígitos (RF01 CA3).
+  La sesión dura `JWT_PIN_EXP_MINUTOS` minutos (RNF-SEG-04).
+- **Docentes, padres y admin**: entran con correo + contraseña. La contraseña se guarda
+  como hash scrypt (con sal propia), nunca en texto plano. La sesión dura
+  `JWT_ADULTO_EXP_MINUTOS` minutos.
+- **Modo de prueba** (`USE_FAKE_DB=true`): además existe un login de desarrollo sin
+  contraseña (`crear_token_dev`), deshabilitado en cualquier otro caso.
 
-`current_user()` intenta decodificar primero como token propio (rápido, sin
-red) y si no es válido intenta verificarlo como ID token de Firebase. Además
-exige que un adulto haya confirmado su correo; `usuario_autenticado()` es lo
-mismo sin esa exigencia.
+Tras `MAX_FALLOS` intentos fallidos seguidos, el código (o el correo) queda bloqueado
+`BLOQUEO_MINUTOS` minutos, para que nadie pueda probar contraseñas o PIN sin límite.
 
-**Confirmación del correo**: al registrarse, el frontend le pide a Firebase
-Authentication que envíe un enlace de confirmación (`sendEmailVerification`). El perfil
-queda con `email_verificado: False`; cuando la persona abre el enlace, sus nuevos ID
-tokens traen `email_verified: true` y `sincronizar_verificacion()` lo copia al perfil.
-Los perfiles creados antes de existir esto no tienen el campo y cuentan como verificados.
+`current_user()` revisa la firma y el vencimiento del token y que la cuenta siga activa.
 """
+import base64
 import hashlib
-from datetime import datetime, timedelta, timezone
+import hmac
+import secrets
+from datetime import timedelta
 
 import jwt
 from fastapi import Depends, Header, HTTPException
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.services.firebase_service import get_firebase_auth, get_firestore_client
+from app.db import ahora, get_db
+from app.models.tablas import Auditoria, IntentoFallido, Usuario
 
 _settings = get_settings()
+
+MAX_FALLOS = 5
+BLOQUEO_MINUTOS = 10
+
+# Parámetros de scrypt (los recomendados por OWASP: ~16 MB de memoria por intento).
+_SCRYPT_N, _SCRYPT_R, _SCRYPT_P = 2**14, 8, 1
 
 
 def hash_pin(pin: str) -> str:
     return hashlib.sha256((_settings.pin_pepper + pin).encode()).hexdigest()
 
 
+def _scrypt(password: str, sal: bytes, n: int, r: int, p: int) -> bytes:
+    return hashlib.scrypt(password.encode(), salt=sal, n=n, r=r, p=p, maxmem=64 * 1024 * 1024, dklen=32)
+
+
+def hash_password(password: str) -> str:
+    """"scrypt$n$r$p$sal$hash" (sal y hash en base64)."""
+    sal = secrets.token_bytes(16)
+    clave = _scrypt(password, sal, _SCRYPT_N, _SCRYPT_R, _SCRYPT_P)
+    b64 = lambda b: base64.b64encode(b).decode()  # noqa: E731
+    return f"scrypt${_SCRYPT_N}${_SCRYPT_R}${_SCRYPT_P}${b64(sal)}${b64(clave)}"
+
+
+def verificar_password(password: str, guardado: str | None) -> bool:
+    if not guardado:
+        return False
+    try:
+        _, n, r, p, sal, clave = guardado.split("$")
+        calculada = _scrypt(password, base64.b64decode(sal), int(n), int(r), int(p))
+    except (ValueError, TypeError):
+        return False
+    return hmac.compare_digest(calculada, base64.b64decode(clave))
+
+
+# Para que un correo inexistente tarde lo mismo que una contraseña incorrecta
+# (si no, el tiempo de respuesta revelaría qué correos tienen cuenta).
+_HASH_DE_RELLENO = hash_password(secrets.token_hex(8))
+
+
+def normalizar_email(email: str) -> str:
+    return email.strip().lower()
+
+
 def crear_token_sesion(id_usuario: str, rol: str) -> str:
-    ahora = datetime.now(timezone.utc)
-    payload = {
-        "sub": id_usuario,
-        "rol": rol,
-        "iat": ahora,
-        "exp": ahora + timedelta(minutes=_settings.jwt_pin_exp_minutos),
-    }
+    minutos = _settings.jwt_pin_exp_minutos if rol == "estudiante" else _settings.jwt_adulto_exp_minutos
+    momento = ahora()
+    payload = {"sub": id_usuario, "rol": rol, "iat": momento, "exp": momento + timedelta(minutes=minutos)}
     return jwt.encode(payload, _settings.jwt_secret, algorithm="HS256")
 
 
 def crear_token_dev(id_usuario: str, rol: str) -> str:
-    """Login de desarrollo para docentes/padres/admin SIN Firebase Auth real.
+    """Login de desarrollo para docentes/padres/admin sin contraseña.
     Solo funciona con USE_FAKE_DB=true; en cualquier otro caso está deshabilitado."""
     if not _settings.use_fake_db:
         raise HTTPException(403, "El login de desarrollo solo está disponible con USE_FAKE_DB=true")
     return crear_token_sesion(id_usuario, rol)
+
+
+def revisar_bloqueo(db: Session, clave: str) -> None:
+    """429 si `clave` está bloqueada por demasiados intentos fallidos seguidos."""
+    intentos = db.get(IntentoFallido, clave)
+    if intentos and intentos.bloqueado_hasta and intentos.bloqueado_hasta > ahora():
+        raise HTTPException(429, "Demasiados intentos. Espera unos minutos y vuelve a intentar.")
+
+
+def anotar_intento(db: Session, clave: str, correcto: bool) -> None:
+    """Un acierto reinicia el contador; el fallo número `MAX_FALLOS` bloquea la clave."""
+    intentos = db.get(IntentoFallido, clave)
+    if correcto:
+        if intentos:
+            intentos.fallos, intentos.bloqueado_hasta = 0, None
+        return
+    if intentos is None:
+        intentos = IntentoFallido(clave=clave, fallos=0)
+        db.add(intentos)
+    fallos = intentos.fallos + 1
+    bloqueo = ahora() + timedelta(minutes=BLOQUEO_MINUTOS) if fallos >= MAX_FALLOS else None
+    intentos.fallos, intentos.bloqueado_hasta = (0 if bloqueo else fallos), bloqueo
+
+
+def verificar_credenciales(db: Session, email: str, password: str) -> Usuario:
+    """El adulto dueño de ese correo y contraseña, o 401 (mismo mensaje si el correo no
+    existe, para no revelar qué correos están registrados)."""
+    email = normalizar_email(email)
+    clave = f"correo:{email}"
+    revisar_bloqueo(db, clave)
+    usuario = db.scalar(select(Usuario).where(Usuario.email == email))
+    guardado = usuario.password_hash if usuario else None
+    correcto = verificar_password(password, guardado or _HASH_DE_RELLENO) and guardado is not None
+    correcto = correcto and usuario.activo and usuario.rol != "estudiante"
+    anotar_intento(db, clave, correcto)
+    if not correcto:
+        raise HTTPException(401, "Correo o contraseña incorrectos")
+    return usuario
 
 
 def extraer_token_bearer(authorization: str | None) -> str:
@@ -64,86 +136,17 @@ def extraer_token_bearer(authorization: str | None) -> str:
     return authorization.split(" ", 1)[1].strip()
 
 
-# alias interno usado en este mismo módulo
-_extraer_token = extraer_token_bearer
-
-
-def verificar_id_token_firebase_crudo(authorization: str | None) -> dict:
-    """Verifica un ID token de Firebase Auth SIN buscar el perfil en `usuarios`.
-
-    Se usa únicamente en el registro (`POST /api/usuarios`) de docentes/padres/admin,
-    donde el perfil todavía no existe: solo necesitamos confirmar que quien llama ya
-    creó una cuenta válida en Firebase Authentication y obtener su `uid`/`email`.
-    """
+def current_user(authorization: str | None = Header(default=None), db: Session = Depends(get_db)) -> dict:
+    """Quién llama: token válido y vigente de una cuenta que existe y sigue activa."""
     token = extraer_token_bearer(authorization)
-    try:
-        decoded = get_firebase_auth().verify_id_token(token)
-    except Exception as exc:
-        raise HTTPException(401, "Token de Firebase inválido o expirado") from exc
-    return {"auth_uid": decoded.get("uid"), "email": decoded.get("email"),
-            "email_verified": bool(decoded.get("email_verified"))}
-
-
-def _decodificar_token_propio(token: str) -> dict | None:
     try:
         payload = jwt.decode(token, _settings.jwt_secret, algorithms=["HS256"])
     except jwt.InvalidTokenError:
-        return None
-    usuario = {"id_usuario": payload["sub"], "rol": payload["rol"], "email_verificado": True}
-    if payload["rol"] != "estudiante":
-        # Adultos con token propio: solo el login de desarrollo (USE_FAKE_DB=true).
-        datos = get_firestore_client().collection("usuarios").document(payload["sub"]).get().to_dict() or {}
-        usuario["email_verificado"] = datos.get("email_verificado", True)
-    return usuario
-
-
-def _decodificar_token_firebase(token: str) -> dict | None:
-    if _settings.use_fake_db:
-        return None  # en modo fake no hay Firebase Auth real que verificar
-    try:
-        decoded = get_firebase_auth().verify_id_token(token)
-    except Exception:
-        return None
-
-    auth_uid = decoded.get("uid")
-    db = get_firestore_client()
-    docs = list(db.collection("usuarios").where("auth_uid", "==", auth_uid).limit(1).stream())
-    if not docs:
-        return None
-    data = docs[0].to_dict()
-    verificado = sincronizar_verificacion(db, docs[0].id, data, bool(decoded.get("email_verified")))
-    return {"id_usuario": docs[0].id, "rol": data.get("rol"), "email_verificado": verificado}
-
-
-def sincronizar_verificacion(db, id_usuario: str, data: dict, verificado_en_firebase: bool) -> bool:
-    """Si Firebase ya dice que el correo está confirmado y el perfil todavía no, lo marca
-    (una sola escritura, la primera vez). Devuelve si el perfil queda verificado."""
-    if data.get("email_verificado", True):
-        return True
-    if not verificado_en_firebase:
-        return False
-    db.collection("usuarios").document(id_usuario).update(
-        {"email_verificado": True, "email_verificado_en": datetime.now(timezone.utc)}
-    )
-    registrar_auditoria(db, tipo="email_verificado", actor=id_usuario)
-    return True
-
-
-def usuario_autenticado(authorization: str | None = Header(default=None)) -> dict:
-    """Quién llama, aunque todavía no haya confirmado su correo. Solo para la sesión y
-    los endpoints de verificación; todo lo demás usa `current_user()`."""
-    token = _extraer_token(authorization)
-    usuario = _decodificar_token_propio(token) or _decodificar_token_firebase(token)
-    if usuario is None:
+        raise HTTPException(401, "Token inválido o expirado") from None
+    perfil = db.get(Usuario, payload["sub"])
+    if perfil is None or not perfil.activo or perfil.rol != payload["rol"]:
         raise HTTPException(401, "Token inválido o expirado")
-    return usuario
-
-
-def current_user(authorization: str | None = Header(default=None)) -> dict:
-    usuario = usuario_autenticado(authorization)
-    if not usuario["email_verificado"]:
-        raise HTTPException(403, "Primero confirma tu correo con el enlace que te enviamos")
-    return usuario
+    return {"id_usuario": perfil.id_usuario, "rol": perfil.rol}
 
 
 def require_role(*roles: str):
@@ -157,7 +160,7 @@ def require_role(*roles: str):
     return _verificar
 
 
-def verificar_acceso_estudiante(usuario: dict, id_estudiante: str, db) -> None:
+def verificar_acceso_estudiante(usuario: dict, id_estudiante: str, db: Session) -> None:
     """Lanza 403/404 si `usuario` no tiene derecho a ver u operar sobre los datos
     de `id_estudiante`: debe ser admin, el propio estudiante, su docente asignado
     o uno de sus padres/acudientes vinculados (RF11)."""
@@ -168,25 +171,17 @@ def verificar_acceso_estudiante(usuario: dict, id_estudiante: str, db) -> None:
             return
         raise HTTPException(403, "Un estudiante solo puede ver su propia información")
 
-    doc = db.collection("usuarios").document(id_estudiante).get()
-    if not doc.exists:
+    estudiante = db.get(Usuario, id_estudiante)
+    if estudiante is None:
         raise HTTPException(404, "Estudiante no encontrado")
-    data = doc.to_dict()
 
-    if usuario["rol"] == "docente" and data.get("docente_id") == usuario["id_usuario"]:
+    if usuario["rol"] == "docente" and estudiante.docente_id == usuario["id_usuario"]:
         return
-    if usuario["rol"] == "padre" and usuario["id_usuario"] in data.get("acudientes_ids", []):
+    if usuario["rol"] == "padre" and usuario["id_usuario"] in estudiante.acudientes_ids:
         return
     raise HTTPException(403, "No tienes ningún vínculo con este estudiante")
 
 
-def registrar_auditoria(db, tipo: str, actor: str | None, detalle: dict | None = None) -> None:
-    """RNF-AUD-*: registro de auditoría de solo-inserción (ver firebase/firestore.rules)."""
-    db.collection("auditoria").document().set(
-        {
-            "tipo": tipo,
-            "actor": actor,
-            "detalle": detalle or {},
-            "fecha": datetime.now(timezone.utc),
-        }
-    )
+def registrar_auditoria(db: Session, tipo: str, actor: str | None, detalle: dict | None = None) -> None:
+    """RNF-AUD-*: registro de auditoría de solo-inserción (tabla `auditoria`)."""
+    db.add(Auditoria(tipo=tipo, actor=actor, detalle=detalle or {}, fecha=ahora()))

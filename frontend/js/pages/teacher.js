@@ -3,11 +3,13 @@ import { montarPestanas, montarRegistrar, montarVincular } from "../estudiantes-
 import { cuando, esc, hora, porcentaje } from "../html.js";
 import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
+import { agregarCambioDePassword } from "../cambiar-password.js";
 import { exigirRol, salir } from "../session.js";
 
 const sesion = exigirRol("docente", "admin");
 inicializarLangToggle();
 document.getElementById("btn-logout").addEventListener("click", salir);
+agregarCambioDePassword();
 
 montarPestanas();
 montarVincular({ onVinculado: () => cargar() });
