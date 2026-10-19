@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -11,117 +11,26 @@ from app.config import get_settings
 from app.db import RutaConTransaccion, get_db
 from app.models.schemas import (
     CambiarPassword,
-    DevLoginRequest,
     LoginRequest,
     PinLoginRequest,
     SesionOut,
-    UsuarioCreate,
     UsuarioOut,
 )
 from app.models.tablas import Acudiente, Progreso, Usuario
 from app.services.auth_service import (
-    crear_token_dev,
     crear_token_sesion,
     current_user,
     hash_password,
-    hash_pin,
-    normalizar_email,
     registrar_auditoria,
-    require_role,
     verificar_acceso_estudiante,
     verificar_credenciales,
     verificar_password,
 )
-from app.services.estudiantes_service import (
-    generar_codigo_acceso,
-    normalizar_codigo,
-    verificar_codigo_y_pin,
-)
+from app.services.estudiantes_service import normalizar_codigo, verificar_codigo_y_pin
 from app.services.progreso_service import calcular_nivel, puntos_para_siguiente_nivel
 
 router = APIRouter(prefix="/api/usuarios", tags=["usuarios"], route_class=RutaConTransaccion)
 _settings = get_settings()
-
-
-@router.post("", response_model=UsuarioOut, status_code=201)
-def crear_usuario(
-    payload: UsuarioCreate, authorization: str | None = Header(default=None), db: Session = Depends(get_db)
-):
-    """RF01: registro de estudiantes, docentes y padres.
-
-    - Un estudiante lo crea un docente, un padre o un admin ya autenticado (los
-      niños no se auto-registran); requiere un PIN (RF01 CA3), que se guarda
-      como hash, nunca en texto plano.
-    - Un docente o padre se auto-registra con su correo y una contraseña (que se guarda
-      como hash scrypt) y después entra con `POST /api/usuarios/login`. Las cuentas de
-      admin no se auto-registran: se crean con `scripts/crear_admin.py`.
-    """
-    ahora = datetime.now(timezone.utc)
-    nuevo = Usuario(
-        nombre=payload.nombre, edad=payload.edad, rol=payload.rol, email=payload.email,
-        docente_id=payload.docente_id, device_id=payload.device_id, activo=True, creado_en=ahora,
-    )
-    acudientes = list(dict.fromkeys(payload.acudientes_ids))
-
-    if payload.rol == "estudiante":
-        usuario = require_role("docente", "padre", "admin")(current_user(authorization, db))
-        if not payload.pin_acceso:
-            raise HTTPException(400, "El estudiante necesita un PIN de 4 dígitos")
-        if not payload.autoriza_datos_menor:
-            raise HTTPException(
-                400, "Se necesita la autorización del padre, madre o acudiente para registrar al niño"
-            )
-        # Evidencia de la autorización (Ley 1581 / Decreto 1377): quién, cuándo y qué versión.
-        nuevo.autorizacion_otorgada_por = usuario["id_usuario"]
-        nuevo.autorizacion_rol = usuario["rol"]
-        nuevo.autorizacion_fecha = ahora
-        nuevo.autorizacion_version = _settings.terminos_version
-        nuevo.pin_hash = hash_pin(payload.pin_acceso)
-        nuevo.codigo_acceso = generar_codigo_acceso(db)
-        if usuario["rol"] == "docente" and not nuevo.docente_id:
-            nuevo.docente_id = usuario["id_usuario"]
-        if usuario["rol"] == "docente" and not nuevo.device_id:
-            # Si el salón tiene máquina de premios, el niño nuevo queda conectado a ella.
-            nuevo.device_id = db.get(Usuario, usuario["id_usuario"]).device_id_aula
-        if usuario["rol"] == "padre" and usuario["id_usuario"] not in acudientes:
-            acudientes.append(usuario["id_usuario"])
-        if nuevo.docente_id and _rol_de(db, nuevo.docente_id) != "docente":
-            raise HTTPException(400, "El docente indicado no existe")
-        if any(_rol_de(db, i) != "padre" for i in acudientes):
-            raise HTTPException(400, "Alguno de los acudientes indicados no existe")
-        nuevo.vinculos_acudientes = [Acudiente(id_acudiente=i) for i in acudientes]
-    else:
-        if payload.rol == "admin" and not _settings.use_fake_db:
-            raise HTTPException(403, "Las cuentas de administrador se crean con scripts/crear_admin.py")
-        if not payload.acepta_terminos:
-            raise HTTPException(400, "Debes aceptar los Términos de uso y la Política de datos")
-        nuevo.terminos_version, nuevo.terminos_fecha = _settings.terminos_version, ahora
-        # Un adulto no se registra ya vinculado a nadie.
-        nuevo.docente_id = None
-        # Sin correo ni contraseña solo se puede en el modo de prueba (cuentas de desarrollo).
-        if not _settings.use_fake_db and not (payload.email and payload.password):
-            raise HTTPException(400, "Escribe tu correo y una contraseña")
-        if payload.email:
-            nuevo.email = normalizar_email(payload.email)
-            if db.scalar(select(Usuario.id_usuario).where(Usuario.email == nuevo.email)):
-                raise HTTPException(409, "Ya existe una cuenta con ese correo. Inicia sesión.")
-        if payload.password:
-            nuevo.password_hash = hash_password(payload.password)
-
-    db.add(nuevo)
-    db.flush()  # asigna el id_usuario
-
-    if payload.rol == "estudiante":
-        db.add(Progreso(id_usuario=nuevo.id_usuario, actualizado_en=ahora))
-        registrar_auditoria(db, tipo="estudiante_creado", actor=None, detalle={"id_usuario": nuevo.id_usuario})
-    else:
-        registrar_auditoria(db, tipo="adulto_registrado", actor=nuevo.id_usuario, detalle={"rol": nuevo.rol})
-
-    return nuevo.a_dict()
-
-
-def _rol_de(db: Session, id_usuario: str) -> str | None:
-    return db.scalar(select(Usuario.rol).where(Usuario.id_usuario == id_usuario))
 
 
 def _estudiantes_de(db: Session, id_docente: str) -> list[Usuario]:
@@ -151,46 +60,43 @@ def login_pin(payload: PinLoginRequest, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=SesionOut)
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
-    """Docente/padre/admin: correo + contraseña. Tras 5 fallos seguidos ese correo queda
-    bloqueado 10 minutos."""
-    email = normalizar_email(payload.email)
+    """Docente/padre/coordinador: usuario (o correo) + contraseña. Tras 5 fallos seguidos
+    ese usuario queda bloqueado 10 minutos."""
+    identificador = payload.usuario.strip().lower()
     try:
-        perfil = verificar_credenciales(db, email, payload.password)
+        perfil = verificar_credenciales(db, identificador, payload.password)
     except HTTPException:
-        registrar_auditoria(db, tipo="login_fallido", actor=None, detalle={"metodo": "correo", "email": email})
+        registrar_auditoria(db, tipo="login_fallido", actor=None, detalle={"metodo": "usuario", "usuario": identificador})
         raise
-    registrar_auditoria(db, tipo="login_exitoso", actor=perfil.id_usuario, detalle={"metodo": "correo"})
+    registrar_auditoria(db, tipo="login_exitoso", actor=perfil.id_usuario, detalle={"metodo": "usuario"})
     return {
         "token": crear_token_sesion(perfil.id_usuario, perfil.rol),
         "id_usuario": perfil.id_usuario,
         "rol": perfil.rol,
         "nombre": perfil.nombre,
+        "debe_cambiar_password": perfil.debe_cambiar_password,
     }
 
 
 @router.post("/cambiar-password")
 def cambiar_password(payload: CambiarPassword, usuario: dict = Depends(current_user), db: Session = Depends(get_db)):
-    """El adulto cambia su contraseña (por ejemplo, la temporal que le dio el admin)."""
+    """El adulto cambia su contraseña. En el primer ingreso (contraseña temporal que le dio
+    el coordinador) también acepta los términos (Ley 1581 / Decreto 1377)."""
     perfil = db.get(Usuario, usuario["id_usuario"])
     if perfil.rol == "estudiante":
         raise HTTPException(400, "Los estudiantes entran con su PIN")
     if not verificar_password(payload.actual, perfil.password_hash):
         raise HTTPException(400, "La contraseña actual no es correcta")
+    if payload.nueva == payload.actual:
+        raise HTTPException(400, "La contraseña nueva tiene que ser distinta de la actual")
+    if perfil.terminos_version != _settings.terminos_version:
+        if not payload.acepta_terminos:
+            raise HTTPException(400, "Debes aceptar los Términos de uso y la Política de datos")
+        perfil.terminos_version, perfil.terminos_fecha = _settings.terminos_version, datetime.now(timezone.utc)
     perfil.password_hash = hash_password(payload.nueva)
+    perfil.debe_cambiar_password = False
     registrar_auditoria(db, tipo="password_cambiada", actor=perfil.id_usuario)
     return {"ok": True}
-
-
-@router.post("/login-dev", response_model=SesionOut)
-def login_dev(payload: DevLoginRequest, db: Session = Depends(get_db)):
-    """Login de desarrollo (solo con USE_FAKE_DB=true): permite entrar como
-    docente/padre/admin sin contraseña."""
-    perfil = db.get(Usuario, payload.id_usuario)
-    if perfil is None or perfil.rol != payload.rol:
-        raise HTTPException(404, "No existe ese usuario con ese rol")
-
-    token = crear_token_dev(payload.id_usuario, payload.rol)
-    return {"token": token, "id_usuario": payload.id_usuario, "rol": payload.rol, "nombre": perfil.nombre}
 
 
 @router.get("/sesion", response_model=UsuarioOut)

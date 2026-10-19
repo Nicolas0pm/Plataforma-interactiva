@@ -12,7 +12,7 @@ const DESTINO_POR_ROL = {
   estudiante: "kid-dashboard.html",
   docente: "teacher.html",
   padre: "parent.html",
-  admin: "teacher.html",
+  admin: "coordinador.html",
 };
 
 // Con sesión abierta no se redirige automáticamente (eso atrapaba el botón "atrás"
@@ -36,7 +36,7 @@ document.querySelectorAll(".role-card").forEach((boton) => {
     if (rol === "estudiante") {
       window.location.href = "kid-login.html";
     } else {
-      window.location.href = `adult-login.html?rol=${rol}`;
+      window.location.href = "adult-login.html";
     }
   });
 });

@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import get_settings
 from app.db import SesionLocal, crear_tablas
-from app.routers import actividades, auditoria, feedback, lecciones, mundos, recompensas, tienda, usuarios, vinculacion
+from app.routers import actividades, auditoria, coordinador, feedback, lecciones, mundos, recompensas, tienda, usuarios
 from app.services.auth_service import registrar_auditoria
 from app.services.lecciones_service import sembrar_temario, temario_cargado
 
@@ -48,6 +48,11 @@ crear_tablas()
 with SesionLocal.begin() as _db:
     if not temario_cargado(_db):
         sembrar_temario(_db)
+    if settings.use_fake_db:
+        # Modo de prueba (base en memoria): un coordinador para poder entrar y crear cuentas.
+        from app.services.auth_service import crear_coordinador_de_prueba
+
+        crear_coordinador_de_prueba(_db)
 
 app.include_router(usuarios.router)
 app.include_router(actividades.router)
@@ -56,7 +61,7 @@ app.include_router(mundos.router)
 app.include_router(tienda.router)
 app.include_router(feedback.router)
 app.include_router(recompensas.router)
-app.include_router(vinculacion.router)
+app.include_router(coordinador.router)
 app.include_router(auditoria.router)
 
 

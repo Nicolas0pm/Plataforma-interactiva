@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <script>try{document.documentElement.dataset.tema=localStorage.getItem("pik_tema")||"auto"}catch(e){document.documentElement.dataset.tema="auto"}</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¡Aprendamos inglés!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <h1 data-i18n="coord.title">Panel del coordinador</h1>
+    <div class="topbar-actions">
+      <button type="button" data-lang-toggle>EN</button>
+      <button type="button" id="btn-logout" data-i18n="nav.logout">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <main class="wide">
+    <!-- Botones de vista: cada uno muestra su lista abajo -->
+    <div class="stat-row botones-vista" role="tablist" aria-label="Cuentas">
+      <button type="button" role="tab" class="stat-tile azul" data-vista="docentes" aria-selected="true">
+        <span class="valor" id="n-docentes">0</span>
+        <span class="etiqueta">👩‍🏫 <span data-i18n="coord.teachers">Profesores</span></span>
+      </button>
+      <button type="button" role="tab" class="stat-tile verde" data-vista="estudiantes" aria-selected="false">
+        <span class="valor" id="n-estudiantes">0</span>
+        <span class="etiqueta">🧒 <span data-i18n="coord.kids">Niños</span></span>
+      </button>
+      <button type="button" role="tab" class="stat-tile naranja" data-vista="padres" aria-selected="false">
+        <span class="valor" id="n-padres">0</span>
+        <span class="etiqueta">👨‍👩‍👧 <span data-i18n="coord.parents">Padres</span></span>
+      </button>
+      <button type="button" role="tab" class="stat-tile morado" data-vista="coordinadores" aria-selected="false">
+        <span class="valor" id="n-coordinadores">0</span>
+        <span class="etiqueta">🧭 <span data-i18n="coord.coordinators">Coordinadores</span></span>
+      </button>
+    </div>
+
+    <div class="card" id="vista" role="tabpanel" aria-live="polite">
+      <div class="vista-encabezado">
+        <h2 id="vista-titulo"></h2>
+        <button type="button" id="btn-crear"></button>
+      </div>
+
+      <!-- Crear profesor, padre o coordinador -->
+      <form id="form-adulto" class="form-crear oculto">
+        <label for="adulto-nombre" data-i18n="coord.full_name">Nombre completo</label>
+        <input id="adulto-nombre" type="text" required maxlength="120" autocomplete="off" />
+        <label for="adulto-usuario" data-i18n="login.user">Usuario</label>
+        <input id="adulto-usuario" type="text" required minlength="3" maxlength="40" pattern="[a-z0-9._\-]+"
+          autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="adulto-usuario-hint" />
+        <p class="hint" id="adulto-usuario-hint" data-i18n="coord.user_hint">Minúsculas, números, punto o guion. Con esto entra a la plataforma.</p>
+        <label for="adulto-email" data-i18n="coord.email_optional">Correo (opcional)</label>
+        <input id="adulto-email" type="email" maxlength="254" autocomplete="off" />
+        <button type="submit" data-i18n="coord.create">Crear cuenta</button>
+        <p class="error-msg" id="error-adulto" role="alert"></p>
+      </form>
+
+      <!-- Registrar niño -->
+      <form id="form-nino" class="form-crear oculto">
+        <label for="nino-nombre" data-i18n="coord.full_name">Nombre completo</label>
+        <input id="nino-nombre" type="text" required maxlength="120" autocomplete="off" />
+        <label for="nino-edad" data-i18n="kids.age">Edad</label>
+        <input id="nino-edad" type="number" min="3" max="15" value="7" required />
+        <label for="nino-pin"><span aria-hidden="true">🔒</span> <span data-i18n="teacher.pin_label">PIN (exactamente 4 números)</span></label>
+        <input id="nino-pin" class="campo-pin" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" placeholder="1234" required autocomplete="off" />
+        <p class="hint" data-i18n="teacher.pin_hint"></p>
+        <label for="nino-docente" data-i18n="coord.teacher">Profesor</label>
+        <select id="nino-docente"></select>
+        <fieldset class="lista-casillas">
+          <legend data-i18n="coord.parents_of">Padres o acudientes</legend>
+          <div id="nino-padres"></div>
+        </fieldset>
+        <label class="casilla">
+          <input id="nino-autoriza" type="checkbox" required />
+          <span><span data-i18n="coord.consent">Tengo la autorización del padre, madre o acudiente para registrar los datos del niño (Ley 1581 de 2012).</span>
+          <a href="terminos.html" target="_blank" data-i18n="terms.policy_link">Ver política de datos</a></span>
+        </label>
+        <button type="submit" data-i18n="kids.register">Registrar niño</button>
+        <p class="error-msg" id="error-nino" role="alert"></p>
+      </form>
+
+      <p class="hint" id="vista-ayuda"></p>
+      <div id="vista-contenido"><p class="hint" data-i18n="activity.loading">Cargando...</p></div>
+    </div>
+
+    <div class="card">
+      <h2>🗂️ <span data-i18n="coord.audit_title">Auditoría</span></h2>
+      <p class="hint" data-i18n="coord.audit_hint">Registro de ingresos, cuentas creadas, lecciones y cambios, para revisar qué pasó y cuándo.</p>
+      <button type="button" class="secundario" id="btn-auditoria" data-i18n="coord.audit_download">⬇️ Descargar auditoría (CSV)</button>
+      <p class="error-msg" id="error-auditoria" role="alert"></p>
+    </div>
+  </main>
+
+  <dialog class="card dialogo" id="dialogo">
+    <form method="dialog" id="dialogo-form">
+      <h2 id="dialogo-titulo"></h2>
+      <div id="dialogo-cuerpo"></div>
+      <p class="error-msg" id="dialogo-error" role="alert"></p>
+      <div class="acciones-dialogo">
+        <button type="button" class="secundario" id="dialogo-cancelar" data-i18n="password.cancel">Cancelar</button>
+        <button type="submit" id="dialogo-aceptar"></button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/pages/coordinador.js"></script>
+</body>
+</html>

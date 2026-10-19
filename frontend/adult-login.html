@@ -24,56 +24,35 @@
     <div class="card" id="card-login">
       <h2 data-i18n="login.title">Iniciar sesión</h2>
       <form id="form-login">
-        <label for="email" data-i18n="login.email">Correo</label>
-        <input id="email" type="email" required autocomplete="username" />
+        <label for="usuario" data-i18n="login.user">Usuario</label>
+        <input id="usuario" type="text" required autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="254" />
         <label for="password" data-i18n="login.password">Contraseña</label>
-        <input id="password" type="password" required autocomplete="current-password" />
+        <input id="password" type="password" required autocomplete="current-password" maxlength="128" />
         <button type="submit" data-i18n="login.submit">Entrar</button>
       </form>
       <p class="error-msg" id="error-login" role="alert"></p>
-      <p class="hint" data-i18n="login.forgot">¿Olvidaste tu contraseña? Pídele al administrador de la plataforma una contraseña temporal.</p>
+      <p class="hint" data-i18n="login.who_creates">Tu usuario y tu primera contraseña te los da el coordinador de la plataforma.</p>
+      <p class="hint" data-i18n="login.forgot">¿Olvidaste tu contraseña? Pídele al coordinador una contraseña temporal.</p>
     </div>
 
-    <div class="card" id="card-registro">
-      <h2 data-i18n="login.create_account">Crear cuenta</h2>
-      <form id="form-registro">
-        <label for="reg-nombre" data-i18n="login.name">Nombre</label>
-        <input id="reg-nombre" type="text" required />
-        <label for="reg-email" data-i18n="login.email">Correo</label>
-        <input id="reg-email" type="email" required autocomplete="username" />
-        <label for="reg-password" data-i18n="login.password">Contraseña</label>
-        <input id="reg-password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" aria-describedby="reg-password-hint" />
-        <p class="hint" id="reg-password-hint" data-i18n="login.password_hint">Mínimo 8 caracteres.</p>
+    <div class="card oculto" id="card-primer-ingreso">
+      <h2>🔑 <span data-i18n="first.title">Crea tu contraseña</span></h2>
+      <p class="hint" data-i18n="first.hint">Es tu primer ingreso: cambia la contraseña temporal por una que solo tú sepas.</p>
+      <form id="form-primer-ingreso">
+        <label for="primera-nueva" data-i18n="password.new">Contraseña nueva</label>
+        <input id="primera-nueva" type="password" required minlength="8" maxlength="128" autocomplete="new-password" aria-describedby="primera-hint" />
+        <p class="hint" id="primera-hint" data-i18n="login.password_hint">Mínimo 8 caracteres.</p>
+        <label for="primera-repetir" data-i18n="password.repeat">Repite la contraseña nueva</label>
+        <input id="primera-repetir" type="password" required minlength="8" maxlength="128" autocomplete="new-password" />
         <label class="casilla">
-          <input id="reg-terminos" type="checkbox" required />
+          <input id="primera-terminos" type="checkbox" required />
           <span><span data-i18n="terms.accept">He leído y acepto los</span>
           <a href="terminos.html" target="_blank" data-i18n="terms.link">Términos de uso y la Política de datos</a>.</span>
         </label>
-        <button type="submit" data-i18n="login.create_account">Crear cuenta</button>
+        <button type="submit" data-i18n="first.save">Guardar y entrar</button>
       </form>
-      <p class="error-msg" id="error-registro" role="alert"></p>
+      <p class="error-msg" id="error-primer-ingreso" role="alert"></p>
     </div>
-
-    <details class="card" id="card-dev">
-      <summary data-i18n="login.dev_mode">Modo de prueba (sin contraseña)</summary>
-      <p class="hint" data-i18n="login.dev_hint">Solo funciona si el backend corre con USE_FAKE_DB=true.</p>
-
-      <form id="form-dev-login">
-        <label for="dev-id" data-i18n="login.dev_id">ID de usuario</label>
-        <input id="dev-id" type="text" required />
-        <button type="submit" data-i18n="login.dev_login">Entrar (prueba)</button>
-      </form>
-      <p class="error-msg" id="error-dev-login"></p>
-
-      <hr />
-
-      <form id="form-dev-registro">
-        <label for="dev-reg-nombre" data-i18n="login.name">Nombre</label>
-        <input id="dev-reg-nombre" type="text" required />
-        <button type="submit" class="secundario" data-i18n="login.dev_create">Crear cuenta de prueba</button>
-      </form>
-      <p class="hint" id="dev-registro-resultado"></p>
-    </details>
   </main>
 
   <script type="module" src="js/pages/adult-login.js"></script>

@@ -13,7 +13,7 @@ despliegue (no es código de la app) — ❌ Pendiente.
 
 | ID | Estado | Dónde vive | Notas |
 |---|---|---|---|
-| RF01 | ✅ | `routers/usuarios.py` (`crear_usuario`, `login-pin`, `login-dev`), `kid-login.html` | Cada estudiante recibe un código corto único de 6 caracteres (`codigo_acceso`, sin caracteres ambiguos como 0/O o 1/I) que el docente ve en su panel; el niño lo escribe y luego marca su PIN de exactamente 4 dígitos. |
+| RF01 | ✅ | `routers/coordinador.py`, `routers/usuarios.py` (`login`, `login-pin`), `coordinador.html`, `kid-login.html` | El coordinador crea todas las cuentas: docentes y padres con usuario y contraseña temporal (la cambian al primer ingreso), y niños con un código corto único de 6 caracteres (`codigo_acceso`, sin caracteres ambiguos como 0/O o 1/I) y un PIN de exactamente 4 dígitos. |
 | RF02 | ✅ | `kid-login.html`, `kid-dashboard.html`, `activity.html` | Interfaz con emojis grandes, colores vivos y navegación de un toque. |
 | RF03 | ✅ | `app/curriculo.py`, `services/catalogo_service.py`, `services/lecciones_service.py`, `activity.html` | Temario estilo Duolingo (sin audio) en tres apartados que el niño elige: **Vocabulario** (11 mundos × 5 lecciones), **Gramática** (10 temas × 4 lecciones, con tarjeta "Cómo se usa") y **Del profe** (mundos y preguntas de selección múltiple que crea el docente). 95 lecciones fijas de 8 preguntas (760). Un intento por pregunta; 5 vidas que se recargan cada 30 min. |
 | RF04 | ✅ | `services/lecciones_service.py` | Dos caminos independientes (vocabulario y gramática). En cada uno la plataforma elige la siguiente lección (o un repaso de la más débil cada 3 lecciones nuevas); el niño no puede saltar a lecciones bloqueadas, pero sí repetir las aprobadas como práctica (sin puntos). El docente ve a qué horas estuvo activo cada estudiante. |
@@ -22,7 +22,7 @@ despliegue (no es código de la app) — ❌ Pendiente.
 | RF07 | ✅ | `parent.html`, `routers/usuarios.py` (`/hijos`) | Incluye el bug corregido de `acudientes_ids` (ver más abajo). |
 | RF08 | ✅ | `activity.js` (modal + confeti CSS), `js/sonidos.js` | Feedback visual inmediato y **auditivo**: sonidos de acierto, error, lección ganada y perdida, generados con Web Audio (sin archivos de audio), con botón 🔊/🔇 que se recuerda. |
 | RF09 | ✅ | `intentos_leccion`, `services/lecciones_service.py` (`resumen_aprendizaje`), `teacher.html` | Guarda cada intento con sus errores y expone precisión por tema, últimos intentos, **errores frecuentes** (qué respondió y cuál era la correcta), activos hoy y necesitan ayuda. |
-| RF11 | ✅ | `services/vinculacion_service.py`, `estudiantes-ui.js` (paneles de padre y docente) | El padre o docente escribe el código y el PIN del niño (demuestra que tiene acceso a su cuenta) y queda vinculado al instante; un niño puede tener varios acudientes; tras 5 intentos fallidos el código se bloquea 10 minutos. Si el niño no existe, el padre o docente lo registra desde el mismo panel. |
+| RF11 | ✅ | `routers/coordinador.py`, `coordinador.html` | El coordinador asigna a cada niño su docente y uno o varios padres o acudientes, y puede cambiarlos cuando quiera. |
 
 ## Requisitos no funcionales
 
@@ -93,7 +93,7 @@ despliegue (no es código de la app) — ❌ Pendiente.
 |---|---|---|
 | RNF-AUD-01/04 | ✅ | Cada intento de login por PIN (éxito o fallo) se registra en `auditoria`. |
 | RNF-AUD-02 | ✅ | `historial_actividades` guarda cada intento del estudiante. |
-| RNF-AUD-03 | ✅ | Creación de actividades, feedback y vinculaciones quedan auditadas con el actor. |
+| RNF-AUD-03 | ✅ | Creación de cuentas y actividades, asignaciones, cambios de contraseña o PIN, feedback y desactivaciones quedan auditados con el actor. |
 | RNF-AUD-05 | ✅ | Cada recompensa generada se registra en `auditoria`. |
 | RNF-AUD-06 | ✅ | Manejador global de excepciones. |
 | RNF-AUD-07 | ✅ | `GET /api/auditoria/exportar.csv`, solo `admin`. |
@@ -147,14 +147,14 @@ despliegue (no es código de la app) — ❌ Pendiente.
 |---|---|---|---|
 | Términos de uso y política de datos | ✅ | `frontend/terminos.html` | Versión 1.0, enlazada desde la pantalla inicial. Falta completar el correo de contacto de los responsables. |
 | Aceptación de términos (adultos) | ✅ | `adult-login.html`, `routers/usuarios.py` | Casilla obligatoria; la API rechaza el registro sin ella y guarda `terminos_aceptados` (versión y fecha). |
-| Autorización de datos del menor | ✅ | `teacher.html`, `parent.html`, `routers/usuarios.py` | Casilla obligatoria al registrar un niño; se guarda `autorizacion_datos` (quién, rol, fecha, versión). Los niños no pueden crear su propia cuenta. |
+| Autorización de datos del menor | ✅ | `coordinador.html`, `routers/coordinador.py` | Casilla obligatoria al registrar un niño; se guarda quién la dio, con qué rol, cuándo y bajo qué versión de la política. Nadie crea su propia cuenta. |
 | Derechos del titular (conocer, rectificar, suprimir) | 🟡 | `terminos.html` §2.6 | Se ejercen escribiendo al contacto del proyecto; no hay todavía un botón de "eliminar mis datos" en la app. |
 
 ## Simplificaciones deliberadas (para no inflar el alcance)
 
-- El **modo de prueba** (`USE_FAKE_DB=true`, `POST /api/usuarios/login-dev`) existe
-  solo para poder desarrollar y probar todo el flujo sin la base de datos real
-  ni contraseñas; está deshabilitado por defecto y el backend lo rechaza explícitamente si
+- El **modo de prueba** (`USE_FAKE_DB=true`, con un coordinador `coordinador` / `coordinador123` en una base en memoria) existe
+  solo para poder desarrollar y probar todo el flujo sin la base de datos real;
+  está deshabilitado por defecto y el backend lo rechaza explícitamente si
   `USE_FAKE_DB` no está activo.
 - El **PIN de los estudiantes** se guarda con `sha256(pepper + pin)`. Para un PIN de
   4 dígitos esto no es a prueba de fuerza bruta offline si alguien roba la base de

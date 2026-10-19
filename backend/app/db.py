@@ -127,6 +127,10 @@ _CAMBIOS_DE_ESQUEMA = [
     "DROP INDEX IF EXISTS ix_usuarios_email",
     "CREATE UNIQUE INDEX IF NOT EXISTS ux_usuarios_email ON usuarios (email)",
     "DROP TABLE IF EXISTS intentos_pin",
+    # El coordinador crea las cuentas; los adultos entran con usuario y contraseña.
+    "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS usuario VARCHAR(40)",
+    "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS debe_cambiar_password BOOLEAN NOT NULL DEFAULT false",
+    "CREATE UNIQUE INDEX IF NOT EXISTS ux_usuarios_usuario ON usuarios (usuario)",
 ]
 
 

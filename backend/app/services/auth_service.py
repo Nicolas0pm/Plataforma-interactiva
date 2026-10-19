@@ -6,13 +6,12 @@ Todos los tokens los emite esta misma API (JWT HS256) y se envían como
 
 - **Estudiantes**: entran con su código de acceso + PIN de 4 dígitos (RF01 CA3).
   La sesión dura `JWT_PIN_EXP_MINUTOS` minutos (RNF-SEG-04).
-- **Docentes, padres y admin**: entran con correo + contraseña. La contraseña se guarda
-  como hash scrypt (con sal propia), nunca en texto plano. La sesión dura
-  `JWT_ADULTO_EXP_MINUTOS` minutos.
-- **Modo de prueba** (`USE_FAKE_DB=true`): además existe un login de desarrollo sin
-  contraseña (`crear_token_dev`), deshabilitado en cualquier otro caso.
+- **Docentes, padres y coordinadores (rol `admin`)**: el coordinador les crea la cuenta
+  con una contraseña temporal y entran con su **usuario** (o su correo) + contraseña.
+  La contraseña se guarda como hash scrypt (con sal propia), nunca en texto plano. La
+  sesión dura `JWT_ADULTO_EXP_MINUTOS` minutos.
 
-Tras `MAX_FALLOS` intentos fallidos seguidos, el código (o el correo) queda bloqueado
+Tras `MAX_FALLOS` intentos fallidos seguidos, el código (o el usuario) queda bloqueado
 `BLOQUEO_MINUTOS` minutos, para que nadie pueda probar contraseñas o PIN sin límite.
 
 `current_user()` revisa la firma y el vencimiento del token y que la cuenta siga activa.
@@ -77,19 +76,20 @@ def normalizar_email(email: str) -> str:
     return email.strip().lower()
 
 
+# Sin caracteres que se confundan al dictarlos (0/O, 1/l/I).
+_ALFABETO_TEMPORAL = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"
+
+
+def password_temporal() -> str:
+    """Contraseña aleatoria de 12 caracteres que el coordinador le entrega a un adulto."""
+    return "".join(secrets.choice(_ALFABETO_TEMPORAL) for _ in range(12))
+
+
 def crear_token_sesion(id_usuario: str, rol: str) -> str:
     minutos = _settings.jwt_pin_exp_minutos if rol == "estudiante" else _settings.jwt_adulto_exp_minutos
     momento = ahora()
     payload = {"sub": id_usuario, "rol": rol, "iat": momento, "exp": momento + timedelta(minutes=minutos)}
     return jwt.encode(payload, _settings.jwt_secret, algorithm="HS256")
-
-
-def crear_token_dev(id_usuario: str, rol: str) -> str:
-    """Login de desarrollo para docentes/padres/admin sin contraseña.
-    Solo funciona con USE_FAKE_DB=true; en cualquier otro caso está deshabilitado."""
-    if not _settings.use_fake_db:
-        raise HTTPException(403, "El login de desarrollo solo está disponible con USE_FAKE_DB=true")
-    return crear_token_sesion(id_usuario, rol)
 
 
 def revisar_bloqueo(db: Session, clave: str) -> None:
@@ -114,20 +114,31 @@ def anotar_intento(db: Session, clave: str, correcto: bool) -> None:
     intentos.fallos, intentos.bloqueado_hasta = (0 if bloqueo else fallos), bloqueo
 
 
-def verificar_credenciales(db: Session, email: str, password: str) -> Usuario:
-    """El adulto dueño de ese correo y contraseña, o 401 (mismo mensaje si el correo no
-    existe, para no revelar qué correos están registrados)."""
-    email = normalizar_email(email)
-    clave = f"correo:{email}"
+def verificar_credenciales(db: Session, identificador: str, password: str) -> Usuario:
+    """El adulto dueño de ese usuario (o correo, si trae "@") y contraseña, o 401 (mismo
+    mensaje si la cuenta no existe, para no revelar qué usuarios están registrados)."""
+    identificador = identificador.strip().lower()
+    clave = f"login:{identificador}"
     revisar_bloqueo(db, clave)
-    usuario = db.scalar(select(Usuario).where(Usuario.email == email))
+    columna = Usuario.email if "@" in identificador else Usuario.usuario
+    usuario = db.scalar(select(Usuario).where(columna == identificador))
     guardado = usuario.password_hash if usuario else None
     correcto = verificar_password(password, guardado or _HASH_DE_RELLENO) and guardado is not None
     correcto = correcto and usuario.activo and usuario.rol != "estudiante"
     anotar_intento(db, clave, correcto)
     if not correcto:
-        raise HTTPException(401, "Correo o contraseña incorrectos")
+        raise HTTPException(401, "Usuario o contraseña incorrectos")
     return usuario
+
+
+def crear_coordinador_de_prueba(db: Session) -> None:
+    """Solo modo de prueba: usuario `coordinador`, contraseña `coordinador123`."""
+    if not _settings.use_fake_db:
+        raise RuntimeError("El coordinador de prueba solo existe con USE_FAKE_DB=true")
+    if db.scalar(select(Usuario.id_usuario).where(Usuario.usuario == "coordinador")) is None:
+        db.add(Usuario(nombre="Coordinación (prueba)", edad=0, rol="admin", usuario="coordinador",
+                       password_hash=hash_password("coordinador123"), activo=True,
+                       terminos_version=_settings.terminos_version, terminos_fecha=ahora()))
 
 
 def extraer_token_bearer(authorization: str | None) -> str:

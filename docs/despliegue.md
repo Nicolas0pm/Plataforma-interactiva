@@ -62,25 +62,25 @@ Cada servicio se vuelve a desplegar solo con cada `git push`, y uno no afecta al
 > petición después tarda unos 30–50 segundos. Para la sustentación, abre la URL de la API
 > un minuto antes. El sitio estático no se duerme.
 
-## 2. Contraseñas de los docentes y padres
+## 2. El primer coordinador
 
-La plataforma no envía correos. Para darle una contraseña a un adulto (por ejemplo, a las
-cuentas que venían de Firebase, que no traen la suya, o a alguien que la olvidó), desde
-`backend/` con `DATABASE_URL` en `.env`:
+Las cuentas las crea el **coordinador** desde su panel (`coordinador.html`). El primero se
+crea desde `backend/`, con `DATABASE_URL` en `.env`:
 
 ```bash
-.venv/bin/python scripts/asignar_password.py correo@ejemplo.com
+.venv/bin/python scripts/asignar_password.py coordinacion --crear-admin "Nombre del coordinador"
 ```
 
-Imprime una contraseña temporal; entrégasela a la persona y pídele que la cambie en su panel
-(botón **🔑 Contraseña**). Para crear una cuenta de administrador:
-`scripts/asignar_password.py admin@ejemplo.com --crear-admin "Nombre"`.
+Imprime su usuario y una contraseña temporal; al entrar por primera vez le pide cambiarla
+y aceptar los términos. Desde ahí, el coordinador crea a los profesores, padres y niños y
+les entrega sus datos. El mismo script sirve si el único coordinador olvida su contraseña:
+`scripts/asignar_password.py coordinacion`.
 
 ## 3. Comprobación final
 
 - Abre <https://plataforma-ingles-kids.onrender.com> y entra como niño (`2MFE4D` / `1234`).
 - Entra como docente y como padre con sus correos.
-- Crea una cuenta nueva de docente: debe entrar directo a su panel.
+- Entra como coordinador, crea un docente de prueba y entra con él: debe pedir cambiar la contraseña.
 - Si algo falla con un error de CORS en la consola del navegador, revisa que
   `CORS_ORIGINS` en Render tenga exactamente la URL del frontend (sin `/` al final).
 

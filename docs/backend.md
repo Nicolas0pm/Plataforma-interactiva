@@ -88,22 +88,30 @@ petición, revisan permisos y llaman a un servicio; los servicios tienen las reg
 
 [`auth_service.py`](../backend/app/services/auth_service.py) decide quién es cada petición:
 
-- **Docentes y padres** inician sesión con **correo + contraseña** (`POST /api/usuarios/login`):
+- **Nadie se registra solo.** El **coordinador** (rol `admin`) crea todas las cuentas desde su
+  panel ([`routers/coordinador.py`](../backend/app/routers/coordinador.py)): docentes, padres,
+  otros coordinadores y niños, y asigna a cada niño su docente y sus acudientes. El primer
+  coordinador se crea desde la terminal con
+  `python scripts/asignar_password.py <usuario> --crear-admin "Nombre"`.
+- **Docentes, padres y coordinadores** inician sesión con **usuario + contraseña**
+  (`POST /api/usuarios/login`; también sirve el correo, si lo tienen):
+  - Entran la primera vez con una **contraseña temporal** que les da el coordinador (se
+    muestra una sola vez). Antes de usar su panel la cambian y aceptan los términos.
   - La contraseña (mínimo 8 caracteres) se guarda como **hash scrypt** con sal propia, nunca
     en texto plano.
-  - Un correo inexistente y una contraseña equivocada dan la misma respuesta (y tardan lo
-    mismo), para no revelar qué correos tienen cuenta.
-  - Tras 5 intentos fallidos seguidos, ese correo se bloquea 10 minutos.
+  - Un usuario inexistente y una contraseña equivocada dan la misma respuesta (y tardan lo
+    mismo), para no revelar qué usuarios existen.
+  - Tras 5 intentos fallidos seguidos, ese usuario se bloquea 10 minutos.
   - Si es correcto, la API entrega su propio token (JWT) que vence a las 8 horas
-    (`JWT_ADULTO_EXP_MINUTOS`). Puede cambiar su contraseña desde su panel.
-  - No hay correos: si alguien olvida su contraseña, el admin le asigna una temporal con
-    `python scripts/asignar_password.py <correo>`. Las cuentas de admin se crean con el
-    mismo script (`--crear-admin "Nombre"`); nadie puede registrarse como admin.
+    (`JWT_ADULTO_EXP_MINUTOS`). Puede cambiar su contraseña desde su panel (🔑).
+  - No hay correos: si alguien olvida su contraseña, el coordinador le genera una temporal
+    nueva desde su panel.
 - **Niños** entran con **código + PIN** ([`estudiantes_service.py`](../backend/app/services/estudiantes_service.py)):
   - El código es de 6 letras y números sin caracteres confusos (sin 0/O ni 1/I).
   - El PIN (4 dígitos) se guarda **cifrado** (hash con un "pepper" secreto), nunca en texto.
   - Tras 5 PIN equivocados, el código se bloquea 10 minutos.
   - Si es correcto, la API entrega su propio token (JWT) que vence a los 30 minutos.
+  - Si olvida el PIN, el coordinador le pone uno nuevo.
 - Con cada petición se revisa que el token sea válido y la cuenta siga activa: desactivar
   una cuenta cierra sus sesiones.
 - Cada ruta exige un rol (`require_role`) y, para datos de un niño, que quien pregunta sea el
@@ -172,12 +180,19 @@ La documentación interactiva está en `/docs` (Swagger) cuando corre la API.
 
 | Ruta | Quién | Para qué |
 |---|---|---|
-| `POST /api/usuarios` | adultos | Registrarse (adulto) o registrar un niño |
+| `GET /api/coordinador/usuarios` | coordinador | Todas las cuentas, por rol |
+| `POST /api/coordinador/adultos` | coordinador | Crear docente, padre o coordinador (devuelve la contraseña temporal) |
+| `POST /api/coordinador/estudiantes` | coordinador | Registrar un niño con su PIN, docente y acudientes |
+| `PATCH /api/coordinador/estudiantes/{id}` | coordinador | Cambiar el docente o los acudientes de un niño |
+| `POST /api/coordinador/usuarios/{id}/restablecer-password` | coordinador | Contraseña temporal nueva |
+| `POST /api/coordinador/estudiantes/{id}/pin` | coordinador | PIN nuevo |
+| `PATCH /api/coordinador/usuarios/{id}` | coordinador | Activar o desactivar una cuenta |
+| `POST /api/usuarios/login` | adultos | Entrar con usuario + contraseña |
+| `POST /api/usuarios/cambiar-password` | adultos | Cambiar la contraseña (y aceptar los términos en el primer ingreso) |
 | `POST /api/usuarios/login-pin` | niño | Entrar con código + PIN |
 | `GET /api/usuarios/sesion` | adultos | Perfil de quien inició sesión |
 | `GET /api/usuarios/padre/{id}/hijos` | padre | Hijos vinculados |
 | `PUT /api/usuarios/docente/{id}/dispensador` | docente | Máquina de premios del salón |
-| `POST /api/vinculacion` | adultos | Vincularse a un niño con su código + PIN |
 | `GET /api/lecciones/jugar` | niño | La lección que le toca (`?seccion=`) o repetir una (`?unidad=&leccion=`) |
 | `POST /api/lecciones/resultado` | niño | Enviar respuestas; la API califica |
 | `GET /api/lecciones/resumen/{id}` | niño, docente, padre | Camino, precisión, intentos, errores |

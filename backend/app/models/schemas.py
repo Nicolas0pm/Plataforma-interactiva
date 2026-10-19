@@ -10,6 +10,9 @@ IdUsuario = Annotated[str, Field(max_length=40)]
 Email = Annotated[str, Field(max_length=254, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")]
 # Contraseña de adultos: mínimo 8 caracteres; el máximo evita gastar CPU en el hash.
 Password = Annotated[str, Field(min_length=8, max_length=128)]
+# Usuario de login de los adultos: corto, en minúsculas, sin espacios (p. ej. "mgarcia").
+NombreUsuario = Annotated[str, Field(min_length=3, max_length=40, pattern=r"^[a-z0-9._-]+$")]
+Pin = Annotated[str, Field(pattern=r"^\d{4}$", description="Exactamente 4 dígitos")]
 
 
 class UsuarioBase(BaseModel):
@@ -30,30 +33,41 @@ class UsuarioBase(BaseModel):
     )
 
 
-class UsuarioCreate(UsuarioBase):
-    pin_acceso: Optional[str] = Field(
-        default=None,
-        pattern=r"^\d{4}$",
-        description="Solo para estudiantes: PIN de exactamente 4 dígitos (el teclado del "
-        "login infantil solo admite 4). La API lo convierte a hash antes de guardarlo; "
-        "nunca se devuelve ni se almacena en texto plano.",
-    )
-    password: Optional[Password] = Field(
-        default=None,
-        description="Docente/padre/admin: contraseña para entrar con su correo. Se guarda "
-        "como hash (scrypt) y nunca se devuelve.",
-    )
-    acepta_terminos: bool = Field(
-        default=False,
-        description="Docente/padre/admin: acepta los Términos de uso y la Política de datos "
-        "(frontend/terminos.html). Obligatorio al auto-registrarse.",
-    )
+class CrearAdulto(BaseModel):
+    """El coordinador crea la cuenta de un docente, un padre u otro coordinador."""
+    nombre: str = Field(min_length=1, max_length=120)
+    rol: Literal["docente", "padre", "admin"]
+    usuario: NombreUsuario
+    email: Optional[Email] = None
+
+
+class CrearEstudiante(BaseModel):
+    """El coordinador registra a un niño (RF01) y le asigna su docente y sus acudientes."""
+    nombre: str = Field(min_length=1, max_length=120)
+    edad: int = Field(ge=3, le=15)
+    pin: Pin
+    docente_id: Optional[IdUsuario] = None
+    acudientes_ids: list[IdUsuario] = Field(default_factory=list)
     autoriza_datos_menor: bool = Field(
         default=False,
-        description="Estudiante: el adulto que lo registra declara contar con la autorización "
-        "del padre/madre o acudiente para tratar los datos del niño (Ley 1581 de 2012, "
-        "Decreto 1377 de 2013). Obligatorio al crear un estudiante.",
+        description="El coordinador declara contar con la autorización del padre/madre o "
+        "acudiente para tratar los datos del niño (Ley 1581 de 2012, Decreto 1377 de 2013).",
     )
+
+
+class AsignarEstudiante(BaseModel):
+    """Cambia el docente y/o los acudientes de un niño (lo que no se envía no cambia)."""
+    docente_id: Optional[IdUsuario] = None
+    quitar_docente: bool = False
+    acudientes_ids: Optional[list[IdUsuario]] = None
+
+
+class CambiarEstado(BaseModel):
+    activo: bool
+
+
+class NuevoPin(BaseModel):
+    pin: Pin
 
 
 class UsuarioOut(UsuarioBase):
@@ -67,17 +81,23 @@ class UsuarioOut(UsuarioBase):
         description="Solo estudiantes: código corto (6 caracteres) que el niño escribe "
         "en el login junto con su PIN.",
     )
+    usuario: Optional[str] = Field(default=None, description="Adultos: su usuario de login.")
 
 
 class LoginRequest(BaseModel):
-    """Docente/padre/admin: inicio de sesión con correo y contraseña."""
-    email: str = Field(max_length=254)
+    """Docente/padre/coordinador: inicio de sesión con su usuario (o su correo) y contraseña."""
+    usuario: str = Field(max_length=254)
     password: str = Field(max_length=128)
 
 
 class CambiarPassword(BaseModel):
     actual: str = Field(max_length=128)
     nueva: Password
+    acepta_terminos: bool = Field(
+        default=False,
+        description="Obligatorio en el primer ingreso: acepta los Términos de uso y la "
+        "Política de datos (frontend/terminos.html).",
+    )
 
 
 class PinLoginRequest(BaseModel):
@@ -86,26 +106,15 @@ class PinLoginRequest(BaseModel):
     pin: str
 
 
-class DevLoginRequest(BaseModel):
-    """Login de desarrollo (solo con USE_FAKE_DB=true) para docentes/padres/admin
-    sin contraseña."""
-    id_usuario: IdUsuario
-    rol: Literal["docente", "padre", "admin"]
-
-
 class SesionOut(BaseModel):
     token: str
     id_usuario: str
     rol: Rol
     nombre: Optional[str] = None
     codigo_acceso: Optional[str] = None
-
-
-class VincularConPin(BaseModel):
-    """RF07/RF11: un padre o docente se vincula con un estudiante que ya existe,
-    demostrando que tiene acceso a su cuenta (código de acceso + PIN del niño)."""
-    codigo: str = Field(max_length=20)
-    pin: str
+    # Adultos: true con la contraseña temporal que les dio el coordinador; deben cambiarla
+    # (y aceptar los términos) antes de usar su panel.
+    debe_cambiar_password: bool = False
 
 
 class ActividadCreate(BaseModel):

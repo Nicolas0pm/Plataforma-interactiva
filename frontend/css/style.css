@@ -1897,3 +1897,108 @@ dialog.dialogo::backdrop {
   justify-content: flex-end;
   margin-top: 1rem;
 }
+
+/* ======================================================================
+   Panel del coordinador
+   ====================================================================== */
+.vista-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.vista-encabezado h2 {
+  margin: 0;
+}
+.vista-encabezado button {
+  width: auto;
+  margin: 0;
+}
+.form-crear {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px dashed var(--borde);
+  border-radius: var(--radio);
+}
+.lista-casillas {
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 0.5rem 0.75rem;
+  margin: 0.75rem 0;
+}
+.lista-casillas legend {
+  font-weight: 600;
+  padding: 0 0.25rem;
+}
+.lista-casillas .casilla {
+  margin: 0.35rem 0;
+}
+button.pequeno {
+  min-height: 36px;
+  width: auto;
+  margin: 0.15rem 0.25rem 0.15rem 0;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.85rem;
+}
+.tabla-cuentas td {
+  vertical-align: middle;
+}
+.tabla-cuentas select {
+  margin: 0;
+  min-width: 9rem;
+}
+.tabla-cuentas tr.inactivo td {
+  opacity: 0.55;
+}
+.acciones-fila {
+  white-space: nowrap;
+}
+/* En el diálogo del coordinador las credenciales van una debajo de otra: una contraseña
+   temporal (12 caracteres) no cabe al lado del usuario. */
+.dialogo .credenciales {
+  grid-template-columns: 1fr;
+}
+.dialogo .credencial strong {
+  font-size: 1.5rem;
+  letter-spacing: 0.1em;
+  overflow-wrap: anywhere;
+  text-align: center;
+  font-family: ui-monospace, "Cascadia Mono", "DejaVu Sans Mono", monospace;
+}
+/* En celular, cada cuenta es una tarjeta en vez de una fila de tabla. */
+@media (max-width: 640px) {
+  .tabla-cuentas thead {
+    display: none;
+  }
+  .tabla-cuentas,
+  .tabla-cuentas tbody,
+  .tabla-cuentas tr,
+  .tabla-cuentas td {
+    display: block;
+    width: 100%;
+  }
+  .tabla-cuentas tr {
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .tabla-cuentas td {
+    border: none;
+    padding: 0.3rem 0;
+  }
+  .tabla-cuentas td[data-etiqueta]::before {
+    content: attr(data-etiqueta);
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    opacity: 0.7;
+  }
+  .tabla-cuentas select {
+    width: 100%;
+  }
+  .acciones-fila {
+    white-space: normal;
+  }
+}

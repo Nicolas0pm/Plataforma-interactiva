@@ -32,8 +32,11 @@ _FK_USUARIO = "usuarios.id_usuario"
 
 class Usuario(Base):
     __tablename__ = "usuarios"
-    # El correo es el usuario de login de los adultos: no se puede repetir.
-    __table_args__ = (Index("ux_usuarios_email", "email", unique=True),)
+    # El usuario y el correo identifican a un adulto al iniciar sesión: no se repiten.
+    __table_args__ = (
+        Index("ux_usuarios_usuario", "usuario", unique=True),
+        Index("ux_usuarios_email", "email", unique=True),
+    )
 
     id_usuario: Mapped[str] = mapped_column(String(40), primary_key=True, default=nuevo_id)
     nombre: Mapped[str] = mapped_column(String(120))
@@ -42,9 +45,13 @@ class Usuario(Base):
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
     creado_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora)
 
-    # Adultos (docente / padre / admin): entran con correo y contraseña.
-    email: Mapped[Optional[str]] = mapped_column(String(254))  # siempre en minúsculas
+    # Adultos (docente / padre / admin = coordinador): los crea el coordinador y entran
+    # con usuario y contraseña.
+    usuario: Mapped[Optional[str]] = mapped_column(String(40))  # siempre en minúsculas
+    email: Mapped[Optional[str]] = mapped_column(String(254))  # opcional, en minúsculas
     password_hash: Mapped[Optional[str]] = mapped_column(String(200))  # scrypt, nunca la contraseña
+    # True mientras tenga la contraseña temporal que le dio el coordinador.
+    debe_cambiar_password: Mapped[bool] = mapped_column(Boolean, default=False)
     terminos_version: Mapped[Optional[str]] = mapped_column(String(10))
     terminos_fecha: Mapped[Optional[datetime]] = mapped_column(FechaUTC)
     device_id_aula: Mapped[Optional[str]] = mapped_column(String(60))  # solo docentes
@@ -83,6 +90,7 @@ class Usuario(Base):
             "activo": self.activo,
             "creado_en": self.creado_en,
             "codigo_acceso": self.codigo_acceso,
+            "usuario": self.usuario,
         }
 
 
@@ -98,7 +106,7 @@ class Acudiente(Base):
 
 class IntentoFallido(Base):
     """Intentos fallidos seguidos de iniciar sesión (bloqueo temporal). `clave` es
-    "pin:<código de acceso>" para los niños y "correo:<correo>" para los adultos."""
+    "pin:<código de acceso>" para los niños y "login:<usuario o correo>" para los adultos."""
 
     __tablename__ = "intentos_fallidos"
 

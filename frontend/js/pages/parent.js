@@ -1,12 +1,11 @@
 import { apiFetch } from "../api.js";
-import { montarPestanas, montarRegistrar, montarVincular } from "../estudiantes-ui.js";
 import { cuando, esc, porcentaje } from "../html.js";
 import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
 import { agregarCambioDePassword } from "../cambiar-password.js";
 import { exigirRol, salir } from "../session.js";
 
-const sesion = exigirRol("padre", "admin");
+const sesion = exigirRol("padre");
 inicializarLangToggle();
 
 document.getElementById("btn-logout").addEventListener("click", salir);
@@ -14,9 +13,6 @@ agregarCambioDePassword();
 
 if (sesion) {
   cargar(sesion);
-  montarPestanas();
-  montarVincular({ onVinculado: () => cargar(sesion) });
-  montarRegistrar({ onCreado: () => cargar(sesion) });
 }
 
 async function cargar(sesion) {

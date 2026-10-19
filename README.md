@@ -61,9 +61,9 @@ plataforma-ingles-kids/
    funcionan con `file://`). Usa `python frontend/dev-server.py` en vez de
    `python -m http.server`: este último no envía `Cache-Control`, así que el
    navegador puede seguir mostrando una versión vieja de un `.js`/`.css` después de
-   editarlo. Abre `http://localhost:5500/index.html` y usa las secciones "Modo de
-   prueba (sin contraseña)" de la pantalla de login para crear cuentas sin configurar
-   nada más.
+   editarlo. Abre `http://localhost:5500/index.html`, entra como coordinador (usuario
+   `coordinador`, contraseña `coordinador123`, solo en el modo de prueba) y crea desde ahí
+   profesores, padres y niños.
 
 **Para publicarlo en internet** (frontend y backend en Render, por separado, y la base de
 datos en Neon), sigue [`docs/despliegue.md`](docs/despliegue.md).

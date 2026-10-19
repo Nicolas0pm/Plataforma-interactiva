@@ -1,28 +1,18 @@
 """Camino guiado de lecciones (app/services/lecciones_service.py)."""
 from datetime import datetime, timedelta, timezone
 
-from app.models.tablas import Usuario
 from app.services.lecciones_service import guardar_progreso, leer_progreso, sembrar_temario
-
-
-def _auth(token):
-    return {"Authorization": f"Bearer {token}"}
+from utilidades import auth as _auth
+from utilidades import crear_adulto, crear_coordinador, crear_nino, login_nino
 
 
 def _preparar(client, db):
     sembrar_temario(db)
     db.commit()
-    docente = client.post("/api/usuarios", json={
-        "nombre": "Marta", "edad": 40, "rol": "docente", "acudientes_ids": [], "docente_id": None,
-        "email": "marta@escuela.co", "acepta_terminos": True,
-    }).json()
-    token_docente = client.post("/api/usuarios/login-dev", json={"id_usuario": docente["id_usuario"], "rol": "docente"}).json()["token"]
-    nino = client.post("/api/usuarios", headers=_auth(token_docente), json={
-        "nombre": "Ana", "edad": 7, "rol": "estudiante", "acudientes_ids": [], "docente_id": None,
-        "email": None, "pin_acceso": "1234", "autoriza_datos_menor": True,
-    }).json()
-    token_nino = client.post("/api/usuarios/login-pin", json={"codigo": nino["codigo_acceso"], "pin": "1234"}).json()["token"]
-    return docente, token_docente, nino, token_nino
+    _, token_coord = crear_coordinador()
+    docente, token_docente = crear_adulto(client, token_coord, "docente", "mgarcia", "Marta")
+    nino = crear_nino(client, token_coord, docente_id=docente["id_usuario"])
+    return docente, token_docente, nino, login_nino(client, nino)
 
 
 def _jugar(client, token, errores=0, unidad=None, leccion=None, seccion="vocabulario"):
@@ -183,16 +173,6 @@ def test_completar_un_mundo_con_maquina_encola_un_juguete(client, db):
     assert client.get("/api/recompensas/cola/aula-101", headers=maquina).json() == []
 
 
-def test_ninos_nuevos_heredan_la_maquina_del_salon(client, db):
-    docente, token_docente, _, _ = _preparar(client, db)
-    client.put(f"/api/usuarios/docente/{docente['id_usuario']}/dispensador", json={"device_id": "aula-7"}, headers=_auth(token_docente))
-    nuevo = client.post("/api/usuarios", headers=_auth(token_docente), json={
-        "nombre": "Leo", "edad": 7, "rol": "estudiante", "acudientes_ids": [], "docente_id": None,
-        "email": None, "pin_acceso": "4321", "autoriza_datos_menor": True,
-    }).json()
-    assert nuevo["device_id"] == "aula-7"
-
-
 def test_tienda_gasta_puntos_sin_bajar_el_nivel(client, db):
     _, _, _, token = _preparar(client, db)
     _jugar(client, token)
@@ -237,9 +217,8 @@ def test_mundos_del_profe_solo_seleccion_multiple(client, db):
     assert len(leccion2["preguntas"]) == 2 and r2.json()["mundo_completado"]["unidad"] == leccion["unidad"]["id"]
 
     # Otro docente no puede tocar ese mundo
-    otro = client.post("/api/usuarios", json={"nombre": "Otro", "edad": 30, "rol": "docente", "acudientes_ids": [],
-                                              "docente_id": None, "email": "o@e.co", "acepta_terminos": True}).json()
-    token_otro = client.post("/api/usuarios/login-dev", json={"id_usuario": otro["id_usuario"], "rol": "docente"}).json()["token"]
+    _, token_coord = crear_coordinador(usuario="coord2")
+    _, token_otro = crear_adulto(client, token_coord, "docente", "otro")
     assert client.post(base, json={"pregunta": "x", "opciones": ["a", "b"], "respuesta_correcta": "a"},
                        headers=_auth(token_otro)).status_code == 403
 

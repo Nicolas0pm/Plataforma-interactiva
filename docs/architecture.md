@@ -5,7 +5,7 @@
 | Capa | Tecnología | Responsabilidad |
 |---|---|---|
 | Frontend | HTML + CSS + JavaScript (vanilla) | UI para niños, docentes y padres. Consume la API vía `fetch`. |
-| Autenticación | Propia de la API (JWT) | Docentes, padres y administradores: correo + contraseña (hash scrypt). Niños: código + PIN. |
+| Autenticación | Propia de la API (JWT) | El coordinador crea todas las cuentas. Docentes, padres y coordinadores: usuario + contraseña (hash scrypt). Niños: código + PIN. |
 | API | Python (FastAPI) + SQLAlchemy | Reglas de negocio, validaciones, inicio de sesión, orquestación entre frontend y base de datos. |
 | Base de datos principal | PostgreSQL (Neon) | Usuarios, actividades, historial, resultados, recompensas, feedback. Relacional, ver `data-model.md`. |
 | Hardware (futuro) | ESP32 | Pregunta a la API por sus premios pendientes y activa el dispensador físico. |
@@ -47,14 +47,14 @@ en medio porque:
 Esta tabla ahora se hace cumplir en el backend (`app/services/auth_service.py`:
 `require_role`, `verificar_acceso_estudiante`), no es solo documentación aspiracional.
 Todo endpoint exige un token válido (el JWT que entrega la API al iniciar sesión con
-correo y contraseña, o con código y PIN) y, cuando aplica, la relación correcta.
+usuario y contraseña, o con código y PIN) y, cuando aplica, la relación correcta.
 
 | Rol | Puede |
 |---|---|
 | Estudiante | Ver su propio perfil, jugar actividades, ver su propio progreso y recompensas |
-| Docente | Ver progreso de sus estudiantes asignados, crear actividades, dejar feedback |
-| Padre/Acudiente | Ver progreso y recompensas de sus hijos vinculados (RF11) |
-| Administrador | Acceso total, incluida la exportación de auditoría |
+| Docente | Ver progreso de los estudiantes que le asignó el coordinador, crear mundos y preguntas, dejar feedback |
+| Padre/Acudiente | Ver progreso y recompensas de los hijos que le asignó el coordinador (RF11) |
+| Coordinador (rol `admin`) | Crear y desactivar todas las cuentas, asignar a cada niño su docente y sus acudientes, restablecer contraseñas y PIN, exportar la auditoría |
 
 ## Despliegue sugerido
 

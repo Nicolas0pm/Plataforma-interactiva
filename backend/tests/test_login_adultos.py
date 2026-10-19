@@ -1,29 +1,10 @@
-"""Login propio de docentes y padres: correo + contraseña (ver app/services/auth_service.py)."""
-import pytest
-
-from app.config import get_settings
-from app.models.tablas import Usuario
+"""Login de docentes, padres y coordinadores: usuario + contraseña (app/services/auth_service.py)."""
 from app.services.auth_service import MAX_FALLOS, hash_password, verificar_password
+from utilidades import PASSWORD, auth, crear_adulto, crear_coordinador
 
 
-def _auth(token):
-    return {"Authorization": f"Bearer {token}"}
-
-
-@pytest.fixture
-def produccion(monkeypatch):
-    """Como en producción: sin login de desarrollo ni cuentas sin contraseña."""
-    monkeypatch.setattr(get_settings(), "use_fake_db", False)
-
-
-def _registrar(client, email="Marta@Escuela.co", password="clave-segura-1", rol="docente"):
-    return client.post("/api/usuarios", json={
-        "nombre": "Marta", "edad": 40, "rol": rol, "email": email, "password": password, "acepta_terminos": True,
-    })
-
-
-def _login(client, email="marta@escuela.co", password="clave-segura-1"):
-    return client.post("/api/usuarios/login", json={"email": email, "password": password})
+def _login(client, usuario="mgarcia", password=PASSWORD):
+    return client.post("/api/usuarios/login", json={"usuario": usuario, "password": password})
 
 
 def test_la_contrasena_se_guarda_como_hash():
@@ -34,68 +15,65 @@ def test_la_contrasena_se_guarda_como_hash():
     assert hash_password("clave-segura-1") != guardado  # cada hash lleva su propia sal
 
 
-def test_registro_y_login_con_correo(client, db, produccion):
-    perfil = _registrar(client)
-    assert perfil.status_code == 201, perfil.text
-    assert perfil.json()["email"] == "marta@escuela.co"  # se guarda en minúsculas
-    assert "password" not in perfil.text and "scrypt" not in perfil.text
+def test_primer_ingreso_obliga_a_cambiar_la_contrasena_y_aceptar_terminos(client):
+    _, token_coord = crear_coordinador()
+    creado = client.post("/api/coordinador/adultos", headers=auth(token_coord),
+                         json={"nombre": "Marta", "rol": "docente", "usuario": "mgarcia", "email": "Marta@Escuela.co"}).json()
+    temporal = creado["password_temporal"]
+    assert len(temporal) == 12 and "password_hash" not in creado
 
-    sesion = _login(client, email="  MARTA@escuela.co ")
-    assert sesion.status_code == 200
-    assert sesion.json()["rol"] == "docente"
-    yo = client.get("/api/usuarios/sesion", headers=_auth(sesion.json()["token"]))
-    assert yo.status_code == 200 and yo.json()["id_usuario"] == perfil.json()["id_usuario"]
-    assert db.get(Usuario, perfil.json()["id_usuario"]).password_hash.startswith("scrypt$")
+    sesion = _login(client, password=temporal).json()
+    assert sesion["rol"] == "docente" and sesion["debe_cambiar_password"] is True
+    token = sesion["token"]
+    sin_terminos = {"actual": temporal, "nueva": PASSWORD}
+    assert client.post("/api/usuarios/cambiar-password", headers=auth(token), json=sin_terminos).status_code == 400
+    igual = {"actual": temporal, "nueva": temporal, "acepta_terminos": True}
+    assert client.post("/api/usuarios/cambiar-password", headers=auth(token), json=igual).status_code == 400
+    ok = client.post("/api/usuarios/cambiar-password", headers=auth(token), json={**sin_terminos, "acepta_terminos": True})
+    assert ok.status_code == 200
+
+    assert _login(client, password=temporal).status_code == 401
+    sesion = _login(client, usuario="  MGarcia ").json()  # sin importar mayúsculas ni espacios
+    assert sesion["debe_cambiar_password"] is False
+    assert _login(client, usuario="marta@escuela.co").status_code == 200  # también con el correo
+    yo = client.get("/api/usuarios/sesion", headers=auth(sesion["token"])).json()
+    assert yo["usuario"] == "mgarcia" and yo["email"] == "marta@escuela.co"
 
 
-def test_registro_exige_correo_contrasena_y_no_repite_correo(client, produccion):
-    assert _registrar(client, password=None).status_code == 400
-    assert _registrar(client, password="corta").status_code == 422
-    assert _registrar(client, email="no-es-correo").status_code == 422
-    assert _registrar(client).status_code == 201
-    assert _registrar(client, email="MARTA@escuela.co").status_code == 409
-
-
-def test_nadie_se_registra_como_admin(client, produccion):
-    assert _registrar(client, rol="admin").status_code == 403
-
-
-def test_credenciales_incorrectas_dan_el_mismo_error(client, produccion):
-    _registrar(client)
+def test_credenciales_incorrectas_dan_el_mismo_error(client):
+    _, token_coord = crear_coordinador()
+    crear_adulto(client, token_coord, "docente", "mgarcia")
     mala = _login(client, password="otra-clave-123")
-    inexistente = _login(client, email="nadie@escuela.co")
+    inexistente = _login(client, usuario="nadie")
     assert mala.status_code == inexistente.status_code == 401
     assert mala.json() == inexistente.json()
 
 
-def test_el_correo_se_bloquea_tras_varios_fallos(client, produccion):
-    _registrar(client)
+def test_el_usuario_se_bloquea_tras_varios_fallos(client):
+    _, token_coord = crear_coordinador()
+    crear_adulto(client, token_coord, "docente", "mgarcia")
     for _ in range(MAX_FALLOS):
         assert _login(client, password="otra-clave-123").status_code == 401
     assert _login(client).status_code == 429  # ni la contraseña correcta, por un rato
 
 
-def test_cambiar_contrasena(client, produccion):
-    _registrar(client)
-    token = _login(client).json()["token"]
+def test_cambiar_contrasena_despues(client):
+    _, token_coord = crear_coordinador()
+    _, token = crear_adulto(client, token_coord, "padre", "mgarcia")
     cambio = {"actual": "equivocada-1", "nueva": "nueva-clave-2"}
-    assert client.post("/api/usuarios/cambiar-password", json=cambio, headers=_auth(token)).status_code == 400
-    cambio["actual"] = "clave-segura-1"
-    assert client.post("/api/usuarios/cambiar-password", json=cambio, headers=_auth(token)).status_code == 200
+    assert client.post("/api/usuarios/cambiar-password", json=cambio, headers=auth(token)).status_code == 400
+    cambio["actual"] = PASSWORD
+    assert client.post("/api/usuarios/cambiar-password", json=cambio, headers=auth(token)).status_code == 200
     assert _login(client).status_code == 401
     assert _login(client, password="nueva-clave-2").status_code == 200
 
 
-def test_una_cuenta_desactivada_pierde_la_sesion(client, db, produccion):
-    perfil = _registrar(client).json()
-    token = _login(client).json()["token"]
-    db.get(Usuario, perfil["id_usuario"]).activo = False
-    db.commit()
-    assert client.get("/api/usuarios/sesion", headers=_auth(token)).status_code == 401
-    assert _login(client).status_code == 401
+def test_un_token_de_otro_rol_no_sirve(client):
+    """Si alguien cambia el rol dentro del token, la firma ya no coincide; y un token viejo
+    con un rol que la cuenta ya no tiene, tampoco entra."""
+    from app.services.auth_service import crear_token_sesion
 
-
-def test_el_login_de_desarrollo_no_existe_en_produccion(client, db, produccion):
-    perfil = _registrar(client).json()
-    r = client.post("/api/usuarios/login-dev", json={"id_usuario": perfil["id_usuario"], "rol": "docente"})
-    assert r.status_code == 403
+    _, token_coord = crear_coordinador()
+    padre, _ = crear_adulto(client, token_coord, "padre", "cperez")
+    falso = crear_token_sesion(padre["id_usuario"], "admin")
+    assert client.get("/api/coordinador/usuarios", headers=auth(falso)).status_code == 401

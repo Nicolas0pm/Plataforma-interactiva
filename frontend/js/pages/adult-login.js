@@ -3,14 +3,12 @@ import { inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
 import { guardarSesion, obtenerSesion } from "../session.js";
 
-// Mientras la persona elige o escribe, el servidor va despertando (plan gratis de Render).
+// Mientras la persona escribe, el servidor va despertando (plan gratis de Render).
 despertarServidor();
 inicializarLangToggle();
 
-const params = new URLSearchParams(window.location.search);
-const rolElegido = params.get("rol") === "padre" ? "padre" : "docente";
-
-const DESTINO_POR_ROL = { docente: "teacher.html", padre: "parent.html", admin: "teacher.html" };
+const DESTINO_POR_ROL = { docente: "teacher.html", padre: "parent.html", admin: "coordinador.html" };
+const $ = (id) => document.getElementById(id);
 
 // Un adulto con sesión abierta va directo a su panel en vez de ver el login otra vez.
 const sesionActual = obtenerSesion();
@@ -21,7 +19,7 @@ function entrar(sesion) {
   window.location.replace(DESTINO_POR_ROL[sesion.rol] || "index.html");
 }
 
-/** Deshabilita el botón mientras se espera la respuesta (evita registros dobles). */
+/** Deshabilita el botón mientras se espera la respuesta (evita envíos dobles). */
 async function conBotonOcupado(formulario, accion) {
   const boton = formulario.querySelector("button[type=submit]");
   boton.disabled = true;
@@ -32,75 +30,48 @@ async function conBotonOcupado(formulario, accion) {
   }
 }
 
-function iniciarSesion(email, password) {
-  return apiFetch("/api/usuarios/login", { method: "POST", body: { email, password }, esLogin: true });
-}
+// Primer ingreso (o contraseña restablecida por el coordinador): antes de entrar al panel
+// cambia la contraseña temporal y acepta los términos.
+let pendiente = null; // { sesion, temporal }
 
-document.getElementById("form-login").addEventListener("submit", (e) => {
+$("form-login").addEventListener("submit", (e) => {
   e.preventDefault();
-  const errorEl = document.getElementById("error-login");
-  errorEl.textContent = "";
+  $("error-login").textContent = "";
   conBotonOcupado(e.target, async () => {
     try {
-      entrar(await iniciarSesion(document.getElementById("email").value, document.getElementById("password").value));
-    } catch (err) {
-      errorEl.textContent = err.message;
-    }
-  });
-});
-
-document.getElementById("form-registro").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const errorEl = document.getElementById("error-registro");
-  errorEl.textContent = "";
-  conBotonOcupado(e.target, async () => {
-    try {
-      const email = document.getElementById("reg-email").value;
-      const password = document.getElementById("reg-password").value;
-      await apiFetch("/api/usuarios", {
-        method: "POST",
-        body: {
-          nombre: document.getElementById("reg-nombre").value, edad: 99, rol: rolElegido,
-          acudientes_ids: [], docente_id: null, email, password,
-          acepta_terminos: document.getElementById("reg-terminos").checked,
-        },
+      const password = $("password").value;
+      const sesion = await apiFetch("/api/usuarios/login", {
+        method: "POST", body: { usuario: $("usuario").value, password }, esLogin: true,
       });
-      entrar(await iniciarSesion(email, password));
+      if (!sesion.debe_cambiar_password) return entrar(sesion);
+      pendiente = { sesion, temporal: password };
+      $("card-login").classList.add("oculto");
+      $("card-primer-ingreso").classList.remove("oculto");
+      $("primera-nueva").focus();
     } catch (err) {
-      errorEl.textContent = err.message;
+      $("error-login").textContent = err.message;
     }
   });
 });
 
-document.getElementById("form-dev-login").addEventListener("submit", async (e) => {
+$("form-primer-ingreso").addEventListener("submit", (e) => {
   e.preventDefault();
-  const errorEl = document.getElementById("error-dev-login");
-  errorEl.textContent = "";
-  try {
-    entrar(await apiFetch("/api/usuarios/login-dev", {
-      method: "POST",
-      body: { id_usuario: document.getElementById("dev-id").value.trim(), rol: rolElegido },
-      esLogin: true,
-    }));
-  } catch (err) {
-    errorEl.textContent = err.message;
+  $("error-primer-ingreso").textContent = "";
+  const nueva = $("primera-nueva").value;
+  if (nueva !== $("primera-repetir").value) {
+    $("error-primer-ingreso").textContent = t("password.mismatch");
+    return;
   }
-});
-
-document.getElementById("form-dev-registro").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const resultadoEl = document.getElementById("dev-registro-resultado");
-  resultadoEl.textContent = "";
-  try {
-    const nombre = document.getElementById("dev-reg-nombre").value;
-    const perfil = await apiFetch("/api/usuarios", {
-      method: "POST",
-      // Modo de prueba (base de datos en memoria): se asume la aceptación para agilizar.
-      body: { nombre, edad: 99, rol: rolElegido, acudientes_ids: [], docente_id: null, email: null, acepta_terminos: true },
-    });
-    resultadoEl.textContent = `${t("login.dev_created")} ${perfil.id_usuario}`;
-    document.getElementById("dev-id").value = perfil.id_usuario;
-  } catch (err) {
-    resultadoEl.textContent = err.message;
-  }
+  conBotonOcupado(e.target, async () => {
+    try {
+      await apiFetch("/api/usuarios/cambiar-password", {
+        method: "POST",
+        tokenOverride: pendiente.sesion.token,
+        body: { actual: pendiente.temporal, nueva, acepta_terminos: $("primera-terminos").checked },
+      });
+      entrar(pendiente.sesion);
+    } catch (err) {
+      $("error-primer-ingreso").textContent = err.message;
+    }
+  });
 });

@@ -1,19 +1,15 @@
 import { apiFetch } from "../api.js";
-import { montarPestanas, montarRegistrar, montarVincular } from "../estudiantes-ui.js";
 import { cuando, esc, hora, porcentaje } from "../html.js";
 import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
 import { agregarCambioDePassword } from "../cambiar-password.js";
 import { exigirRol, salir } from "../session.js";
 
-const sesion = exigirRol("docente", "admin");
+const sesion = exigirRol("docente");
 inicializarLangToggle();
 document.getElementById("btn-logout").addEventListener("click", salir);
 agregarCambioDePassword();
 
-montarPestanas();
-montarVincular({ onVinculado: () => cargar() });
-montarRegistrar({ onCreado: () => cargar() });
 
 // RF06/RF09: los botones de arriba eligen qué se ve abajo. La vista queda en la URL
 // (#ayuda, #progreso...) para que al volver o recargar se mantenga.

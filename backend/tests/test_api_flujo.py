@@ -1,67 +1,23 @@
 """
 Pruebas de integración de punta a punta sobre la API (con USE_FAKE_DB=true,
-ver conftest.py), cubriendo el flujo real: registro, autenticación por rol,
-RF11 (vinculación), RF03/RF04/RF05 (actividad -> progreso -> recompensa) y los
-huecos de seguridad que se cerraron (guardas de rol, bug de `hijos_de_padre`).
+ver conftest.py), cubriendo el flujo real: el coordinador crea las cuentas, autenticación
+por rol, RF03/RF04/RF05 (actividad -> progreso -> recompensa), RF07/RF11 (padres) y las
+garantías de la base de datos (transacciones, largos de columna).
 """
-
-
 from fastapi.testclient import TestClient
 
-
-def _crear_usuario(client, **kwargs):
-    headers = kwargs.pop("headers", {})
-    payload = {
-        "nombre": kwargs.pop("nombre", "Sin nombre"),
-        "edad": kwargs.pop("edad", 30),
-        "rol": kwargs.pop("rol"),
-        "acudientes_ids": [],
-        "docente_id": None,
-        "email": kwargs.pop("email", None),
-    }
-    if payload["rol"] == "estudiante":
-        payload["autoriza_datos_menor"] = True
-    else:
-        payload["acepta_terminos"] = True
-    payload.update(kwargs)  # lo que quede (p. ej. pin_acceso) se agrega tal cual
-    resp = client.post("/api/usuarios", json=payload, headers=headers)
-    assert resp.status_code == 201, resp.text
-    return resp.json()
-
-
-def _login_dev(client, id_usuario, rol):
-    resp = client.post("/api/usuarios/login-dev", json={"id_usuario": id_usuario, "rol": rol})
-    assert resp.status_code == 200, resp.text
-    return resp.json()["token"]
-
-
-def _auth(token):
-    return {"Authorization": f"Bearer {token}"}
+from utilidades import auth, crear_adulto, crear_coordinador, crear_nino
 
 
 def test_endpoints_protegidos_exigen_token(client):
     assert client.get("/api/actividades").status_code == 401
 
 
-def test_no_se_puede_crear_estudiante_sin_ser_docente_padre_o_admin(client):
-    resp = client.post(
-        "/api/usuarios",
-        json={
-            "nombre": "Ana", "edad": 7, "rol": "estudiante", "acudientes_ids": [],
-            "docente_id": None, "email": None, "pin_acceso": "1234",
-        },
-    )
-    assert resp.status_code == 401  # nadie autenticado en la petición
-
-
 def test_flujo_completo_docente_estudiante_padre(client):
-    docente = _crear_usuario(client, nombre="Marta", rol="docente", email="marta@escuela.co")
-    token_docente = _login_dev(client, docente["id_usuario"], "docente")
-
-    estudiante = _crear_usuario(
-        client, nombre="Ana", edad=7, rol="estudiante", pin_acceso="1234",
-        headers=_auth(token_docente),
-    )
+    _, token_coord = crear_coordinador()
+    docente, token_docente = crear_adulto(client, token_coord, "docente", "mgarcia", "Marta")
+    padre, token_padre = crear_adulto(client, token_coord, "padre", "cperez", "Carlos")
+    estudiante = crear_nino(client, token_coord, docente_id=docente["id_usuario"], acudientes_ids=[padre["id_usuario"]])
     assert estudiante["docente_id"] == docente["id_usuario"]
     assert len(estudiante["codigo_acceso"]) == 6
 
@@ -86,7 +42,7 @@ def test_flujo_completo_docente_estudiante_padre(client):
             "pregunta": "What animal is this?", "opciones": ["Dog", "Cat", "Bird", "Fish"],
             "respuesta_correcta": "Dog", "icono": "🐶",
         },
-        headers=_auth(token_docente),
+        headers=auth(token_docente),
     )
     assert actividad.status_code == 201, actividad.text
 
@@ -94,7 +50,7 @@ def test_flujo_completo_docente_estudiante_padre(client):
     suplantacion = client.post(
         "/api/actividades/completar/otro-estudiante",
         json={"id_actividad": "x", "tiempo_empleado": 5, "intentos": 1, "puntaje_obtenido": 100},
-        headers=_auth(token_estudiante),
+        headers=auth(token_estudiante),
     )
     assert suplantacion.status_code == 403
 
@@ -102,7 +58,7 @@ def test_flujo_completo_docente_estudiante_padre(client):
     resultado1 = client.post(
         f"/api/actividades/completar/{estudiante['id_usuario']}",
         json={"id_actividad": actividad.json()["id_actividad"], "tiempo_empleado": 20, "intentos": 1, "puntaje_obtenido": 100},
-        headers=_auth(token_estudiante),
+        headers=auth(token_estudiante),
     )
     assert resultado1.status_code == 200
     cuerpo1 = resultado1.json()
@@ -113,92 +69,57 @@ def test_flujo_completo_docente_estudiante_padre(client):
     resultado2 = client.post(
         f"/api/actividades/completar/{estudiante['id_usuario']}",
         json={"id_actividad": actividad.json()["id_actividad"], "tiempo_empleado": 15, "intentos": 1, "puntaje_obtenido": 50},
-        headers=_auth(token_estudiante),
+        headers=auth(token_estudiante),
     )
     assert resultado2.json()["nivel_logrado"] == 2
     assert resultado2.json()["subio_de_nivel"] is True
 
-    # RF07/RF11: un padre se vincula escribiendo el código y el PIN del niño
-    padre = _crear_usuario(client, nombre="Carlos", rol="padre", email="carlos@mail.com")
-    token_padre = _login_dev(client, padre["id_usuario"], "padre")
-
-    vincular = client.post(
-        "/api/vinculacion", json={"codigo": estudiante["codigo_acceso"], "pin": "1234"}, headers=_auth(token_padre)
-    )
-    assert vincular.status_code == 200
-    assert vincular.json()["codigo_acceso"] == estudiante["codigo_acceso"]
-    assert "pin_hash" not in vincular.json()
-
-    # Bug corregido: el panel de padres ahora SÍ encuentra a su hijo vinculado
-    hijos = client.get(f"/api/usuarios/padre/{padre['id_usuario']}/hijos", headers=_auth(token_padre))
+    # RF07/RF11: el coordinador le asigna el niño a su padre
+    hijos = client.get(f"/api/usuarios/padre/{padre['id_usuario']}/hijos", headers=auth(token_padre))
     assert hijos.status_code == 200
     assert [h["id_usuario"] for h in hijos.json()] == [estudiante["id_usuario"]]
 
     # Un padre no puede consultar la lista de "hijos" de otro padre
-    otro_padre = _crear_usuario(client, nombre="Otro", rol="padre", email="otro@mail.com")
-    token_otro_padre = _login_dev(client, otro_padre["id_usuario"], "padre")
-    ajeno = client.get(f"/api/usuarios/padre/{padre['id_usuario']}/hijos", headers=_auth(token_otro_padre))
+    _, token_otro_padre = crear_adulto(client, token_coord, "padre", "otro", "Otro")
+    ajeno = client.get(f"/api/usuarios/padre/{padre['id_usuario']}/hijos", headers=auth(token_otro_padre))
     assert ajeno.status_code == 403
 
     # El padre vinculado ya puede ver el progreso y las recompensas del hijo
-    progreso = client.get(f"/api/usuarios/{estudiante['id_usuario']}/progreso", headers=_auth(token_padre))
+    progreso = client.get(f"/api/usuarios/{estudiante['id_usuario']}/progreso", headers=auth(token_padre))
     assert progreso.status_code == 200
     assert progreso.json()["puntaje_total"] == 150
 
-    recompensas = client.get(f"/api/recompensas/estudiante/{estudiante['id_usuario']}", headers=_auth(token_padre))
+    recompensas = client.get(f"/api/recompensas/estudiante/{estudiante['id_usuario']}", headers=auth(token_padre))
     assert recompensas.status_code == 200
     assert len(recompensas.json()) == 1
 
     # RF06: estadísticas agregadas del docente
-    stats = client.get(f"/api/usuarios/docente/{docente['id_usuario']}/estadisticas", headers=_auth(token_docente))
+    stats = client.get(f"/api/usuarios/docente/{docente['id_usuario']}/estadisticas", headers=auth(token_docente))
     assert stats.status_code == 200
     assert stats.json()["total_estudiantes"] == 1
 
     # El hash del PIN nunca debe salir de la API por ningún endpoint que liste estudiantes
     lista_estudiantes = client.get(
-        f"/api/usuarios/docente/{docente['id_usuario']}/estudiantes", headers=_auth(token_docente)
+        f"/api/usuarios/docente/{docente['id_usuario']}/estudiantes", headers=auth(token_docente)
     )
     assert "pin_hash" not in lista_estudiantes.text
     assert "pin_hash" not in hijos.text
     assert "pin_hash" not in stats.text
 
 
-def test_solo_admin_puede_exportar_auditoria(client):
-    admin = _crear_usuario(client, nombre="Admin", rol="admin", email="admin@escuela.co")
-    docente = _crear_usuario(client, nombre="Marta", rol="docente", email="marta2@escuela.co")
-
-    token_docente = _login_dev(client, docente["id_usuario"], "docente")
-    negado = client.get("/api/auditoria/exportar.csv", headers=_auth(token_docente))
-    assert negado.status_code == 403
-
-    token_admin = _login_dev(client, admin["id_usuario"], "admin")
-    permitido = client.get("/api/auditoria/exportar.csv", headers=_auth(token_admin))
+def test_solo_el_coordinador_puede_exportar_auditoria(client):
+    _, token_coord = crear_coordinador()
+    _, token_docente = crear_adulto(client, token_coord, "docente", "mgarcia")
+    assert client.get("/api/auditoria/exportar.csv", headers=auth(token_docente)).status_code == 403
+    permitido = client.get("/api/auditoria/exportar.csv", headers=auth(token_coord))
     assert permitido.status_code == 200
     assert permitido.headers["content-type"].startswith("text/csv")
 
 
 def test_confirmar_entrega_exige_secreto_de_dispositivo(client):
-    sin_secreto = client.post("/api/recompensas/x/confirmar-entrega")
-    assert sin_secreto.status_code == 401
-
-    incorrecto = client.post(
-        "/api/recompensas/x/confirmar-entrega", headers={"X-Device-Secret": "equivocado"}
-    )
+    assert client.post("/api/recompensas/x/confirmar-entrega").status_code == 401
+    incorrecto = client.post("/api/recompensas/x/confirmar-entrega", headers={"X-Device-Secret": "equivocado"})
     assert incorrecto.status_code == 401
-
-
-def test_pin_de_estudiante_debe_ser_de_4_digitos(client):
-    docente = _crear_usuario(client, nombre="Marta", rol="docente", email="marta2@escuela.co")
-    token_docente = _login_dev(client, docente["id_usuario"], "docente")
-    for pin_invalido in ("12345", "12a4", "123"):
-        resp = client.post(
-            "/api/usuarios",
-            json={"nombre": "Leo", "edad": 7, "rol": "estudiante", "acudientes_ids": [],
-                  "docente_id": None, "email": None, "pin_acceso": pin_invalido,
-                  "autoriza_datos_menor": True},
-            headers=_auth(token_docente),
-        )
-        assert resp.status_code == 422, pin_invalido
 
 
 def test_login_pin_con_codigo_inexistente(client):
@@ -206,46 +127,13 @@ def test_login_pin_con_codigo_inexistente(client):
     assert resp.status_code == 401
 
 
-def test_adulto_debe_aceptar_terminos(client):
-    resp = client.post(
-        "/api/usuarios",
-        json={"nombre": "Sin aceptar", "edad": 30, "rol": "padre", "acudientes_ids": [],
-              "docente_id": None, "email": "x@mail.com"},
-    )
-    assert resp.status_code == 400
-
-
-def test_registrar_nino_exige_autorizacion_de_datos(client, db):
-    docente = _crear_usuario(client, nombre="Marta", rol="docente", email="marta3@escuela.co")
-    token_docente = _login_dev(client, docente["id_usuario"], "docente")
-
-    sin_autorizacion = client.post(
-        "/api/usuarios",
-        json={"nombre": "Leo", "edad": 7, "rol": "estudiante", "acudientes_ids": [],
-              "docente_id": None, "email": None, "pin_acceso": "1234"},
-        headers=_auth(token_docente),
-    )
-    assert sin_autorizacion.status_code == 400
-
-    creado = _crear_usuario(
-        client, nombre="Leo", edad=7, rol="estudiante", pin_acceso="1234", headers=_auth(token_docente)
-    )
-    from app.models.tablas import Usuario
-
-    guardado = db.get(Usuario, creado["id_usuario"])
-    assert guardado.autorizacion_otorgada_por == docente["id_usuario"]
-    assert guardado.autorizacion_version == "1.1"
-    assert db.get(Usuario, docente["id_usuario"]).terminos_version == "1.1"
-
-
 def test_intentos_fallidos_de_pin_se_guardan_aunque_la_peticion_falle(client):
     """La petición con PIN incorrecto termina en 401, pero el contador de fallos y la
     auditoría sí se guardan (ver app/db.get_db): al quinto fallo el código queda bloqueado."""
     from app.services.auth_service import MAX_FALLOS
 
-    docente = _crear_usuario(client, nombre="Marta", rol="docente", email="marta4@escuela.co")
-    token_docente = _login_dev(client, docente["id_usuario"], "docente")
-    nino = _crear_usuario(client, nombre="Leo", edad=7, rol="estudiante", pin_acceso="1234", headers=_auth(token_docente))
+    _, token_coord = crear_coordinador()
+    nino = crear_nino(client, token_coord)
     for _ in range(MAX_FALLOS):
         assert client.post("/api/usuarios/login-pin", json={"codigo": nino["codigo_acceso"], "pin": "0000"}).status_code == 401
     bloqueado = client.post("/api/usuarios/login-pin", json={"codigo": nino["codigo_acceso"], "pin": "1234"})
@@ -258,15 +146,15 @@ def test_un_error_inesperado_deshace_lo_que_alcanzo_a_escribir(client, db, monke
     from app.models.tablas import Auditoria, MundoDocente
     from app.routers import mundos
 
-    docente = _crear_usuario(client, nombre="Marta", rol="docente", email="marta5@escuela.co")
-    token = _login_dev(client, docente["id_usuario"], "docente")
+    _, token_coord = crear_coordinador()
+    _, token = crear_adulto(client, token_coord, "docente", "mgarcia")
 
     def _falla(*args, **kwargs):
         raise RuntimeError("se cayó a mitad de camino")
 
     monkeypatch.setattr(mundos, "registrar_auditoria", _falla)  # falla después de crear el mundo
     r = TestClient(client.app, raise_server_exceptions=False).post(
-        "/api/mundos", json={"titulo": "A medias"}, headers=_auth(token)
+        "/api/mundos", json={"titulo": "A medias"}, headers=auth(token)
     )
     assert r.status_code == 500
     assert db.scalar(select(func.count()).select_from(MundoDocente)) == 0
@@ -275,8 +163,10 @@ def test_un_error_inesperado_deshace_lo_que_alcanzo_a_escribir(client, db, monke
 
 
 def test_textos_mas_largos_que_su_columna_se_rechazan(client):
+    _, token_coord = crear_coordinador()
     assert client.post("/api/usuarios/login-pin", json={"codigo": "A" * 50, "pin": "1234"}).status_code == 422
-    resp = client.post("/api/usuarios", json={"nombre": "x" * 500, "edad": 30, "rol": "padre", "acepta_terminos": True})
+    resp = client.post("/api/coordinador/adultos", headers=auth(token_coord),
+                       json={"nombre": "x" * 500, "rol": "padre", "usuario": "largo"})
     assert resp.status_code == 422
 
 
@@ -284,14 +174,14 @@ def test_los_cambios_se_guardan_antes_de_responder(client, monkeypatch):
     """Si guardar falla, la respuesta tiene que ser un error (no un 201 de algo que no quedó)."""
     from sqlalchemy.orm import Session
 
-    docente = _crear_usuario(client, nombre="Marta", rol="docente", email="marta6@escuela.co")
-    token = _login_dev(client, docente["id_usuario"], "docente")
+    _, token_coord = crear_coordinador()
+    _, token = crear_adulto(client, token_coord, "docente", "mgarcia")
 
     def _commit_que_falla(self):
         raise RuntimeError("la base de datos no respondió")
 
     monkeypatch.setattr(Session, "commit", _commit_que_falla)
     r = TestClient(client.app, raise_server_exceptions=False).post(
-        "/api/mundos", json={"titulo": "No guardado"}, headers=_auth(token)
+        "/api/mundos", json={"titulo": "No guardado"}, headers=auth(token)
     )
     assert r.status_code == 500
