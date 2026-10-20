@@ -5,8 +5,11 @@ Panel del coordinador (rol `admin`): es quien crea las cuentas de la plataforma.
   (que se muestra una sola vez). Al primer ingreso cada adulto la cambia y acepta los
   términos (`POST /api/usuarios/cambiar-password`).
 - Registra a los niños (RF01) con su PIN y les asigna su docente y sus acudientes (RF07/RF11).
+- Corrige los datos de una cuenta (nombre, edad del niño, correo del adulto).
 - Restablece contraseñas y PIN olvidados, y desactiva o reactiva cuentas. Nada se borra:
   una cuenta desactivada no puede entrar y conserva su historial.
+- Gestiona el temario fijo (RF08): apaga o vuelve a encender un mundo para toda la
+  institución. Cada docente decide además qué mundos ve su salón (`routers/temario.py`).
 """
 from datetime import datetime, timezone
 
@@ -16,8 +19,11 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db import RutaConTransaccion, get_db
+from pydantic import BaseModel
+
+from app.curriculo import ORDEN_POR_SECCION
 from app.models.schemas import AsignarEstudiante, CambiarEstado, CrearAdulto, CrearEstudiante, NuevoPin
-from app.models.tablas import Acudiente, Progreso, Usuario
+from app.models.tablas import Acudiente, Progreso, TemaGlobal, Usuario
 from app.services.auth_service import (
     hash_password,
     hash_pin,
@@ -26,6 +32,7 @@ from app.services.auth_service import (
     registrar_auditoria,
     require_role,
 )
+from app.services.catalogo_service import apagados_globales
 from app.services.estudiantes_service import generar_codigo_acceso
 
 router = APIRouter(
@@ -170,14 +177,67 @@ def cambiar_pin(id_estudiante: str, payload: NuevoPin, yo: dict = Depends(coordi
 
 
 @router.patch("/usuarios/{id_usuario}")
-def cambiar_estado(id_usuario: str, payload: CambiarEstado, yo: dict = Depends(coordinador), db: Session = Depends(get_db)):
-    """Desactiva (no puede entrar y se cierran sus sesiones) o reactiva una cuenta."""
-    if id_usuario == yo["id_usuario"] and not payload.activo:
-        raise HTTPException(400, "No puedes desactivar tu propia cuenta")
+def editar_usuario(id_usuario: str, payload: CambiarEstado, yo: dict = Depends(coordinador), db: Session = Depends(get_db)):
+    """Corrige nombre, edad (niños) o correo (adultos) y/o desactiva (no puede entrar y se
+    cierran sus sesiones) o reactiva una cuenta."""
     usuario = db.get(Usuario, id_usuario)
     if usuario is None:
         raise HTTPException(404, "Usuario no encontrado")
-    usuario.activo = payload.activo
-    registrar_auditoria(db, tipo="cuenta_activada" if payload.activo else "cuenta_desactivada",
-                        actor=yo["id_usuario"], detalle={"id_usuario": id_usuario})
+    cambios = payload.model_dump(exclude_unset=True)
+    if cambios.get("activo") is False and id_usuario == yo["id_usuario"]:
+        raise HTTPException(400, "No puedes desactivar tu propia cuenta")
+    if "edad" in cambios and usuario.rol != "estudiante":
+        raise HTTPException(400, "Solo los estudiantes tienen edad")
+    if "email" in cambios:
+        if usuario.rol == "estudiante":
+            raise HTTPException(400, "Los estudiantes no tienen correo")
+        email = normalizar_email(cambios["email"]) if cambios["email"] else None
+        if email and db.scalar(select(Usuario.id_usuario).where(Usuario.email == email, Usuario.id_usuario != id_usuario)):
+            raise HTTPException(409, "Ya existe una cuenta con ese correo")
+        usuario.email = email
+    if cambios.get("nombre"):
+        usuario.nombre = cambios["nombre"].strip()
+    if cambios.get("edad") is not None:
+        usuario.edad = cambios["edad"]
+    datos = {k: v for k, v in cambios.items() if k != "activo"}
+    if datos:
+        registrar_auditoria(db, tipo="cuenta_editada", actor=yo["id_usuario"],
+                            detalle={"id_usuario": id_usuario, "campos": sorted(datos)})
+    if cambios.get("activo") is not None and cambios["activo"] != usuario.activo:
+        usuario.activo = cambios["activo"]
+        registrar_auditoria(db, tipo="cuenta_activada" if usuario.activo else "cuenta_desactivada",
+                            actor=yo["id_usuario"], detalle={"id_usuario": id_usuario})
+    db.flush()
     return usuario.a_dict()
+
+
+class TemaActivo(BaseModel):
+    activo: bool
+
+
+@router.get("/temario")
+def ver_temario(db: Session = Depends(get_db)):
+    """RF08: el temario fijo con su estado para toda la institución."""
+    from app.routers.temario import con_info
+
+    apagados = apagados_globales(db)
+    return con_info({
+        seccion: [{"id": u, "activo": u not in apagados} for u in unidades]
+        for seccion, unidades in ORDEN_POR_SECCION.items()
+    })
+
+
+@router.patch("/temario/{unidad}")
+def cambiar_tema(unidad: str, payload: TemaActivo, yo: dict = Depends(coordinador), db: Session = Depends(get_db)):
+    """Apaga o enciende un mundo del temario para todos los salones. No se borra nada."""
+    seccion = next((s for s, unidades in ORDEN_POR_SECCION.items() if unidad in unidades), None)
+    if seccion is None:
+        raise HTTPException(404, "No existe ese mundo en el temario")
+    apagados = apagados_globales(db)
+    if not payload.activo and all(u in apagados or u == unidad for u in ORDEN_POR_SECCION[seccion]):
+        raise HTTPException(400, "Deja al menos un mundo activo en cada apartado")
+    tema = db.get(TemaGlobal, unidad) or TemaGlobal(unidad=unidad)
+    tema.activo = payload.activo
+    db.add(tema)
+    registrar_auditoria(db, tipo="temario_global", actor=yo["id_usuario"], detalle={"unidad": unidad, "activo": payload.activo})
+    return {"id": unidad, "activo": payload.activo}

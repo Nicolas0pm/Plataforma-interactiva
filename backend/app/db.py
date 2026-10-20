@@ -131,6 +131,8 @@ _CAMBIOS_DE_ESQUEMA = [
     "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS usuario VARCHAR(40)",
     "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS debe_cambiar_password BOOLEAN NOT NULL DEFAULT false",
     "CREATE UNIQUE INDEX IF NOT EXISTS ux_usuarios_usuario ON usuarios (usuario)",
+    # Premio cada N mundos (RF06); temario_salon y temario_global los crea create_all.
+    "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS premio_cada_mundos INTEGER NOT NULL DEFAULT 1",
 ]
 
 

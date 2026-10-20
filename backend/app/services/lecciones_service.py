@@ -312,7 +312,7 @@ def registrar_resultado(db: Session, id_usuario: str, unidad: str, leccion: int,
             "unidad": unidad,
             "titulo": info["titulo"],
             "emoji": info["emoji"],
-            "recompensa": recompensa_por_mundo(db, id_usuario, info),
+            "recompensa": recompensa_por_mundo(db, id_usuario, info, len(progreso["mundos_completados"])),
         }
 
     nuevo_nivel = calcular_nivel(progreso["puntaje_total"])

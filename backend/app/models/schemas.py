@@ -63,7 +63,11 @@ class AsignarEstudiante(BaseModel):
 
 
 class CambiarEstado(BaseModel):
-    activo: bool
+    """El coordinador edita una cuenta (RF01): todo es opcional; solo cambia lo que llega."""
+    activo: Optional[bool] = None
+    nombre: Optional[str] = Field(default=None, min_length=1, max_length=120)
+    edad: Optional[int] = Field(default=None, ge=3, le=15)  # solo estudiantes
+    email: Optional[Email | Literal[""]] = None  # solo adultos; "" lo quita
 
 
 class NuevoPin(BaseModel):

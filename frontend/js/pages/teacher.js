@@ -13,9 +13,10 @@ agregarCambioDePassword();
 
 // RF06/RF09: los botones de arriba eligen qué se ve abajo. La vista queda en la URL
 // (#ayuda, #progreso...) para que al volver o recargar se mantenga.
-const VISTAS = ["estudiantes", "ayuda", "progreso", "activos", "mundos"];
+const VISTAS = ["estudiantes", "ayuda", "progreso", "activos", "mundos", "temario"];
 let resumen = null;
 let mundos = [];
+let temario = null;
 
 const titulo = (u) => u.titulo[idiomaActual()] || u.titulo.es;
 
@@ -36,10 +37,27 @@ async function cargar() {
   document.getElementById("stat-activos").textContent = resumen.activos_hoy;
   document.getElementById("maquina-id").value = resumen.dispensador || "";
   pintarEstadoMaquina(resumen.dispensador);
-  mundos = await apiFetch("/api/mundos");
+  document.getElementById("premio-cada").value = String(resumen.premio_cada_mundos || 1);
+  [mundos, temario] = await Promise.all([apiFetch("/api/mundos"), apiFetch("/api/temario/salon")]);
   document.getElementById("stat-mundos").textContent = mundos.length;
+  contarTemario();
   pintarVista();
 }
+
+// ---------- RF06: cada cuántos mundos se entrega el premio ----------
+document.getElementById("form-premio").addEventListener("submit", (e) => e.preventDefault());
+document.getElementById("premio-cada").addEventListener("change", async (e) => {
+  const estado = document.getElementById("premio-estado");
+  try {
+    const r = await apiFetch(`/api/usuarios/docente/${sesion.id_usuario}/premio`, {
+      method: "PUT",
+      body: { cada_mundos: Number(e.target.value) },
+    });
+    estado.textContent = `✅ ${t("machine.every_saved").replace("{n}", r.cada_mundos)}`;
+  } catch (err) {
+    estado.textContent = err.message;
+  }
+});
 
 // ---------- Máquina de premios del salón ----------
 function pintarEstadoMaquina(deviceId) {
@@ -71,6 +89,7 @@ function pintarVista() {
   const contenido = document.getElementById("vista-contenido");
   contenido.innerHTML = "";
   if (vista === "mundos") return pintarMundos(contenido);
+  if (vista === "temario") return pintarTemario(contenido);
 
   const estudiantes = resumen.estudiantes;
   if (!estudiantes.length) {
@@ -242,6 +261,70 @@ function pintarProgreso(contenido) {
   `;
 }
 
+
+// ---------- RF07: qué mundos del temario ve el salón y en qué orden ----------
+const visible = (m) => m.activo && m.global_activo;
+
+function contarTemario() {
+  const n = Object.values(temario).flat().filter(visible).length;
+  document.getElementById("stat-temario").textContent = n;
+}
+
+function pintarTemario(contenido) {
+  const secciones = [["vocabulario", "📚", "path.vocabulary"], ["gramatica", "✏️", "path.grammar"]];
+  for (const [seccion, emoji, clave] of secciones) {
+    const bloque = document.createElement("section");
+    bloque.className = "bloque-temario";
+    bloque.dataset.seccion = seccion;
+    bloque.innerHTML = `<h3>${emoji} ${t(clave)}</h3><ol class="lista-temario"></ol><p class="error-msg" role="alert"></p>`;
+    const lista = bloque.querySelector("ol");
+    const unidades = temario[seccion];
+    unidades.forEach((m, i) => {
+      const li = document.createElement("li");
+      li.className = `tema${visible(m) ? "" : " apagado"}`;
+      const id = `tema-${m.id}`;
+      li.innerHTML = `
+        <input type="checkbox" id="${id}" ${m.activo ? "checked" : ""} ${m.global_activo ? "" : "disabled"} />
+        <label for="${id}"><span aria-hidden="true">${m.emoji}</span> ${esc(titulo(m))}
+          <small>${m.lecciones} ${t("syllabus.lessons")}${m.global_activo ? "" : ` · ${t("syllabus.off_global")}`}</small></label>
+        <span class="mover">
+          <button type="button" class="secundario" data-mover="-1" ${i === 0 ? "disabled" : ""} aria-label="${t("syllabus.up")}">↑</button>
+          <button type="button" class="secundario" data-mover="1" ${i === unidades.length - 1 ? "disabled" : ""} aria-label="${t("syllabus.down")}">↓</button>
+        </span>`;
+      li.querySelector("input").addEventListener("change", (e) => {
+        const nuevo = unidades.map((u) => (u.id === m.id ? { ...u, activo: e.target.checked } : u));
+        guardarTemario(seccion, nuevo);
+      });
+      li.querySelectorAll("[data-mover]").forEach((b) => b.addEventListener("click", () => {
+        const nuevo = [...unidades];
+        const j = i + Number(b.dataset.mover);
+        [nuevo[i], nuevo[j]] = [nuevo[j], nuevo[i]];
+        guardarTemario(seccion, nuevo, m.id, b.dataset.mover);
+      }));
+      lista.appendChild(li);
+    });
+    contenido.appendChild(bloque);
+  }
+}
+
+async function guardarTemario(seccion, unidades, enfocar, direccion) {
+  try {
+    temario = await apiFetch(`/api/temario/salon/${seccion}`, {
+      method: "PUT",
+      body: { unidades: unidades.map(({ id, activo }) => ({ id, activo })) },
+    });
+    contarTemario();
+    pintarVista();
+    // Al mover con el teclado, el foco sigue al mundo que se movió.
+    if (enfocar) {
+      const boton = document.querySelector(`#tema-${enfocar}`)?.closest("li").querySelector(`[data-mover="${direccion}"]`);
+      (boton && !boton.disabled ? boton : document.getElementById(`tema-${enfocar}`))?.focus();
+    }
+  } catch (err) {
+    pintarVista(); // vuelve a mostrar lo que quedó guardado
+    document.querySelector(`[data-seccion="${seccion}"] .error-msg`).textContent = err.message;
+  }
+}
 
 // ---------- Mis mundos: el docente crea mundos y preguntas de selección múltiple ----------
 function pintarMundos(contenido) {

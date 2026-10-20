@@ -1,11 +1,12 @@
 // Panel del coordinador: crea las cuentas de profesores, padres, niños y otros
 // coordinadores, asigna a cada niño su profesor y sus padres, restablece contraseñas y PIN,
-// y desactiva o reactiva cuentas (nada se borra).
+// corrige los datos de cada cuenta, desactiva o reactiva cuentas (nada se borra) y
+// gestiona el temario de la institución (RF08).
 
 import { API_BASE_URL, apiFetch } from "../api.js";
 import { agregarCambioDePassword } from "../cambiar-password.js";
 import { esc } from "../html.js";
-import { inicializarLangToggle, t } from "../i18n.js";
+import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
 import { exigirRol, obtenerSesion, salir } from "../session.js";
 
@@ -19,13 +20,19 @@ const ROL_DE_VISTA = { docentes: "docente", padres: "padre", coordinadores: "adm
 
 let datos = { coordinadores: [], docentes: [], padres: [], estudiantes: [] };
 let vista = "docentes";
+let temario = { vocabulario: [], gramatica: [] };
 
 // ---------------------------------------------------------------- datos y vistas
 
 async function cargar() {
-  datos = await apiFetch("/api/coordinador/usuarios");
+  [datos, temario] = await Promise.all([apiFetch("/api/coordinador/usuarios"), apiFetch("/api/coordinador/temario")]);
   for (const clave of Object.keys(datos)) $(`n-${clave}`).textContent = datos[clave].filter((u) => u.activo).length;
+  contarTemario();
   pintarVista();
+}
+
+function contarTemario() {
+  $("n-temario").textContent = Object.values(temario).flat().filter((m) => m.activo).length;
 }
 
 document.querySelectorAll("[data-vista]").forEach((boton) => {
@@ -41,6 +48,9 @@ function nombreDe(id) {
   return [...datos.docentes, ...datos.padres].find((u) => u.id_usuario === id)?.nombre || "—";
 }
 
+const botonEditar = (u) =>
+  `<button type="button" class="secundario pequeno" data-accion="editar" data-id="${esc(u.id_usuario)}">✏️ ${t("coord.edit_data")}</button>`;
+
 function botonesDeEstado(u) {
   const esYo = u.id_usuario === sesion.id_usuario;
   return esYo ? "" : `<button type="button" class="secundario pequeno" data-accion="estado" data-id="${esc(u.id_usuario)}">
@@ -54,6 +64,7 @@ function filaAdulto(u, extra) {
     <td><code>${esc(u.usuario || "—")}</code></td>
     ${extra === undefined ? "" : `<td>${extra}</td>`}
     <td class="acciones-fila">
+      ${botonEditar(u)}
       <button type="button" class="secundario pequeno" data-accion="password" data-id="${esc(u.id_usuario)}">${t("coord.new_password")}</button>
       ${botonesDeEstado(u)}
     </td>
@@ -66,11 +77,14 @@ function pintarVista() {
     estudiantes: ["🧒 " + t("coord.kids"), t("kids.register"), t("coord.kids_hint")],
     padres: ["👨‍👩‍👧 " + t("coord.parents"), t("coord.add_parent"), t("coord.parents_hint")],
     coordinadores: ["🧭 " + t("coord.coordinators"), t("coord.add_coordinator"), t("coord.coordinators_hint")],
+    temario: ["📖 " + t("syllabus.title"), "", t("coord.syllabus_hint")],
   };
   const [titulo, crear, ayuda] = titulos[vista];
   $("vista-titulo").textContent = titulo;
   $("btn-crear").textContent = `➕ ${crear}`;
+  $("btn-crear").hidden = vista === "temario";
   $("vista-ayuda").textContent = ayuda;
+  if (vista === "temario") return pintarTemario();
 
   const lista = datos[vista];
   if (!lista.length) {
@@ -89,6 +103,7 @@ function pintarVista() {
         <td>${n.acudientes_ids.map((id) => esc(nombreDe(id))).join(", ") || "—"}
           <button type="button" class="secundario pequeno" data-accion="padres" data-id="${esc(n.id_usuario)}">${t("coord.edit")}</button></td>
         <td class="acciones-fila">
+          ${botonEditar(n)}
           <button type="button" class="secundario pequeno" data-accion="pin" data-id="${esc(n.id_usuario)}">${t("coord.new_pin")}</button>
           ${botonesDeEstado(n)}
         </td></tr>`).join("")}</tbody>`;
@@ -107,6 +122,21 @@ function pintarVista() {
   $("vista-contenido").querySelectorAll("tbody tr").forEach((fila) => {
     [...fila.children].forEach((celda, i) => { if (columnas[i]) celda.dataset.etiqueta = columnas[i]; });
   });
+}
+
+// RF08: el coordinador apaga o enciende mundos del temario para toda la institución.
+function pintarTemario() {
+  const secciones = [["vocabulario", "📚", "path.vocabulary"], ["gramatica", "✏️", "path.grammar"]];
+  $("vista-contenido").innerHTML = secciones.map(([seccion, emoji, clave]) => `
+    <section class="bloque-temario">
+      <h3>${emoji} ${t(clave)}</h3>
+      <ol class="lista-temario">${temario[seccion].map((m) => `
+        <li class="tema${m.activo ? "" : " apagado"}">
+          <input type="checkbox" id="tema-${m.id}" data-tema="${m.id}" ${m.activo ? "checked" : ""} />
+          <label for="tema-${m.id}"><span aria-hidden="true">${m.emoji}</span> ${esc(m.titulo[idiomaActual()] || m.titulo.es)}
+            <small>${m.lecciones} ${t("syllabus.lessons")}${m.activo ? "" : ` · ${t("coord.syllabus_off")}`}</small></label>
+        </li>`).join("")}</ol>
+    </section>`).join("") + `<p class="error-msg" id="error-temario" role="alert"></p>`;
 }
 
 function opcionesDocente(seleccionado) {
@@ -282,7 +312,27 @@ $("vista-contenido").addEventListener("click", (e) => {
   const u = buscar(boton.dataset.id);
   const accion = boton.dataset.accion;
 
-  if (accion === "password") {
+  if (accion === "editar") {
+    const nino = u.rol === "estudiante";
+    abrirDialogo({
+      titulo: `✏️ ${u.nombre}`,
+      cuerpo: `<label for="editar-nombre">${t("coord.full_name")}</label>
+        <input id="editar-nombre" type="text" required maxlength="120" value="${esc(u.nombre)}" />
+        ${nino
+          ? `<label for="editar-edad">${t("kids.age")}</label>
+             <input id="editar-edad" type="number" min="3" max="15" required value="${esc(u.edad)}" />`
+          : `<label for="editar-email">${t("coord.email_optional")}</label>
+             <input id="editar-email" type="email" maxlength="254" value="${esc(u.email || "")}" />`}`,
+      onAceptar: async () => {
+        const body = { nombre: $("editar-nombre").value };
+        if (nino) body.edad = Number($("editar-edad").value);
+        else body.email = $("editar-email").value.trim();
+        await apiFetch(`/api/coordinador/usuarios/${u.id_usuario}`, { method: "PATCH", body });
+        $("dialogo").close();
+        await cargar();
+      },
+    });
+  } else if (accion === "password") {
     abrirDialogo({
       titulo: `🔑 ${u.nombre}`,
       cuerpo: `<p>${t("coord.reset_password_confirm")}</p>`,
@@ -333,6 +383,8 @@ $("vista-contenido").addEventListener("click", (e) => {
 
 // Cambiar el profesor de un niño directamente desde la tabla.
 $("vista-contenido").addEventListener("change", async (e) => {
+  const casilla = e.target.closest("input[data-tema]");
+  if (casilla) return cambiarTema(casilla);
   const select = e.target.closest("select[data-accion=docente]");
   if (!select) return;
   select.disabled = true;
@@ -345,6 +397,20 @@ $("vista-contenido").addEventListener("change", async (e) => {
     await cargar();
   }
 });
+
+async function cambiarTema(casilla) {
+  casilla.disabled = true;
+  try {
+    await apiFetch(`/api/coordinador/temario/${casilla.dataset.tema}`, { method: "PATCH", body: { activo: casilla.checked } });
+    temario = await apiFetch("/api/coordinador/temario");
+    contarTemario();
+    pintarVista();
+    $(`tema-${casilla.dataset.tema}`)?.focus();
+  } catch (err) {
+    pintarVista();
+    $("error-temario").textContent = err.message;
+  }
+}
 
 // ---------------------------------------------------------------- auditoría
 

@@ -9,6 +9,10 @@ esa es su cola. La máquina pregunta cada pocos segundos por sus premios pendien
 entrega (ver `routers/recompensas.py` y `esp32/README.md`). Sin máquina, el logro queda
 registrado como "celebrada" (solo felicitación).
 
+El docente elige cada cuántos mundos completados se entrega el premio físico (RF06,
+`premio_cada_mundos`, de 1 a 5): los mundos intermedios también quedan como "celebrada" y
+la respuesta le dice al niño cuántos le faltan para el próximo premio.
+
 Cada premio es una fila propia: si dos niños ganan casi al mismo tiempo, ninguno se pierde.
 
 (`evaluar_recompensa`, por umbral de puntos, queda solo para el endpoint antiguo
@@ -56,10 +60,14 @@ def evaluar_recompensa(db: Session, id_usuario: str, puntaje_total: int, puntaje
     return recompensa.a_dict()
 
 
-def recompensa_por_mundo(db: Session, id_usuario: str, info_unidad: dict) -> dict:
-    """El estudiante completó un mundo: premio físico si tiene máquina, felicitación si no."""
+def recompensa_por_mundo(db: Session, id_usuario: str, info_unidad: dict, mundos_completados: int = 1) -> dict:
+    """El estudiante completó un mundo (el número `mundos_completados` en total): premio
+    físico si le toca según su docente y tiene máquina; felicitación si no."""
     usuario = db.get(Usuario, id_usuario)
-    device_id = usuario.device_id if usuario else None
+    docente = db.get(Usuario, usuario.docente_id) if usuario and usuario.docente_id else None
+    cada = max(1, (docente.premio_cada_mundos or 1) if docente else 1)
+    toca = mundos_completados % cada == 0
+    device_id = usuario.device_id if usuario and toca else None
     recompensa = HistorialRecompensa(
         id_usuario=id_usuario, tipo="mundo", unidad=info_unidad["id"],
         titulo_es=info_unidad["titulo"]["es"], titulo_en=info_unidad["titulo"]["en"], emoji=info_unidad["emoji"],
@@ -70,6 +78,14 @@ def recompensa_por_mundo(db: Session, id_usuario: str, info_unidad: dict) -> dic
     db.flush()
     registrar_auditoria(
         db, tipo="mundo_completado", actor=id_usuario,
-        detalle={"id_historial": recompensa.id_historial, "unidad": info_unidad["id"], "con_maquina": bool(device_id)},
+        detalle={"id_historial": recompensa.id_historial, "unidad": info_unidad["id"], "con_maquina": bool(device_id),
+                 "toca_premio": toca},
     )
-    return recompensa.a_dict()
+    return {
+        **recompensa.a_dict(),
+        "toca_premio": toca,
+        "hay_maquina": bool(usuario and usuario.device_id),
+        "cada_mundos": cada,
+        # Mundos que le faltan para el próximo premio (si hoy le tocó, empieza de nuevo).
+        "faltan_mundos": cada - mundos_completados % cada,
+    }

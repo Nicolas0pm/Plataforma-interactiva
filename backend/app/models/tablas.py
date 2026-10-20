@@ -55,6 +55,8 @@ class Usuario(Base):
     terminos_version: Mapped[Optional[str]] = mapped_column(String(10))
     terminos_fecha: Mapped[Optional[datetime]] = mapped_column(FechaUTC)
     device_id_aula: Mapped[Optional[str]] = mapped_column(String(60))  # solo docentes
+    # Solo docentes (RF06): cada cuántos mundos completados suelta la máquina un premio.
+    premio_cada_mundos: Mapped[int] = mapped_column(Integer, default=1)
 
     # Estudiantes: entran con código + PIN.
     codigo_acceso: Mapped[Optional[str]] = mapped_column(String(10), unique=True)
@@ -130,6 +132,29 @@ class MundoDocente(Base):
     descripcion: Mapped[str] = mapped_column(String(140), default="")
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
     creado_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora)
+
+
+class TemaSalon(Base):
+    """RF07: cómo ve un salón el temario fijo. Una fila por mundo del temario: si el docente
+    lo dejó activo y en qué posición va dentro de su apartado. Sin filas, el salón ve el
+    temario completo en el orden de `app/curriculo.py`."""
+
+    __tablename__ = "temario_salon"
+
+    id_docente: Mapped[str] = mapped_column(ForeignKey(_FK_USUARIO, ondelete="CASCADE"), primary_key=True)
+    unidad: Mapped[str] = mapped_column(String(40), primary_key=True)
+    activo: Mapped[bool] = mapped_column(Boolean, default=True)
+    orden: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class TemaGlobal(Base):
+    """RF08: mundos del temario que el coordinador apagó para toda la institución
+    (solo se guardan los que cambian; sin fila = activo)."""
+
+    __tablename__ = "temario_global"
+
+    unidad: Mapped[str] = mapped_column(String(40), primary_key=True)
+    activo: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
 class Actividad(Base):

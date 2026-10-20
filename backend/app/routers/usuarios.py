@@ -225,3 +225,23 @@ def asignar_dispensador(
     n = len(estudiantes)
     registrar_auditoria(db, tipo="dispensador_asignado", actor=usuario["id_usuario"], detalle={"device_id": device_id, "estudiantes": n})
     return {"device_id": device_id, "estudiantes": n}
+
+
+class PremioAula(BaseModel):
+    cada_mundos: int = Field(ge=1, le=5)
+
+
+@router.put("/docente/{id_docente}/premio")
+def frecuencia_premio(
+    id_docente: str, payload: PremioAula, usuario: dict = Depends(current_user), db: Session = Depends(get_db)
+):
+    """RF06: cada cuántos mundos completados reciben premio físico los niños del salón (1 a 5)."""
+    if usuario["rol"] not in ("docente", "admin") or (usuario["rol"] != "admin" and usuario["id_usuario"] != id_docente):
+        raise HTTPException(403, "Solo el propio docente (o un admin) puede cambiar el premio del salón")
+    docente = db.get(Usuario, id_docente)
+    if docente is None or docente.rol != "docente":
+        raise HTTPException(404, "Docente no encontrado")
+    docente.premio_cada_mundos = payload.cada_mundos
+    registrar_auditoria(db, tipo="premio_configurado", actor=usuario["id_usuario"],
+                        detalle={"id_docente": id_docente, "cada_mundos": payload.cada_mundos})
+    return {"cada_mundos": payload.cada_mundos}

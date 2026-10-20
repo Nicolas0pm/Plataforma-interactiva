@@ -198,9 +198,12 @@ async function terminar() {
       // ¡Completó todo un mundo! Con máquina de premios se le pide ir por su juguete;
       // sin máquina, se le felicita (sin prometer un premio físico que no existe).
       const nombreMundo = mundo.titulo[idiomaActual()] || mundo.titulo.es;
-      extra.unshift(
-        (mundo.recompensa.device_id ? t("activity.world_reward") : t("activity.world_done")).replace("{mundo}", nombreMundo)
-      );
+      // Si el docente entrega el premio cada N mundos, se le dice cuántos le faltan.
+      const r = mundo.recompensa;
+      const mensaje = r.device_id ? t("activity.world_reward")
+        : r.hay_maquina && !r.toca_premio ? t(r.faltan_mundos === 1 ? "activity.world_one_more" : "activity.world_more")
+        : t("activity.world_done");
+      extra.unshift(mensaje.replace("{mundo}", nombreMundo).replace("{n}", r.faltan_mundos));
       mostrarModal({ emoji: `${mundo.emoji}🎁`, titulo: t("activity.world_title"), extra, principal: [t("activity.continue"), irAlMapa] });
     } else {
       mostrarModal({ emoji: "🏆", titulo: t("activity.lesson_passed"), extra, principal: [t("activity.continue"), irAlMapa] });

@@ -14,7 +14,7 @@ from app.services.auth_service import (
     require_role,
     verificar_acceso_estudiante,
 )
-from app.services.catalogo_service import catalogo, mundos_de_docente
+from app.services.catalogo_service import catalogo_de_docente
 from app.services.lecciones_service import (
     armar_leccion,
     leer_progresos,
@@ -83,6 +83,7 @@ def resumen_docente(
 
     ahora = datetime.now(timezone.utc)
     hoy = ahora.astimezone(ZONA).date()
+    docente = db.get(Usuario, id_docente)
     estudiantes = list(db.scalars(
         select(Usuario).where(Usuario.docente_id == id_docente, Usuario.rol == "estudiante")
     ))
@@ -90,7 +91,7 @@ def resumen_docente(
     filas = []
     por_tema: dict[str, dict] = {}
     info_tema: dict[str, dict] = {}
-    cat = catalogo(db, "", mundos_profe=mundos_de_docente(db, id_docente))  # igual para todo el salón
+    cat = catalogo_de_docente(db, id_docente)  # igual para todo el salón
     progresos = leer_progresos(db, [e.id_usuario for e in estudiantes])
     for estudiante in estudiantes:
         r = resumen_aprendizaje(db, estudiante.id_usuario, progreso=progresos[estudiante.id_usuario], cat=cat)
@@ -136,8 +137,9 @@ def resumen_docente(
         "total_estudiantes": total,
         "activos_hoy": sum(1 for f in filas if f["activo_hoy"]),
         "necesitan_ayuda": sum(1 for f in filas if f["necesita_ayuda"]),
-        "progreso_promedio": round(sum(f["lecciones_aprobadas"] / f["total_lecciones"] for f in filas) / total * 100)
+        "progreso_promedio": round(sum(f["lecciones_aprobadas"] / max(1, f["total_lecciones"]) for f in filas) / total * 100)
         if total else 0,
         "temas": temas,
-        "dispensador": db.scalar(select(Usuario.device_id_aula).where(Usuario.id_usuario == id_docente)),
+        "dispensador": docente.device_id_aula if docente else None,
+        "premio_cada_mundos": (docente.premio_cada_mundos or 1) if docente else 1,
     }

@@ -42,6 +42,10 @@
         <span class="valor" id="stat-mundos">0</span>
         <span class="etiqueta">🌍 <span data-i18n="worlds.title">Mis mundos</span></span>
       </button>
+      <button type="button" role="tab" class="stat-tile azul" data-vista="temario" aria-selected="false">
+        <span class="valor" id="stat-temario">0</span>
+        <span class="etiqueta">📖 <span data-i18n="syllabus.title">Temario</span></span>
+      </button>
     </div>
 
     <div class="card" id="vista" role="tabpanel" aria-live="polite">
@@ -60,6 +64,16 @@
         <button type="submit" data-i18n="machine.save">Guardar</button>
       </form>
       <p class="hint" id="maquina-estado" role="status"></p>
+      <!-- RF06: cada cuántos mundos completados se entrega el premio -->
+      <form id="form-premio" class="fila-form premio-cada">
+        <label for="premio-cada" data-i18n="machine.every">Entregar un premio cada</label>
+        <select id="premio-cada">
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option>
+        </select>
+        <span data-i18n="machine.worlds">mundo(s) completado(s)</span>
+      </form>
+      <p class="hint" id="premio-estado" role="status"></p>
     </div>
 
   </main>
