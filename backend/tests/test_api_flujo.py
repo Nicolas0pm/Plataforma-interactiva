@@ -28,7 +28,7 @@ def test_flujo_completo_docente_estudiante_padre(client):
     assert fallo.status_code == 401
 
     login = client.post(
-        "/api/usuarios/login-pin", json={"codigo": estudiante["codigo_acceso"].lower(), "pin": "1234"}
+        "/api/usuarios/login-pin", json={"codigo": estudiante["codigo_acceso"].lower(), "pin": "4826"}
     )
     assert login.status_code == 200
     token_estudiante = login.json()["token"]
@@ -136,7 +136,7 @@ def test_intentos_fallidos_de_pin_se_guardan_aunque_la_peticion_falle(client):
     nino = crear_nino(client, token_coord)
     for _ in range(MAX_FALLOS):
         assert client.post("/api/usuarios/login-pin", json={"codigo": nino["codigo_acceso"], "pin": "0000"}).status_code == 401
-    bloqueado = client.post("/api/usuarios/login-pin", json={"codigo": nino["codigo_acceso"], "pin": "1234"})
+    bloqueado = client.post("/api/usuarios/login-pin", json={"codigo": nino["codigo_acceso"], "pin": "4826"})
     assert bloqueado.status_code == 429
 
 

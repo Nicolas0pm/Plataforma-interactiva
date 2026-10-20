@@ -43,6 +43,13 @@ class Settings:
     jwt_adulto_exp_minutos: int = int(os.getenv("JWT_ADULTO_EXP_MINUTOS", "480"))
     pin_pepper: str = os.getenv("PIN_PEPPER", "dev-pepper-cambiar-en-produccion")
 
+    # Límites contra el abuso automatizado (app/services/limites.py). Todo un salón suele
+    # salir a internet por la misma IP, por eso los valores son holgados.
+    limite_login_por_minuto: int = int(os.getenv("LIMITE_LOGIN_POR_MINUTO", "60"))
+    limite_api_por_minuto: int = int(os.getenv("LIMITE_API_POR_MINUTO", "1200"))
+    # Las imágenes de las preguntas del profe llegan como data URL de hasta ~300 KB.
+    max_cuerpo_bytes: int = int(os.getenv("MAX_CUERPO_BYTES", str(1_000_000)))
+
     # Secreto compartido simple para que el ESP32 confirme entregas sin necesitar
     # una cuenta de usuario completa (fase futura, ver esp32/README.md).
     device_shared_secret: str = os.getenv("DEVICE_SHARED_SECRET", "")

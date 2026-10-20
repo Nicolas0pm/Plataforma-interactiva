@@ -10,6 +10,7 @@ from app.db import SesionLocal, crear_tablas
 from app.routers import actividades, auditoria, coordinador, feedback, lecciones, mundos, recompensas, temario, tienda, usuarios
 from app.services.auth_service import registrar_auditoria
 from app.services.lecciones_service import sembrar_temario, temario_cargado
+from app.services.limites import TamanoMaximo, limitar_por_ip
 
 logger = logging.getLogger("plataforma-ingles-kids")
 settings = get_settings()
@@ -28,6 +29,11 @@ async def sin_cache(request: Request, call_next):
     respuesta.headers["Cache-Control"] = "no-store"
     return respuesta
 
+
+# Límite de peticiones por IP (429) y tamaño máximo del cuerpo (413). Se registran antes
+# que CORS para que esas respuestas también lleven sus encabezados.
+app.middleware("http")(limitar_por_ip)
+app.add_middleware(TamanoMaximo, maximo=settings.max_cuerpo_bytes)
 
 # Los resúmenes (camino completo del niño, panel del salón) son JSON de varios KB:
 # comprimidos viajan mucho más rápido por redes móviles.

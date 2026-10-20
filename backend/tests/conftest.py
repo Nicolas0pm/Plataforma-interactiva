@@ -21,6 +21,9 @@ from app.main import app  # noqa: E402
 
 @pytest.fixture(autouse=True)
 def _base_datos_limpia():
+    from app.services.limites import limite
+
+    limite.reiniciar()  # todas las pruebas comparten la IP del TestClient
     if engine.dialect.name == "postgresql":
         # Contra un PostgreSQL de verdad (TEST_DATABASE_URL), vaciar todo con una sola
         # sentencia es mucho más rápido que borrar y crear las tablas en cada prueba.

@@ -37,7 +37,7 @@ def crear_adulto(client, token_coord: str, rol: str, usuario: str, nombre: str =
     return creado.json(), token
 
 
-def crear_nino(client, token_coord: str, nombre: str = "Ana", pin: str = "1234",
+def crear_nino(client, token_coord: str, nombre: str = "Ana", pin: str = "4826",
                docente_id: str | None = None, acudientes_ids: tuple = ()) -> dict:
     r = client.post("/api/coordinador/estudiantes", headers=auth(token_coord), json={
         "nombre": nombre, "edad": 7, "pin": pin, "docente_id": docente_id,
@@ -47,7 +47,7 @@ def crear_nino(client, token_coord: str, nombre: str = "Ana", pin: str = "1234",
     return r.json()
 
 
-def login_nino(client, nino: dict, pin: str = "1234") -> str:
+def login_nino(client, nino: dict, pin: str = "4826") -> str:
     r = client.post("/api/usuarios/login-pin", json={"codigo": nino["codigo_acceso"], "pin": pin})
     assert r.status_code == 200, r.text
     return r.json()["token"]

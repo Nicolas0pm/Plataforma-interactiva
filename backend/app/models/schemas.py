@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import AfterValidator, BaseModel, Field
 
 Rol = Literal["estudiante", "docente", "padre", "admin"]
 # Los largos máximos coinciden con las columnas de app/models/tablas.py: PostgreSQL rechaza
@@ -13,6 +13,25 @@ Password = Annotated[str, Field(min_length=8, max_length=128)]
 # Usuario de login de los adultos: corto, en minúsculas, sin espacios (p. ej. "mgarcia").
 NombreUsuario = Annotated[str, Field(min_length=3, max_length=40, pattern=r"^[a-z0-9._-]+$")]
 Pin = Annotated[str, Field(pattern=r"^\d{4}$", description="Exactamente 4 dígitos")]
+
+# PIN fáciles de adivinar: todos iguales (0000), seguidos (1234, 9876) o dos pares
+# repetidos (1212). Solo se rechazan al asignar un PIN; un niño que ya tenga uno así
+# puede seguir entrando hasta que el coordinador se lo cambie.
+_SEGUIDOS = "0123456789"
+PIN_FACILES = (
+    {d * 4 for d in _SEGUIDOS}
+    | {_SEGUIDOS[i:i + 4] for i in range(7)}
+    | {_SEGUIDOS[::-1][i:i + 4] for i in range(7)}
+)
+
+
+def _pin_dificil(pin: str) -> str:
+    if pin in PIN_FACILES or pin[:2] == pin[2:]:
+        raise ValueError("Ese PIN es muy fácil de adivinar: evita números repetidos o seguidos, como 1111 o 1234")
+    return pin
+
+
+PinNuevo = Annotated[Pin, AfterValidator(_pin_dificil)]
 
 
 class UsuarioBase(BaseModel):
@@ -45,7 +64,7 @@ class CrearEstudiante(BaseModel):
     """El coordinador registra a un niño (RF01) y le asigna su docente y sus acudientes."""
     nombre: str = Field(min_length=1, max_length=120)
     edad: int = Field(ge=3, le=15)
-    pin: Pin
+    pin: PinNuevo
     docente_id: Optional[IdUsuario] = None
     acudientes_ids: list[IdUsuario] = Field(default_factory=list)
     autoriza_datos_menor: bool = Field(
@@ -71,7 +90,7 @@ class CambiarEstado(BaseModel):
 
 
 class NuevoPin(BaseModel):
-    pin: Pin
+    pin: PinNuevo
 
 
 class UsuarioOut(UsuarioBase):

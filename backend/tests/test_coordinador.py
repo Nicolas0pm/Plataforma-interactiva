@@ -47,7 +47,7 @@ def test_crear_profesor_padre_y_nino_asignados(client, db):
 def test_registrar_nino_exige_autorizacion_y_docente_real(client):
     _, token_coord = crear_coordinador()
     padre, _ = crear_adulto(client, token_coord, "padre", "cperez")
-    base = {"nombre": "Leo", "edad": 7, "pin": "1234", "autoriza_datos_menor": True}
+    base = {"nombre": "Leo", "edad": 7, "pin": "4826", "autoriza_datos_menor": True}
     assert client.post("/api/coordinador/estudiantes", headers=auth(token_coord),
                        json={**base, "autoriza_datos_menor": False}).status_code == 400
     assert client.post("/api/coordinador/estudiantes", headers=auth(token_coord),
@@ -102,8 +102,8 @@ def test_restablecer_password_y_pin(client):
     assert sesion["debe_cambiar_password"] is True
 
     assert client.post(f"/api/coordinador/estudiantes/{nino['id_usuario']}/pin", headers=auth(token_coord),
-                       json={"pin": "4321"}).status_code == 200
-    login_nino(client, nino, pin="4321")
+                       json={"pin": "5830"}).status_code == 200
+    login_nino(client, nino, pin="5830")
 
 
 def test_desactivar_cierra_la_sesion_y_no_deja_entrar(client):
@@ -117,7 +117,7 @@ def test_desactivar_cierra_la_sesion_y_no_deja_entrar(client):
     assert client.get("/api/usuarios/sesion", headers=auth(token_profe)).status_code == 401
     assert client.get("/api/lecciones/jugar", headers=auth(token_nino)).status_code == 401
     assert client.post("/api/usuarios/login", json={"usuario": "mgarcia", "password": "clave-segura-1"}).status_code == 401
-    assert client.post("/api/usuarios/login-pin", json={"codigo": nino["codigo_acceso"], "pin": "1234"}).status_code == 401
+    assert client.post("/api/usuarios/login-pin", json={"codigo": nino["codigo_acceso"], "pin": "4826"}).status_code == 401
     # Nadie se desactiva a sí mismo (se quedaría sin coordinador).
     assert client.patch(f"/api/coordinador/usuarios/{id_coord}", headers=auth(token_coord),
                         json={"activo": False}).status_code == 400
@@ -131,5 +131,5 @@ def test_codigo_se_bloquea_tras_varios_fallos_de_pin(client, db):
             verificar_codigo_y_pin(db, nino["codigo_acceso"], "0000")
     # Bloqueado: ni siquiera el PIN correcto funciona hasta que pase el tiempo
     with pytest.raises(HTTPException) as exc:
-        verificar_codigo_y_pin(db, nino["codigo_acceso"], "1234")
+        verificar_codigo_y_pin(db, nino["codigo_acceso"], "4826")
     assert exc.value.status_code == 429
