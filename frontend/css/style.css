@@ -2083,3 +2083,68 @@ button.pequeno {
   margin: 0;
   padding: 0;
 }
+
+/* ======================================================================
+   Exámenes del niño y preguntas del temario editables por el docente
+   ====================================================================== */
+.quiz-opciones button.elegida {
+  outline: 4px solid var(--azul-cielo);
+  outline-offset: 2px;
+}
+
+.lista-examenes {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.lista-examenes li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 2px solid var(--borde);
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+}
+
+.lista-examenes li span {
+  font-weight: 600;
+}
+
+.lista-examenes li small {
+  display: block;
+  font-weight: 400;
+}
+
+.lista-examenes button {
+  width: auto;
+  margin: 0;
+}
+
+.lista-temario .tema {
+  flex-wrap: wrap;
+}
+
+.panel-preguntas-tema {
+  flex-basis: 100%;
+  border-top: 2px dashed var(--borde);
+  padding-top: 0.75rem;
+}
+
+.panel-preguntas-tema h4 {
+  margin: 0.75rem 0 0.25rem;
+}
+
+.lista-preguntas li.oculta {
+  opacity: 0.6;
+}
+
+.acciones-pregunta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}

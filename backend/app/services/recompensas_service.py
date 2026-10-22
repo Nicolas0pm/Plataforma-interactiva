@@ -1,17 +1,17 @@
 """
 RF05: Sistema de recompensas físicas.
 
-El premio real llega cuando el estudiante **completa un mundo** (`recompensa_por_mundo`):
-se crea un registro en `historial_recompensas`. Si el estudiante tiene una máquina de
-premios (ESP32) asignada, queda en estado "pendiente" con el `device_id` de la máquina:
-esa es su cola. La máquina pregunta cada pocos segundos por sus premios pendientes
+El premio real llega cuando el estudiante **aprueba el examen de los mundos del profe**
+(`premio_por_examen`): se crea un registro en `historial_recompensas`. Si el estudiante
+tiene una máquina de premios (ESP32) asignada, queda en estado "pendiente" con el
+`device_id` de la máquina: esa es su cola. La máquina pregunta cada pocos segundos por sus premios pendientes
 (`GET /api/recompensas/cola/{device_id}`), suelta un juguete por cada uno y confirma la
 entrega (ver `routers/recompensas.py` y `esp32/README.md`). Sin máquina, el logro queda
 registrado como "celebrada" (solo felicitación).
 
-El docente elige cada cuántos mundos completados se entrega el premio físico (RF06,
-`premio_cada_mundos`, de 1 a 5): los mundos intermedios también quedan como "celebrada" y
-la respuesta le dice al niño cuántos le faltan para el próximo premio.
+El docente elige cada cuántos mundos sale un examen (RF06, `premio_cada_mundos`, de 1 a 5;
+ver `examenes_service.py`). El premio físico llega al aprobar el examen de los mundos del
+profe; completar un mundo solo deja el logro ("celebrada").
 
 Cada premio es una fila propia: si dos niños ganan casi al mismo tiempo, ninguno se pierde.
 
@@ -60,32 +60,38 @@ def evaluar_recompensa(db: Session, id_usuario: str, puntaje_total: int, puntaje
     return recompensa.a_dict()
 
 
-def recompensa_por_mundo(db: Session, id_usuario: str, info_unidad: dict, mundos_completados: int = 1) -> dict:
-    """El estudiante completó un mundo (el número `mundos_completados` en total): premio
-    físico si le toca según su docente y tiene máquina; felicitación si no."""
-    usuario = db.get(Usuario, id_usuario)
-    docente = db.get(Usuario, usuario.docente_id) if usuario and usuario.docente_id else None
-    cada = max(1, (docente.premio_cada_mundos or 1) if docente else 1)
-    toca = mundos_completados % cada == 0
-    device_id = usuario.device_id if usuario and toca else None
-    recompensa = HistorialRecompensa(
+def logro_de_mundo(db: Session, id_usuario: str, info_unidad: dict) -> dict:
+    """El estudiante completó un mundo: queda el logro (lo ve en "Mundos completados"). El
+    premio físico ya no es por mundo: llega al aprobar el examen de los mundos del profe
+    (`premio_por_examen`)."""
+    logro = HistorialRecompensa(
         id_usuario=id_usuario, tipo="mundo", unidad=info_unidad["id"],
         titulo_es=info_unidad["titulo"]["es"], titulo_en=info_unidad["titulo"]["en"], emoji=info_unidad["emoji"],
+        fecha_entrega=ahora(), puntos_consumidos=0, estado="celebrada", device_id=None,
+    )
+    db.add(logro)
+    db.flush()
+    registrar_auditoria(db, tipo="mundo_completado", actor=id_usuario,
+                        detalle={"id_historial": logro.id_historial, "unidad": info_unidad["id"]})
+    return logro.a_dict()
+
+
+def premio_por_examen(db: Session, id_usuario: str, id_examen: str, mundos: list[dict]) -> dict:
+    """Aprobó (por primera vez) el examen de N mundos del profe: premio físico si tiene
+    máquina asignada (queda "pendiente" en su cola); si no, solo la felicitación."""
+    usuario = db.get(Usuario, id_usuario)
+    device_id = usuario.device_id if usuario else None
+    nombres_es = ", ".join(m["titulo"]["es"] for m in mundos)
+    nombres_en = ", ".join(m["titulo"]["en"] for m in mundos)
+    premio = HistorialRecompensa(
+        id_usuario=id_usuario, tipo="examen", unidad=f"examen-{id_examen}"[:80],
+        titulo_es=f"Examen: {nombres_es}"[:80], titulo_en=f"Exam: {nombres_en}"[:80], emoji="📝",
         fecha_entrega=ahora(), puntos_consumidos=0,
         estado="pendiente" if device_id else "celebrada", device_id=device_id,
     )
-    db.add(recompensa)
+    db.add(premio)
     db.flush()
-    registrar_auditoria(
-        db, tipo="mundo_completado", actor=id_usuario,
-        detalle={"id_historial": recompensa.id_historial, "unidad": info_unidad["id"], "con_maquina": bool(device_id),
-                 "toca_premio": toca},
-    )
-    return {
-        **recompensa.a_dict(),
-        "toca_premio": toca,
-        "hay_maquina": bool(usuario and usuario.device_id),
-        "cada_mundos": cada,
-        # Mundos que le faltan para el próximo premio (si hoy le tocó, empieza de nuevo).
-        "faltan_mundos": cada - mundos_completados % cada,
-    }
+    registrar_auditoria(db, tipo="premio_examen", actor=id_usuario,
+                        detalle={"id_historial": premio.id_historial, "id_examen": id_examen,
+                                 "con_maquina": bool(device_id)})
+    return premio.a_dict()

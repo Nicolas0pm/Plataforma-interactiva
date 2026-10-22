@@ -3,7 +3,9 @@ Catálogo de lo que puede aprender un estudiante, en tres apartados:
 
 - **vocabulario** y **gramatica**: el temario fijo de `app/curriculo.py`, menos los mundos
   que el coordinador apagó para toda la institución (`temario_global`, RF08) y los que el
-  docente apagó en su salón, en el orden que él eligió (`temario_salon`, RF07).
+  docente apagó en su salón, en el orden que él eligió (`temario_salon`, RF07). El docente
+  también puede cambiar o esconder preguntas de esos mundos solo para su salón
+  (`preguntas_salon`, ver `aplicar_cambios_salon`).
 - **profesor**: los mundos que crea el docente del estudiante (tabla `mundos_docente`),
   con preguntas de selección múltiple que el docente agrega. Sus lecciones se arman solas
   en grupos de `PREGUNTAS_POR_LECCION` preguntas, en el orden en que se crearon.
@@ -17,7 +19,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.curriculo import ORDEN_POR_SECCION, PREGUNTAS_POR_LECCION, info_unidad
-from app.models.tablas import Actividad, MundoDocente, TemaGlobal, TemaSalon, Usuario
+from app.models.tablas import Actividad, MundoDocente, PreguntaSalon, TemaGlobal, TemaSalon, Usuario
 
 SECCION_PROFESOR = "profesor"
 SECCIONES_TODAS = [*ORDEN_POR_SECCION, SECCION_PROFESOR]
@@ -133,7 +135,32 @@ def lecciones_de(cat: dict, seccion: str | None = None) -> list[tuple[str, int]]
     return [(u["id"], n) for sec in secciones for u in cat[sec] for n in range(1, u["lecciones"] + 1)]
 
 
-def preguntas_de_leccion(db: Session, unidad: str, leccion: int) -> list[dict]:
+def aplicar_cambios_salon(db: Session, id_docente: str | None, preguntas: list[dict]) -> list[dict]:
+    """Aplica a las preguntas del temario fijo los cambios que hizo el docente en su salón:
+    otro enunciado u otras opciones, o la pregunta oculta. Las del profe no se tocan."""
+    if not id_docente:
+        return preguntas
+    fijas = [p["id_actividad"] for p in preguntas if not es_del_profesor(p.get("unidad") or "")]
+    if not fijas:
+        return preguntas
+    cambios = {
+        c.id_actividad: c for c in db.scalars(
+            select(PreguntaSalon).where(PreguntaSalon.id_docente == id_docente, PreguntaSalon.id_actividad.in_(fijas))
+        )
+    }
+    salida = []
+    for p in preguntas:
+        cambio = cambios.get(p["id_actividad"])
+        if cambio is None:
+            salida.append(p)
+        elif cambio.activo:
+            salida.append({**p, "pregunta": cambio.pregunta, "opciones": list(cambio.opciones),
+                           "respuesta_correcta": cambio.respuesta_correcta, "editada": True})
+    return salida
+
+
+def preguntas_de_leccion(db: Session, unidad: str, leccion: int, id_docente: str | None = None) -> list[dict]:
+    """Preguntas de una lección tal como las ve el salón de `id_docente`."""
     if es_del_profesor(unidad):
         consulta = (
             select(Actividad).where(Actividad.unidad == unidad, Actividad.activo).order_by(*_orden_preguntas())
@@ -144,4 +171,4 @@ def preguntas_de_leccion(db: Session, unidad: str, leccion: int) -> list[dict]:
             select(Actividad).where(Actividad.unidad == unidad, Actividad.leccion == leccion, Actividad.activo)
             .order_by(*_orden_preguntas())
         )
-    return [a.a_dict() for a in db.scalars(consulta)]
+    return aplicar_cambios_salon(db, id_docente, [a.a_dict() for a in db.scalars(consulta)])

@@ -1,4 +1,5 @@
 import { apiFetch } from "../api.js";
+import { emojiHtml } from "../emoji.js";
 import { cuando, esc, hora, porcentaje } from "../html.js";
 import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
 import "../nav.js";
@@ -17,6 +18,7 @@ const VISTAS = ["estudiantes", "ayuda", "progreso", "activos", "mundos", "temari
 let resumen = null;
 let mundos = [];
 let temario = null;
+let temaAbierto = null; // mundo del temario con sus preguntas a la vista
 
 const titulo = (u) => u.titulo[idiomaActual()] || u.titulo.es;
 
@@ -204,8 +206,14 @@ async function cargarDetalle(e, detalle) {
         <span class="hint">${r.aprobada ? `${r.aciertos}/${r.total}` : `${r.errores} ${t("path.errors")}`}${r.modo === "practica" ? " · " + t("path.practice") : ""} · ${cuando(r.fecha, idiomaActual())}</span></li>`)
     .join("");
 
+  const examenes = (aprendizaje.examenes || [])
+    .map((x) => `<li>${x.estado === "aprobado" ? "✅" : "📝"} ${x.mundos.map((m) => `${esc(m.emoji)} ${esc(titulo(m))}`).join(", ")}
+        <span class="hint">${x.intentos ? `${x.mejor}/${x.total} · ${x.intentos} ${t("exam.attempts")}` : t("exam.not_taken")}${x.da_premio ? " · 🎁" : ""}</span></li>`)
+    .join("");
+
   detalle.innerHTML = `
     <div class="detalle-grid">
+      <section><h3>📝 ${t("exam.title_plural")}</h3><ul class="lista-intentos">${examenes || `<li class="hint">${t("exam.none")}</li>`}</ul></section>
       <section><h3>📊 ${t("teacher.by_topic")}</h3><ul class="temas">${temas || `<li class="hint">—</li>`}</ul></section>
       <section><h3>❌ ${t("teacher.frequent_errors")}</h3><ul class="errores">${errores || `<li class="hint">${t("teacher.no_errors")}</li>`}</ul></section>
       <section><h3>🕑 ${t("teacher.recent")}</h3><ul class="lista-intentos">${intentos || `<li class="hint">${t("path.no_attempts")}</li>`}</ul></section>
@@ -288,6 +296,8 @@ function pintarTemario(contenido) {
         <label for="${id}"><span aria-hidden="true">${m.emoji}</span> ${esc(titulo(m))}
           <small>${m.lecciones} ${t("syllabus.lessons")}${m.global_activo ? "" : ` · ${t("syllabus.off_global")}`}</small></label>
         <span class="mover">
+          <button type="button" class="secundario btn-editar-tema" aria-expanded="${temaAbierto === m.id}"
+            aria-label="${t("syllabus.edit_questions")}: ${esc(titulo(m))}" title="${t("syllabus.edit_questions")}">✏️</button>
           <button type="button" class="secundario" data-mover="-1" ${i === 0 ? "disabled" : ""} aria-label="${t("syllabus.up")}">↑</button>
           <button type="button" class="secundario" data-mover="1" ${i === unidades.length - 1 ? "disabled" : ""} aria-label="${t("syllabus.down")}">↓</button>
         </span>`;
@@ -301,10 +311,100 @@ function pintarTemario(contenido) {
         [nuevo[i], nuevo[j]] = [nuevo[j], nuevo[i]];
         guardarTemario(seccion, nuevo, m.id, b.dataset.mover);
       }));
+      li.querySelector(".btn-editar-tema").addEventListener("click", () => {
+        temaAbierto = temaAbierto === m.id ? null : m.id;
+        pintarVista();
+        document.querySelector(`#tema-${m.id}`)?.closest("li").querySelector(".btn-editar-tema")?.focus();
+      });
       lista.appendChild(li);
+      if (temaAbierto === m.id) {
+        const panel = document.createElement("div");
+        panel.className = "panel-preguntas-tema";
+        li.appendChild(panel);
+        pintarPreguntasTema(m, panel);
+      }
     });
     contenido.appendChild(bloque);
   }
+}
+
+// ---------- Preguntas de un mundo del temario, cambiadas solo para este salón ----------
+async function pintarPreguntasTema(mundo, panel) {
+  panel.innerHTML = `<p class="hint">${t("activity.loading")}</p>`;
+  const datos = await apiFetch(`/api/temario/salon/${mundo.id}/preguntas`);
+  const opcionHtml = (p, o) => (p.formato_opciones === "emoji" ? emojiHtml(o) : esc(o));
+  panel.innerHTML = `
+    <p class="hint">${t("syllabus.questions_hint")}</p>
+    <p class="error-msg" role="alert"></p>
+    ${datos.lecciones.map((l) => `
+      <h4>${t("path.lesson")} ${l.numero}</h4>
+      <ol class="lista-preguntas">${l.preguntas.map((p) => `
+        <li class="${p.visible ? "" : "oculta"}" data-id="${esc(p.id_actividad)}">
+          <span>${p.icono ? emojiHtml(p.icono) + " " : ""}<strong>${esc(p.pregunta)}</strong>
+            ${p.editada ? `<span class="pill">${t("syllabus.edited")}</span>` : ""}
+            ${p.visible ? "" : `<span class="pill">${t("syllabus.hidden")}</span>`}</span>
+          <span class="hint">${p.opciones.map((o) => (o === p.respuesta_correcta ? `✅ ${opcionHtml(p, o)}` : opcionHtml(p, o))).join(" · ")}</span>
+          <span class="acciones-pregunta">
+            <button type="button" class="secundario" data-accion="editar">${t("syllabus.edit")}</button>
+            <button type="button" class="secundario" data-accion="${p.visible ? "ocultar" : "mostrar"}">${t(p.visible ? "syllabus.hide" : "syllabus.show")}</button>
+            ${p.editada || !p.visible ? `<button type="button" class="secundario" data-accion="restaurar">${t("syllabus.restore")}</button>` : ""}
+          </span>
+        </li>`).join("")}</ol>`).join("")}`;
+  const error = panel.querySelector(".error-msg");
+  const preguntas = Object.fromEntries(datos.lecciones.flatMap((l) => l.preguntas).map((p) => [p.id_actividad, p]));
+  const recargar = () => pintarPreguntasTema(mundo, panel);
+  panel.querySelectorAll("[data-accion]").forEach((boton) => boton.addEventListener("click", async () => {
+    const li = boton.closest("li");
+    const p = preguntas[li.dataset.id];
+    const url = `/api/temario/salon/preguntas/${encodeURIComponent(p.id_actividad)}`;
+    error.textContent = "";
+    try {
+      if (boton.dataset.accion === "editar") return editarPreguntaTema(p, li, url, recargar);
+      if (boton.dataset.accion === "restaurar") await apiFetch(url, { method: "DELETE" });
+      else await apiFetch(url, { method: "PATCH", body: { activo: boton.dataset.accion === "mostrar" } });
+      await recargar();
+    } catch (err) {
+      error.textContent = err.message;
+    }
+  }));
+}
+
+function editarPreguntaTema(p, li, url, recargar) {
+  li.innerHTML = `
+    <form class="form-pregunta">
+      <label>${t("worlds.question")}<input name="pregunta" maxlength="200" required value="${esc(p.pregunta)}" /></label>
+      ${[0, 1, 2, 3].map((i) => `<label class="opcion-form">
+          <input type="radio" name="correcta" value="${i}" ${p.opciones[i] === p.respuesta_correcta ? "checked" : ""}
+            aria-label="${t("worlds.mark_correct")}" />
+          <input name="opcion${i}" maxlength="60" ${i < 2 ? "required" : ""} value="${esc(p.opciones[i] || "")}"
+            placeholder="${t("worlds.option")} ${i + 1}${i < 2 ? "" : ` (${t("worlds.optional")})`}" />
+        </label>`).join("")}
+      <p class="hint">🔘 = ${t("worlds.mark_correct")}</p>
+      <div class="fila-form">
+        <button type="submit">${t("syllabus.save")}</button>
+        <button type="button" class="secundario btn-cancelar">${t("password.cancel")}</button>
+      </div>
+      <p class="error-msg" role="alert"></p>
+    </form>`;
+  const form = li.querySelector("form");
+  form.querySelector('input[name="pregunta"]').focus();
+  form.querySelector(".btn-cancelar").addEventListener("click", recargar);
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const datos = new FormData(form);
+    const opciones = [0, 1, 2, 3].map((i) => (datos.get(`opcion${i}`) || "").trim());
+    const correcta = opciones[Number(datos.get("correcta"))];
+    if (!correcta) {
+      form.querySelector(".error-msg").textContent = t("worlds.correct_empty");
+      return;
+    }
+    try {
+      await apiFetch(url, { method: "PUT", body: { pregunta: datos.get("pregunta"), opciones: opciones.filter(Boolean), respuesta_correcta: correcta } });
+      await recargar();
+    } catch (err) {
+      form.querySelector(".error-msg").textContent = err.message;
+    }
+  });
 }
 
 async function guardarTemario(seccion, unidades, enfocar, direccion) {

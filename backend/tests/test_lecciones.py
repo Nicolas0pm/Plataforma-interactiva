@@ -152,24 +152,16 @@ def test_completar_un_mundo_sin_maquina_solo_felicita(client, db):
     assert r.json()["mundo_completado"] is None
 
 
-def test_completar_un_mundo_con_maquina_encola_un_juguete(client, db):
+def test_completar_un_mundo_del_temario_no_da_premio_fisico(client, db):
+    """Los mundos del temario fijo se pueden jugar a cualquier hora (en casa): completarlos
+    deja el logro y arma su examen, pero no manda nada a la máquina del salón."""
     docente, token_docente, nino, token = _preparar(client, db)
-    r = client.put(f"/api/usuarios/docente/{docente['id_usuario']}/dispensador",
-                   json={"device_id": "aula-101"}, headers=_auth(token_docente))
-    assert r.json() == {"device_id": "aula-101", "estudiantes": 1}
-
-    recompensa = _completar_mundo(client, token)[4]["mundo_completado"]["recompensa"]
-    assert recompensa["device_id"] == "aula-101" and recompensa["estado"] == "pendiente"
-    # La máquina ve el premio en su cola (y otra máquina no)
+    client.put(f"/api/usuarios/docente/{docente['id_usuario']}/dispensador",
+               json={"device_id": "aula-101"}, headers=_auth(token_docente))
+    mundo = _completar_mundo(client, token)[4]["mundo_completado"]
+    assert mundo["recompensa"]["estado"] == "celebrada" and mundo["recompensa"]["device_id"] is None
+    assert mundo["examen"]["da_premio"] is False
     maquina = {"X-Device-Secret": "test-device-secret"}
-    assert client.get("/api/recompensas/cola/aula-101").status_code == 401  # sin secreto
-    cola = client.get("/api/recompensas/cola/aula-101", headers=maquina).json()
-    assert [(p["id_historial"], p["comando"]) for p in cola] == [(recompensa["id_historial"], "dispensar")]
-    assert client.get("/api/recompensas/cola/aula-7", headers=maquina).json() == []
-
-    # La máquina confirma la entrega y el premio sale de la cola
-    ok = client.post(f"/api/recompensas/{recompensa['id_historial']}/confirmar-entrega", headers=maquina)
-    assert ok.status_code == 200
     assert client.get("/api/recompensas/cola/aula-101", headers=maquina).json() == []
 
 

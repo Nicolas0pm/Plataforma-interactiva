@@ -58,6 +58,7 @@ async function iniciar(sesion) {
   document.getElementById("stat-mundos").textContent = resumen.mundos_completados;
   pintarEstadisticas(resumen);
   pintarRecientes(resumen.recientes);
+  pintarExamenes(resumen.examenes || []);
   pintarSeccion();
   // Las vidas se recargan con el tiempo: se revisa cada 20 s sin volver a pedir nada al servidor.
   setInterval(() => {
@@ -87,6 +88,23 @@ function pintarSeccion() {
   }
   pintarProxima(resumen.siguiente[seccion], seccion);
   pintarCamino(resumen, seccion, document.getElementById("camino"));
+}
+
+// Exámenes pendientes (de cualquier apartado): se presentan cuando el niño quiera.
+function pintarExamenes(examenes) {
+  const pendientes = examenes.filter((x) => x.estado === "pendiente");
+  const tarjeta = document.getElementById("examenes");
+  tarjeta.classList.toggle("oculto", !pendientes.length);
+  const lista = document.getElementById("lista-examenes");
+  lista.innerHTML = "";
+  for (const x of pendientes) {
+    const li = document.createElement("li");
+    li.innerHTML = `<span>${x.mundos.map((m) => `${emojiHtml(m.emoji)} ${esc(titulo(m))}`).join(", ")}
+        <small class="hint">${x.da_premio ? `🎁 ${t("exam.prize_hint")}` : t("exam.no_prize_hint")}</small></span>
+      <button type="button">${t("exam.take")}</button>`;
+    li.querySelector("button").addEventListener("click", () => (window.location.href = `activity.html?examen=${x.id_examen}`));
+    lista.appendChild(li);
+  }
 }
 
 function pintarProxima(siguiente, seccion) {

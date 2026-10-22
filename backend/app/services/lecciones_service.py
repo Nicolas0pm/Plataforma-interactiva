@@ -16,9 +16,10 @@ Camino de aprendizaje guiado (estilo Duolingo).
   empezar lecciones nuevas ni repasos, pero sí **practicar** (repetir una ya aprobada):
   practicar no gasta vidas y, si la aprueba, le devuelve una.
 - El servidor califica comparando las respuestas con las correctas guardadas en la base de datos.
-- **Premios**: los puntos se gastan en la tienda del perfil (`tienda_service.py`). El premio
-  real llega al **completar un mundo** (todas sus lecciones): si el estudiante tiene una
-  máquina asignada, se le pide que suelte un juguete; si no, se le felicita.
+- **Premios**: los puntos se gastan en la tienda del perfil (`tienda_service.py`). Completar
+  un mundo (todas sus lecciones) deja el logro y, cada N mundos de un apartado, arma un
+  **examen** de esos mundos (`examenes_service.py`). El premio físico llega al aprobar el
+  examen de los mundos del profe.
 
 El progreso se maneja como un diccionario que `progreso_db.py` arma desde sus tablas:
   lecciones: { "animals-1": {aprobada, mejor, total, intentos, fallos, ultima} }
@@ -46,10 +47,11 @@ from app.services.catalogo_service import (
     lecciones_de,
     preguntas_de_leccion,
 )
-from app.models.tablas import Actividad
+from app.models.tablas import Actividad, Usuario
 from app.services.progreso_db import MAX_RECIENTES, guardar_progreso_crudo, leer_progresos_crudos, registrar_intento
 from app.services.progreso_service import calcular_nivel, puntos_para_siguiente_nivel
-from app.services.recompensas_service import recompensa_por_mundo
+from app.services.examenes_service import examenes_de, nuevo_examen_si_toca
+from app.services.recompensas_service import logro_de_mundo
 
 REPASO_CADA = 3
 ESPERA_REPASO = timedelta(hours=1)
@@ -172,8 +174,12 @@ def modo_para(progreso: dict, cat: dict, unidad: str, leccion: int) -> str:
     raise HTTPException(403, "Esa lección todavía no está desbloqueada")
 
 
-def _preguntas(db: Session, unidad: str, leccion: int) -> list[dict]:
-    preguntas = preguntas_de_leccion(db, unidad, leccion)
+def _docente_id(db: Session, id_usuario: str) -> str | None:
+    return db.scalar(select(Usuario.docente_id).where(Usuario.id_usuario == id_usuario))
+
+
+def _preguntas(db: Session, unidad: str, leccion: int, id_docente: str | None) -> list[dict]:
+    preguntas = preguntas_de_leccion(db, unidad, leccion, id_docente)
     if not preguntas:
         raise HTTPException(404, "Esta lección no tiene preguntas cargadas")
     return preguntas
@@ -214,7 +220,7 @@ def armar_leccion(
                 "imagen": p.get("imagen"),  # solo las preguntas de los mundos del profe
                 "formato_opciones": p.get("formato_opciones", "texto"),
             }
-            for p in _preguntas(db, unidad, leccion)
+            for p in _preguntas(db, unidad, leccion, _docente_id(db, id_usuario))
         ],
     }
 
@@ -230,7 +236,7 @@ def registrar_resultado(db: Session, id_usuario: str, unidad: str, leccion: int,
     if modo != "practica" and vidas == 0:
         raise _sin_vidas(progreso, ahora)
     vidas_al_empezar = VIDAS_MAX if modo == "practica" else vidas
-    preguntas = {p["id_actividad"]: p for p in _preguntas(db, unidad, leccion)}
+    preguntas = {p["id_actividad"]: p for p in _preguntas(db, unidad, leccion, _docente_id(db, id_usuario))}
 
     ids = [r["id_actividad"] for r in respuestas]
     if len(ids) != len(set(ids)):
@@ -312,7 +318,9 @@ def registrar_resultado(db: Session, id_usuario: str, unidad: str, leccion: int,
             "unidad": unidad,
             "titulo": info["titulo"],
             "emoji": info["emoji"],
-            "recompensa": recompensa_por_mundo(db, id_usuario, info, len(progreso["mundos_completados"])),
+            "recompensa": logro_de_mundo(db, id_usuario, info),
+            # Cada N mundos del apartado: examen de esos mundos (o cuántos faltan).
+            **nuevo_examen_si_toca(db, id_usuario, seccion, progreso, cat),
         }
 
     nuevo_nivel = calcular_nivel(progreso["puntaje_total"])
@@ -356,7 +364,8 @@ def registrar_resultado(db: Session, id_usuario: str, unidad: str, leccion: int,
     }
 
 
-def resumen_aprendizaje(db: Session, id_usuario: str, progreso: dict | None = None, cat: dict | None = None) -> dict:
+def resumen_aprendizaje(db: Session, id_usuario: str, progreso: dict | None = None, cat: dict | None = None,
+                        con_examenes: bool = True) -> dict:
     """Caminos con estados + estadísticas. Lo usan el niño, su docente y sus padres.
     El panel del docente pasa `progreso` y `cat` ya consultados para no repetir lecturas."""
     from app.services.tienda_service import perfil_de
@@ -453,6 +462,8 @@ def resumen_aprendizaje(db: Session, id_usuario: str, progreso: dict | None = No
             for i in recientes[:8]
         ],
         "errores_frecuentes": sorted(conteo_errores.values(), key=lambda e: -e["veces"])[:8],
+        # El panel de todo el salón no los necesita (y se ahorra una consulta por niño).
+        "examenes": examenes_de(db, id_usuario, cat) if con_examenes else [],
     }
 
 

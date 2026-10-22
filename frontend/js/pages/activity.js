@@ -14,6 +14,9 @@ import { corazones, minutosHasta } from "../vidas.js";
 //   pierde una vida ❤️. Las vidas se guardan entre lecciones y se recarga una cada 30 min;
 //   sin vidas, la lección termina. Practicar (repetir una aprobada) no gasta vidas.
 // - Al final se envían las respuestas y el servidor califica.
+// - Con ?examen=<id> es el examen de varios mundos: no gasta vidas ni muestra si cada
+//   respuesta estaba bien (la respuesta correcta no llega al navegador); al final el
+//   servidor califica y, si aprueba el examen de los mundos del profe, llega el premio.
 
 const sesion = exigirRol("estudiante");
 inicializarLangToggle();
@@ -41,6 +44,7 @@ const overlay = document.getElementById("overlay");
 const confetiEl = document.getElementById("confeti");
 
 let leccion = null;
+const idExamen = params.get("examen");
 let indice = 0;
 let vidas = 0;
 let inicioPregunta = 0;
@@ -48,7 +52,23 @@ const respuestas = [];
 
 if (sesion) cargar();
 
+async function cargarExamen() {
+  try {
+    leccion = await apiFetch(`/api/examenes/${encodeURIComponent(idExamen)}`);
+  } catch (err) {
+    tarjeta.innerHTML = `<span class="hero-emoji">⚠️</span><p>${esc(err.message)}</p>
+      <button type="button" id="btn-al-mapa">${t("activity.back_dashboard")}</button>`;
+    document.getElementById("btn-al-mapa").addEventListener("click", irAlMapa);
+    return;
+  }
+  document.getElementById("vidas").classList.add("oculto");
+  const mundos = leccion.mundos.map((m) => `${m.emoji} ${m.titulo[idiomaActual()] || m.titulo.es}`).join(", ");
+  document.getElementById("leccion-nombre").textContent = `📝 ${t("exam.title")}: ${mundos}`;
+  mostrarPregunta();
+}
+
 async function cargar() {
+  if (idExamen) return cargarExamen();
   const consulta = params.get("unidad")
     ? `?unidad=${encodeURIComponent(params.get("unidad"))}&leccion=${encodeURIComponent(params.get("leccion"))}`
     : `?seccion=${SECCIONES.includes(params.get("seccion")) ? params.get("seccion") : "vocabulario"}`;
@@ -130,6 +150,14 @@ function responder(boton, opcion, pregunta) {
   botones.forEach((b) => (b.disabled = true));
   respuestas.push({ id_actividad: pregunta.id_actividad, respuesta: opcion, tiempo_ms: Date.now() - inicioPregunta });
 
+  if (idExamen) {
+    // En el examen no se dice si estaba bien: se marca la elegida y se sigue.
+    boton.classList.add("elegida");
+    sonar("acierto");
+    setTimeout(avanzar, 500);
+    return;
+  }
+
   const correcta = opcion === pregunta.respuesta_correcta;
   if (correcta) {
     sonar("acierto");
@@ -159,7 +187,7 @@ function mostrarAviso(bien, html) {
 }
 
 function avanzar() {
-  if (vidas <= 0 || indice === leccion.preguntas.length - 1) {
+  if ((!idExamen && vidas <= 0) || indice === leccion.preguntas.length - 1) {
     terminar();
     return;
   }
@@ -167,8 +195,36 @@ function avanzar() {
   mostrarPregunta();
 }
 
+async function terminarExamen() {
+  document.getElementById("barra-actividad").style.width = "100%";
+  let r;
+  try {
+    r = await apiFetch(`/api/examenes/${encodeURIComponent(idExamen)}/resultado`, { method: "POST", body: { respuestas } });
+  } catch (err) {
+    mostrarModal({ emoji: "⚠️", titulo: err.message, extra: [], principal: [t("activity.back_dashboard"), irAlMapa] });
+    return;
+  }
+  const extra = [t("activity.lesson_summary").replace("{aciertos}", r.aciertos).replace("{total}", r.total)];
+  if (r.aprobado) {
+    if (r.recompensa?.device_id) extra.unshift(t("exam.prize_machine"));
+    else if (r.recompensa) extra.unshift(t("exam.prize_no_machine"));
+    else if (!r.primera_vez) extra.push(t("exam.already_passed"));
+    mostrarModal({ emoji: r.recompensa?.device_id ? "🏅🎁" : "🏅", titulo: t("exam.passed"), extra,
+                   principal: [t("activity.continue"), irAlMapa] });
+    sonar("ganar");
+    lanzarConfeti();
+  } else {
+    extra.push(t("exam.need").replace("{n}", r.necesarios).replace("{total}", r.total));
+    sonar("perder");
+    mostrarModal({ emoji: "💪", titulo: t("exam.failed"), extra,
+                   principal: [t("activity.try_again"), () => window.location.reload()],
+                   secundario: [t("activity.back_dashboard"), irAlMapa] });
+  }
+}
+
 async function terminar() {
   aviso.classList.add("oculto");
+  if (idExamen) return terminarExamen();
   document.getElementById("barra-actividad").style.width = vidas > 0 ? "100%" : document.getElementById("barra-actividad").style.width;
   let resultado;
   try {
@@ -195,16 +251,21 @@ async function terminar() {
 
     const mundo = resultado.mundo_completado;
     if (mundo) {
-      // ¡Completó todo un mundo! Con máquina de premios se le pide ir por su juguete;
-      // sin máquina, se le felicita (sin prometer un premio físico que no existe).
+      // ¡Completó todo un mundo! Cada N mundos del apartado le sale un examen de esos
+      // mundos; si es de los mundos del profe, aprobarlo le da el premio de la máquina.
       const nombreMundo = mundo.titulo[idiomaActual()] || mundo.titulo.es;
-      // Si el docente entrega el premio cada N mundos, se le dice cuántos le faltan.
-      const r = mundo.recompensa;
-      const mensaje = r.device_id ? t("activity.world_reward")
-        : r.hay_maquina && !r.toca_premio ? t(r.faltan_mundos === 1 ? "activity.world_one_more" : "activity.world_more")
-        : t("activity.world_done");
-      extra.unshift(mensaje.replace("{mundo}", nombreMundo).replace("{n}", r.faltan_mundos));
-      mostrarModal({ emoji: `${mundo.emoji}🎁`, titulo: t("activity.world_title"), extra, principal: [t("activity.continue"), irAlMapa] });
+      extra.unshift(t("activity.world_done").replace("{mundo}", nombreMundo));
+      if (mundo.examen) {
+        extra.splice(1, 0, t(mundo.examen.da_premio ? "exam.ready_prize" : "exam.ready"));
+        mostrarModal({ emoji: `${mundo.emoji}📝`, titulo: t("activity.world_title"), extra,
+                       principal: [t("exam.take"), () => (window.location.href = `activity.html?examen=${mundo.examen.id_examen}`)],
+                       secundario: [t("exam.later"), irAlMapa] });
+      } else {
+        if (mundo.faltan_mundos) {
+          extra.splice(1, 0, t(mundo.faltan_mundos === 1 ? "exam.one_more" : "exam.more").replace("{n}", mundo.faltan_mundos));
+        }
+        mostrarModal({ emoji: `${mundo.emoji}🎉`, titulo: t("activity.world_title"), extra, principal: [t("activity.continue"), irAlMapa] });
+      }
     } else {
       mostrarModal({ emoji: "🏆", titulo: t("activity.lesson_passed"), extra, principal: [t("activity.continue"), irAlMapa] });
     }

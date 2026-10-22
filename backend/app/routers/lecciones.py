@@ -94,7 +94,8 @@ def resumen_docente(
     cat = catalogo_de_docente(db, id_docente)  # igual para todo el salón
     progresos = leer_progresos(db, [e.id_usuario for e in estudiantes])
     for estudiante in estudiantes:
-        r = resumen_aprendizaje(db, estudiante.id_usuario, progreso=progresos[estudiante.id_usuario], cat=cat)
+        r = resumen_aprendizaje(db, estudiante.id_usuario, progreso=progresos[estudiante.id_usuario], cat=cat,
+                                con_examenes=False)
         actualizado = _como_local(r["ultima_actividad"])
         horas_hoy = sorted(f for f in (_como_local(x) for x in r["actividad"]) if f.date() == hoy)
         motivos = motivos_de_ayuda(r, ahora)

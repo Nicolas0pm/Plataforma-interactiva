@@ -157,6 +157,43 @@ class TemaGlobal(Base):
     activo: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
+class PreguntaSalon(Base):
+    """Cambios de un docente a una pregunta del temario fijo, solo para su salón: otro
+    enunciado, otras opciones o la pregunta oculta (`activo` = False). Sin fila, el salón
+    ve la pregunta original."""
+
+    __tablename__ = "preguntas_salon"
+
+    id_docente: Mapped[str] = mapped_column(ForeignKey(_FK_USUARIO, ondelete="CASCADE"), primary_key=True)
+    id_actividad: Mapped[str] = mapped_column(ForeignKey("actividades.id_actividad", ondelete="CASCADE"), primary_key=True)
+    pregunta: Mapped[str] = mapped_column(Text)
+    opciones: Mapped[list] = mapped_column(JSONTipo, default=list)
+    respuesta_correcta: Mapped[str] = mapped_column(Text)
+    activo: Mapped[bool] = mapped_column(Boolean, default=True)
+    actualizado_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora)
+
+
+class Examen(Base):
+    """Examen que se arma solo cada N mundos completados de un apartado (N lo elige el
+    docente), con preguntas de esos mundos. Aprobar el de los mundos del profe da el premio
+    físico; los del temario fijo solo evalúan."""
+
+    __tablename__ = "examenes"
+    __table_args__ = (Index("ix_examenes_usuario_seccion", "id_usuario", "seccion"),)
+
+    id_examen: Mapped[str] = mapped_column(String(40), primary_key=True, default=nuevo_id)
+    id_usuario: Mapped[str] = mapped_column(ForeignKey(_FK_USUARIO, ondelete="CASCADE"))
+    seccion: Mapped[str] = mapped_column(String(20))
+    unidades: Mapped[list] = mapped_column(JSONTipo, default=list)  # mundos que evalúa, en orden
+    preguntas: Mapped[list] = mapped_column(JSONTipo, default=list)  # id_actividad elegidas
+    estado: Mapped[str] = mapped_column(String(12), default="pendiente")  # pendiente | aprobado
+    intentos: Mapped[int] = mapped_column(Integer, default=0)
+    mejor: Mapped[int] = mapped_column(Integer, default=0)  # mejor número de aciertos
+    creado_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora)
+    aprobado_en: Mapped[Optional[datetime]] = mapped_column(FechaUTC)
+    id_historial: Mapped[Optional[str]] = mapped_column(ForeignKey("historial_recompensas.id_historial"))
+
+
 class Actividad(Base):
     """Una pregunta: del temario fijo (`app/curriculo.py`) o de un mundo del docente."""
 
@@ -334,7 +371,7 @@ class HistorialRecompensa(Base):
 
     id_historial: Mapped[str] = mapped_column(String(40), primary_key=True, default=nuevo_id)
     id_usuario: Mapped[str] = mapped_column(ForeignKey(_FK_USUARIO, ondelete="CASCADE"), index=True)
-    tipo: Mapped[str] = mapped_column(String(20), default="umbral")  # mundo | umbral
+    tipo: Mapped[str] = mapped_column(String(20), default="umbral")  # mundo | examen | umbral
     unidad: Mapped[Optional[str]] = mapped_column(String(80))
     titulo_es: Mapped[Optional[str]] = mapped_column(String(80))
     titulo_en: Mapped[Optional[str]] = mapped_column(String(80))
@@ -350,7 +387,7 @@ class HistorialRecompensa(Base):
             "fecha_entrega": self.fecha_entrega, "puntos_consumidos": self.puntos_consumidos,
             "estado": self.estado, "device_id": self.device_id,
         }
-        if self.tipo == "mundo":
+        if self.tipo in ("mundo", "examen"):
             datos |= {"unidad": self.unidad, "titulo": {"es": self.titulo_es, "en": self.titulo_en}, "emoji": self.emoji}
         return datos
 

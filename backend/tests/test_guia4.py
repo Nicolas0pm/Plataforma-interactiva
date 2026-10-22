@@ -1,29 +1,8 @@
-"""Requisitos de la Guía 4: premio cada N mundos (RF06), temario por salón (RF07), edición
-de cuentas por el coordinador (RF01) y temario institucional (RF08)."""
-from test_lecciones import _completar_mundo, _preparar
+"""Requisitos de la Guía 4: frecuencia de exámenes y premios (RF06, ver también
+test_examenes.py), temario por salón (RF07), edición de cuentas por el coordinador (RF01) y
+temario institucional (RF08)."""
+from test_lecciones import _preparar
 from utilidades import auth, crear_coordinador, crear_nino
-
-
-def _maquina(client, docente, token_docente, cada=None):
-    client.put(f"/api/usuarios/docente/{docente['id_usuario']}/dispensador",
-               json={"device_id": "aula-101"}, headers=auth(token_docente))
-    if cada:
-        r = client.put(f"/api/usuarios/docente/{docente['id_usuario']}/premio",
-                       json={"cada_mundos": cada}, headers=auth(token_docente))
-        assert r.status_code == 200, r.text
-
-
-def test_premio_fisico_cada_dos_mundos(client, db):
-    docente, token_docente, _, token = _preparar(client, db)
-    _maquina(client, docente, token_docente, cada=2)
-    primero = _completar_mundo(client, token)[4]["mundo_completado"]["recompensa"]
-    assert primero["estado"] == "celebrada" and primero["device_id"] is None
-    assert primero["toca_premio"] is False and primero["faltan_mundos"] == 1
-    segundo = _completar_mundo(client, token)[4]["mundo_completado"]["recompensa"]
-    assert segundo["estado"] == "pendiente" and segundo["device_id"] == "aula-101"
-    assert segundo["toca_premio"] is True and segundo["faltan_mundos"] == 2
-    resumen = client.get(f"/api/lecciones/docente/{docente['id_usuario']}", headers=auth(token_docente)).json()
-    assert resumen["premio_cada_mundos"] == 2
 
 
 def test_frecuencia_de_premio_valida_rango_y_dueno(client, db):

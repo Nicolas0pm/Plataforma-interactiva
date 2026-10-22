@@ -81,7 +81,7 @@ async function equipar(itemId, tipo) {
 }
 
 async function cargarMundos(sesion) {
-  const recompensas = (await apiFetch(`/api/recompensas/estudiante/${sesion.id_usuario}`)).filter((r) => r.tipo === "mundo");
+  const recompensas = (await apiFetch(`/api/recompensas/estudiante/${sesion.id_usuario}`)).filter((r) => r.tipo === "mundo" || r.tipo === "examen");
   const lista = document.getElementById("lista-recompensas");
   lista.innerHTML = "";
   if (!recompensas.length) {
