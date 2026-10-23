@@ -1,0 +1,13 @@
+estudiante,perfil,sesiones_clase,sesiones_casa,lecciones_jugadas,lecciones_aprobadas,precision,precision_semanas_1_2,precision_ultimas_2,mundos_completados,examenes_aprobados,examenes_presentados,examenes_distintos,aprobados_al_primer_intento,premios,veces_sin_vidas,pin_errado
+Sofía Martínez,Sobresaliente,16,33,135,126,0.867,0.892,0.781,25,12,12,12,12,2,3,1
+Mateo Rojas,Constante,16,33,119,103,0.785,0.804,0.79,17,8,8,8,8,2,2,0
+Valentina Cruz,Rápida pero descuidada,17,44,181,122,0.638,0.528,0.651,16,7,9,7,5,2,51,1
+Samuel Torres,Con dificultades,18,18,49,35,0.6,0.553,0.775,6,3,4,3,2,2,2,2
+Isabella Gómez,Juega de noche,16,29,109,96,0.799,0.709,0.81,16,8,9,8,7,2,2,1
+Santiago Díaz,Irregular,13,7,43,35,0.73,0.659,0.823,6,3,3,3,3,2,5,1
+Mariana López,Deja de practicar en casa,15,7,51,44,0.735,0.592,0.762,8,3,3,3,3,2,3,0
+Emiliano Ruiz,Solo en clase,18,0,40,31,0.713,0.714,0.778,6,3,3,3,3,2,4,0
+Luciana Herrera,Fines de semana,18,16,124,103,0.79,0.671,0.875,19,9,9,9,9,2,19,0
+Tomás Castro,Olvida el PIN,18,20,84,71,0.759,0.726,0.875,12,5,5,5,5,2,6,17
+Gabriela Vargas,Promedio,17,23,99,86,0.759,0.707,0.827,15,7,9,7,6,2,3,0
+Daniel Moreno,Con dificultades que mejora,18,27,88,55,0.564,0.456,0.784,8,3,7,3,2,2,16,2

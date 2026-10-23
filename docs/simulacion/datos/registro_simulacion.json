@@ -1,0 +1,4754 @@
+{
+ "eventos": [
+  {
+   "fecha": "2026-08-24T15:00:00-05:00",
+   "quien": "docente",
+   "que": "configura máquina, examen cada 2 mundos y edita el temario"
+  }
+ ],
+ "semanas": [
+  {
+   "semana": 1,
+   "fecha": "2026-08-28T15:00:00-05:00",
+   "necesitan_ayuda": 4,
+   "activos_hoy": 0,
+   "progreso_promedio": 5,
+   "quienes": [
+    [
+     "Daniel Moreno",
+     [
+      "Perdió 2 veces seguidas: Greetings and feelings · lección 1"
+     ]
+    ],
+    [
+     "Luciana Herrera",
+     [
+      "Perdió 2 veces seguidas: My classroom · lección 2"
+     ]
+    ],
+    [
+     "Tomás Castro",
+     [
+      "Le cuesta My classroom (29 % de aciertos)"
+     ]
+    ],
+    [
+     "Valentina Cruz",
+     [
+      "Perdió 2 veces seguidas: Greetings and feelings · lección 2"
+     ]
+    ]
+   ]
+  },
+  {
+   "semana": 2,
+   "fecha": "2026-09-04T15:00:00-05:00",
+   "necesitan_ayuda": 3,
+   "activos_hoy": 0,
+   "progreso_promedio": 11,
+   "quienes": [
+    [
+     "Daniel Moreno",
+     [
+      "Precisión baja: 57 %",
+      "Le cuesta Verbo to be (29 % de aciertos)"
+     ]
+    ],
+    [
+     "Samuel Torres",
+     [
+      "Le cuesta Verbo to be (29 % de aciertos)"
+     ]
+    ],
+    [
+     "Valentina Cruz",
+     [
+      "Perdió 4 veces seguidas: Animales · lección 3"
+     ]
+    ]
+   ]
+  },
+  {
+   "semana": 3,
+   "fecha": "2026-09-11T15:00:00-05:00",
+   "necesitan_ayuda": 4,
+   "activos_hoy": 0,
+   "progreso_promedio": 17,
+   "quienes": [
+    [
+     "Daniel Moreno",
+     [
+      "Precisión baja: 57 %",
+      "Le cuesta Colores (20 % de aciertos)",
+      "Perdió 2 veces seguidas: Verbo to be · lección 1",
+      "Le cuesta Verbo to be (33 % de aciertos)",
+      "Perdió 2 veces seguidas: My classroom · lección 1"
+     ]
+    ],
+    [
+     "Emiliano Ruiz",
+     [
+      "Perdió 3 veces seguidas: Animales · lección 2"
+     ]
+    ],
+    [
+     "Samuel Torres",
+     [
+      "Le cuesta Verbo to be (29 % de aciertos)"
+     ]
+    ],
+    [
+     "Valentina Cruz",
+     [
+      "Perdió 3 veces seguidas: Colores · lección 3"
+     ]
+    ]
+   ]
+  },
+  {
+   "semana": 4,
+   "fecha": "2026-09-18T15:00:00-05:00",
+   "necesitan_ayuda": 4,
+   "activos_hoy": 0,
+   "progreso_promedio": 23,
+   "quienes": [
+    [
+     "Daniel Moreno",
+     [
+      "Precisión baja: 59 %",
+      "Le cuesta Colores (20 % de aciertos)",
+      "Le cuesta Verbo to be (38 % de aciertos)"
+     ]
+    ],
+    [
+     "Gabriela Vargas",
+     [
+      "Le cuesta Artículos a / an (0 % de aciertos)"
+     ]
+    ],
+    [
+     "Samuel Torres",
+     [
+      "Le cuesta Verbo to be (29 % de aciertos)"
+     ]
+    ],
+    [
+     "Tomás Castro",
+     [
+      "Perdió 2 veces seguidas: Artículos a / an · lección 1",
+      "Le cuesta Artículos a / an (33 % de aciertos)"
+     ]
+    ]
+   ]
+  },
+  {
+   "semana": 5,
+   "fecha": "2026-09-25T15:00:00-05:00",
+   "necesitan_ayuda": 4,
+   "activos_hoy": 0,
+   "progreso_promedio": 27,
+   "quienes": [
+    [
+     "Daniel Moreno",
+     [
+      "Le cuesta Verbo to be (47 % de aciertos)"
+     ]
+    ],
+    [
+     "Samuel Torres",
+     [
+      "Perdió 3 veces seguidas: Colores · lección 1",
+      "Le cuesta Colores (25 % de aciertos)",
+      "Le cuesta Verbo to be (29 % de aciertos)"
+     ]
+    ],
+    [
+     "Tomás Castro",
+     [
+      "Perdió 2 veces seguidas: Artículos a / an · lección 1",
+      "Le cuesta Artículos a / an (33 % de aciertos)"
+     ]
+    ],
+    [
+     "Valentina Cruz",
+     [
+      "Perdió 2 veces seguidas: La ropa · lección 2"
+     ]
+    ]
+   ]
+  },
+  {
+   "semana": 6,
+   "fecha": "2026-10-02T15:00:00-05:00",
+   "necesitan_ayuda": 3,
+   "activos_hoy": 0,
+   "progreso_promedio": 33,
+   "quienes": [
+    [
+     "Daniel Moreno",
+     [
+      "Le cuesta Verbo to be (48 % de aciertos)"
+     ]
+    ],
+    [
+     "Samuel Torres",
+     [
+      "Perdió 3 veces seguidas: Colores · lección 1",
+      "Le cuesta Colores (25 % de aciertos)",
+      "Le cuesta Verbo to be (29 % de aciertos)"
+     ]
+    ],
+    [
+     "Tomás Castro",
+     [
+      "Perdió 2 veces seguidas: Artículos a / an · lección 1",
+      "Le cuesta Artículos a / an (33 % de aciertos)"
+     ]
+    ]
+   ]
+  },
+  {
+   "semana": 7,
+   "fecha": "2026-10-09T15:00:00-05:00",
+   "necesitan_ayuda": 2,
+   "activos_hoy": 0,
+   "progreso_promedio": 39,
+   "quienes": [
+    [
+     "Samuel Torres",
+     [
+      "Le cuesta Verbo to be (29 % de aciertos)"
+     ]
+    ],
+    [
+     "Tomás Castro",
+     [
+      "Perdió 2 veces seguidas: Artículos a / an · lección 1",
+      "Le cuesta Artículos a / an (33 % de aciertos)"
+     ]
+    ]
+   ]
+  },
+  {
+   "semana": 8,
+   "fecha": "2026-10-16T15:00:00-05:00",
+   "necesitan_ayuda": 1,
+   "activos_hoy": 0,
+   "progreso_promedio": 47,
+   "quienes": [
+    [
+     "Tomás Castro",
+     [
+      "Perdió 2 veces seguidas: Artículos a / an · lección 1",
+      "Le cuesta Artículos a / an (33 % de aciertos)"
+     ]
+    ]
+   ]
+  }
+ ],
+ "entregas": [
+  {
+   "fecha": "2026-08-25T09:32:11-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "gEX8tFBi0PQcUijX_0uU"
+  },
+  {
+   "fecha": "2026-09-01T09:06:35-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "Kte4a9y2vR-1mz8WWAd9"
+  },
+  {
+   "fecha": "2026-09-01T09:10:55-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "q1Wyn4kxrY9rFMlAKhJ2"
+  },
+  {
+   "fecha": "2026-09-01T09:15:44-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "mOwwk5JdJEVnvdKt1UEu"
+  },
+  {
+   "fecha": "2026-09-01T09:21:55-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "nBoz-FTYra1PcQya5rXv"
+  },
+  {
+   "fecha": "2026-09-01T09:30:57-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "f3jo-7qpFU13J5fdYBlF"
+  },
+  {
+   "fecha": "2026-09-01T09:46:05.500000-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "eyk0Pey5zFzxK1nT3E6L"
+  },
+  {
+   "fecha": "2026-09-01T09:53:17.500000-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "L5NJhdvKfVVxKBGsZu1q"
+  },
+  {
+   "fecha": "2026-09-01T09:56:26.500000-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "5Mc99gh03cBA8kwGzQay"
+  },
+  {
+   "fecha": "2026-09-03T09:08:08.500000-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "-ZqwOr23OjhHUw5NE-xt"
+  },
+  {
+   "fecha": "2026-09-08T09:10:09.500000-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "B9hm0GzpBJV3oLWO9axA"
+  },
+  {
+   "fecha": "2026-09-10T09:12:43-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "4GJqUFwO2KCeVZxsb-6d"
+  },
+  {
+   "fecha": "2026-09-22T09:10:00-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "fj5kQ3c03rlnnhvosxc0"
+  },
+  {
+   "fecha": "2026-09-22T09:14:45-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "dhhZ0V7VI-zWdSmNTAsB"
+  },
+  {
+   "fecha": "2026-09-22T09:24:35-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "UDJyiyXsOAQ3esY2R-aU"
+  },
+  {
+   "fecha": "2026-09-22T09:29:29-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "5enLamlunZOe3qwW_-WS"
+  },
+  {
+   "fecha": "2026-09-22T09:35:36.500000-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "UtXCX45S_ud5dPcwGfYt"
+  },
+  {
+   "fecha": "2026-09-22T09:48:51-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "ZUxt4Z8ZCC7uh-tYpYAg"
+  },
+  {
+   "fecha": "2026-09-22T09:55:24-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "g96-vozd2gs_IDIbknhc"
+  },
+  {
+   "fecha": "2026-09-24T09:33:35.500000-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "dcn7Lg0TvYOh2F--ht7L"
+  },
+  {
+   "fecha": "2026-09-29T09:16:11.500000-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "JcXiVMmuzpRWC-_62mKk"
+  },
+  {
+   "fecha": "2026-09-29T09:20:01.500000-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "cpiQjSbSP9f3rXTs98bg"
+  },
+  {
+   "fecha": "2026-09-29T09:28:00-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "GHtOE__e3fgEVxuOaI_9"
+  },
+  {
+   "fecha": "2026-09-29T09:35:55.500000-05:00",
+   "en_clase": true,
+   "hora_local": 9,
+   "id_historial": "P-gOasa7Bz_LUuoNyAJl"
+  }
+ ],
+ "sin_vidas": [
+  {
+   "fecha": "2026-08-24T18:19:06.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-08-25T09:06:57-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-08-25T09:23:47-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-08-25T09:25:07-05:00",
+   "nino": "Santiago Díaz",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-08-25T17:13:37-05:00",
+   "nino": "Gabriela Vargas",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-08-25T17:43:35.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-08-25T19:46:00.500000-05:00",
+   "nino": "Mariana López",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-08-25T20:20:55-05:00",
+   "nino": "Isabella Gómez",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-08-26T17:17:15-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-08-27T09:06:25.500000-05:00",
+   "nino": "Tomás Castro",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-08-27T09:10:27.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-08-27T09:12:54-05:00",
+   "nino": "Gabriela Vargas",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-08-27T09:18:47-05:00",
+   "nino": "Mariana López",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-08-27T09:32:11.500000-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-08-27T20:01:44-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-08-28T17:22:16-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-08-28T19:17:48.500000-05:00",
+   "nino": "Samuel Torres",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-08-29T11:45:07.500000-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-08-29T17:15:24-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-08-29T20:23:47-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-08-30T11:49:57.500000-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-08-30T18:22:45-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-08-30T18:40:43.500000-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-08-31T18:42:53.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-01T09:14:09-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-01T09:47:41.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-01T18:22:53-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-09-02T16:37:30.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-02T18:50:04.500000-05:00",
+   "nino": "Samuel Torres",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-03T09:03:56.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-03T09:13:16.500000-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-09-03T19:41:42.500000-05:00",
+   "nino": "Tomás Castro",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-03T20:35:08-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-04T18:17:58.500000-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-05T12:20:31-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-05T17:18:49.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-05T18:27:58.500000-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-06T12:55:47-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-06T19:48:44-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-07T17:46:57-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-07T18:18:27-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-08T09:13:19-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-09-08T09:31:12.500000-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-08T18:51:20.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-08T18:54:13-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-09T17:50:09.500000-05:00",
+   "nino": "Mariana López",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-09T20:38:58-05:00",
+   "nino": "Santiago Díaz",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-10T09:32:36.500000-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-11T18:34:55-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-12T20:09:57-05:00",
+   "nino": "Tomás Castro",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-13T10:14:28-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-13T19:55:01.500000-05:00",
+   "nino": "Tomás Castro",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-14T18:16:34-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-15T09:30:08.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-15T09:41:52.500000-05:00",
+   "nino": "Tomás Castro",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-15T09:44:10.500000-05:00",
+   "nino": "Emiliano Ruiz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-16T17:46:23-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-16T19:19:17-05:00",
+   "nino": "Sofía Martínez",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-17T09:14:04-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-17T09:26:36-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-17T17:10:55.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-17T20:25:58.500000-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-18T18:04:17-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-19T18:11:04.500000-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-20T12:09:56-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-22T09:25:15-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-22T09:31:11.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-09-22T09:39:54-05:00",
+   "nino": "Santiago Díaz",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-09-22T18:42:44.500000-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-23T16:48:23-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-24T09:05:50.500000-05:00",
+   "nino": "Mateo Rojas",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-09-24T09:26:11.500000-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-24T09:35:26-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-24T18:26:36-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-25T19:11:59.500000-05:00",
+   "nino": "Daniel Moreno",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-26T10:40:27.500000-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-26T17:33:51-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-27T11:40:05-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-27T18:14:27-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-27T18:34:24.500000-05:00",
+   "nino": "Sofía Martínez",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-27T19:55:19-05:00",
+   "nino": "Mateo Rojas",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-28T16:32:45.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-09-29T09:08:21.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-30T16:03:37-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-09-30T20:36:56-05:00",
+   "nino": "Santiago Díaz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-01T09:31:15-05:00",
+   "nino": "Emiliano Ruiz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-01T09:38:05.500000-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-01T18:44:31-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-03T18:06:44.500000-05:00",
+   "nino": "Gabriela Vargas",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-03T18:33:41.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-05T18:29:43.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-05T18:33:36-05:00",
+   "nino": "Tomás Castro",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-06T09:33:06.500000-05:00",
+   "nino": "Emiliano Ruiz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-06T09:37:15-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-06T19:06:04.500000-05:00",
+   "nino": "Sofía Martínez",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-10-07T17:37:34.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-10-08T09:12:20-05:00",
+   "nino": "Isabella Gómez",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-08T09:13:53-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-08T09:42:19-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-08T18:12:44.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-10T18:44:55.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-11T16:40:50-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-12T17:18:30.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-10-13T09:06:48.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-13T18:19:42.500000-05:00",
+   "nino": "Santiago Díaz",
+   "seccion": "profesor"
+  },
+  {
+   "fecha": "2026-10-13T18:36:57-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-14T16:13:29-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-15T09:17:29-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-15T18:30:07.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-17T11:49:40.500000-05:00",
+   "nino": "Luciana Herrera",
+   "seccion": "gramatica"
+  },
+  {
+   "fecha": "2026-10-17T18:39:15.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-18T18:23:32.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-19T18:07:48.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-20T09:14:37.500000-05:00",
+   "nino": "Emiliano Ruiz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-20T09:28:33.500000-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  },
+  {
+   "fecha": "2026-10-20T16:41:30-05:00",
+   "nino": "Valentina Cruz",
+   "seccion": "vocabulario"
+  }
+ ],
+ "bloqueos": [],
+ "pin_errado": [
+  {
+   "fecha": "2026-08-25T09:19:11.500000-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-02T18:48:00-05:00",
+   "nino": "Samuel Torres",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-03T09:08:18.500000-05:00",
+   "nino": "Daniel Moreno",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-09T20:29:00-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-13T19:53:00-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-13T19:53:11-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-13T19:53:21-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-15T09:38:30.500000-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-15T09:38:37.500000-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-16T19:15:00-05:00",
+   "nino": "Sofía Martínez",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-17T09:26:36-05:00",
+   "nino": "Daniel Moreno",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-26T20:28:00-05:00",
+   "nino": "Isabella Gómez",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-28T20:18:00-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-29T09:39:14.500000-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-09-30T20:34:00-05:00",
+   "nino": "Santiago Díaz",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-10-06T09:33:06.500000-05:00",
+   "nino": "Valentina Cruz",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-10-06T20:08:00-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-10-06T20:08:14-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-10-08T09:18:33-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-10-08T09:18:49-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-10-13T09:38:32-05:00",
+   "nino": "Samuel Torres",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-10-15T09:11:22-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-10-15T09:11:35-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-10-15T09:11:52-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  },
+  {
+   "fecha": "2026-10-22T09:37:45-05:00",
+   "nino": "Tomás Castro",
+   "codigo": 401
+  }
+ ],
+ "examenes": [
+  {
+   "fecha": "2026-08-25T09:32:06-05:00",
+   "nino": "Sofía Martínez",
+   "id_examen": "tgI1Cjz-pM_EQjQKC_L3",
+   "seccion": "profesor",
+   "aciertos": 7,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-08-27T09:09:29.500000-05:00",
+   "nino": "Valentina Cruz",
+   "id_examen": "owTtzOXULZRnLU8i20fY",
+   "seccion": "profesor",
+   "aciertos": 5,
+   "total": 10,
+   "aprobado": false,
+   "primera_vez": false,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-01T09:06:30-05:00",
+   "nino": "Mateo Rojas",
+   "id_examen": "Eon_ZJup-HjNKnE4W0DX",
+   "seccion": "profesor",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-01T09:10:50-05:00",
+   "nino": "Luciana Herrera",
+   "id_examen": "r2qcm1zB4AozUclig-_j",
+   "seccion": "profesor",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-01T09:15:39-05:00",
+   "nino": "Tomás Castro",
+   "id_examen": "jIVkScn4-v0Isv9KwwWT",
+   "seccion": "profesor",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-01T09:21:50-05:00",
+   "nino": "Isabella Gómez",
+   "id_examen": "G5gwBgY4YvluPsB2k7mF",
+   "seccion": "profesor",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-01T09:30:52-05:00",
+   "nino": "Mariana López",
+   "id_examen": "GgzEA9NyYxp9gExG6TIm",
+   "seccion": "profesor",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-01T09:36:21-05:00",
+   "nino": "Daniel Moreno",
+   "id_examen": "uvN6-ny91D7msSxuoIir",
+   "seccion": "profesor",
+   "aciertos": 5,
+   "total": 10,
+   "aprobado": false,
+   "primera_vez": false,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-01T09:44:50.500000-05:00",
+   "nino": "Sofía Martínez",
+   "id_examen": "5DEvFwxrqgDVjRWSrbhV",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-01T09:46:00.500000-05:00",
+   "nino": "Valentina Cruz",
+   "id_examen": "owTtzOXULZRnLU8i20fY",
+   "seccion": "profesor",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-01T09:53:12.500000-05:00",
+   "nino": "Emiliano Ruiz",
+   "id_examen": "-uuJM5VScmvMh9w4AGMh",
+   "seccion": "profesor",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-01T09:56:21.500000-05:00",
+   "nino": "Gabriela Vargas",
+   "id_examen": "jYsPbUOjgavgDjxskCXi",
+   "seccion": "profesor",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-03T09:08:03.500000-05:00",
+   "nino": "Samuel Torres",
+   "id_examen": "BkRNqUszOTOvGWf9hhLc",
+   "seccion": "profesor",
+   "aciertos": 7,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-03T09:10:33.500000-05:00",
+   "nino": "Daniel Moreno",
+   "id_examen": "uvN6-ny91D7msSxuoIir",
+   "seccion": "profesor",
+   "aciertos": 5,
+   "total": 10,
+   "aprobado": false,
+   "primera_vez": false,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-04T18:08:53-05:00",
+   "nino": "Sofía Martínez",
+   "id_examen": "Vu0AuUXDxZ6AdqVBIwbi",
+   "seccion": "vocabulario",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-06T12:54:29-05:00",
+   "nino": "Luciana Herrera",
+   "id_examen": "gHwLO5tymAyq9ubihFNs",
+   "seccion": "vocabulario",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-06T18:18:03-05:00",
+   "nino": "Mateo Rojas",
+   "id_examen": "arX_Hxb9K0OIwfnHnDKU",
+   "seccion": "vocabulario",
+   "aciertos": 7,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-06T19:46:54-05:00",
+   "nino": "Tomás Castro",
+   "id_examen": "G7UTvxMYabIljM7sYuef",
+   "seccion": "vocabulario",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-07T18:14:09-05:00",
+   "nino": "Daniel Moreno",
+   "id_examen": "uvN6-ny91D7msSxuoIir",
+   "seccion": "profesor",
+   "aciertos": 6,
+   "total": 10,
+   "aprobado": false,
+   "primera_vez": false,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-07T18:16:25-05:00",
+   "nino": "Daniel Moreno",
+   "id_examen": "uvN6-ny91D7msSxuoIir",
+   "seccion": "profesor",
+   "aciertos": 5,
+   "total": 10,
+   "aprobado": false,
+   "primera_vez": false,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-08T09:10:04.500000-05:00",
+   "nino": "Daniel Moreno",
+   "id_examen": "uvN6-ny91D7msSxuoIir",
+   "seccion": "profesor",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-08T09:17:43-05:00",
+   "nino": "Sofía Martínez",
+   "id_examen": "54g3QC8x3vkRBD_vX8n6",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-10T09:06:44-05:00",
+   "nino": "Isabella Gómez",
+   "id_examen": "zAvxAj2-KJFWR_Utp6Y5",
+   "seccion": "vocabulario",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-10T09:12:38-05:00",
+   "nino": "Santiago Díaz",
+   "id_examen": "12pwquI5JNymQaSpqFQc",
+   "seccion": "profesor",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-11T19:30:39-05:00",
+   "nino": "Gabriela Vargas",
+   "id_examen": "-wTh-SuppH6lq3wqNA4M",
+   "seccion": "vocabulario",
+   "aciertos": 6,
+   "total": 10,
+   "aprobado": false,
+   "primera_vez": false,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-12T18:13:54-05:00",
+   "nino": "Valentina Cruz",
+   "id_examen": "pWW_CglSqFce09jTL4ye",
+   "seccion": "vocabulario",
+   "aciertos": 7,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-14T18:38:40-05:00",
+   "nino": "Sofía Martínez",
+   "id_examen": "RLJ6eweHZYGZarPU9ETs",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-15T09:19:49-05:00",
+   "nino": "Gabriela Vargas",
+   "id_examen": "-wTh-SuppH6lq3wqNA4M",
+   "seccion": "vocabulario",
+   "aciertos": 6,
+   "total": 10,
+   "aprobado": false,
+   "primera_vez": false,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-17T09:03:42-05:00",
+   "nino": "Gabriela Vargas",
+   "id_examen": "-wTh-SuppH6lq3wqNA4M",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-17T09:22:58-05:00",
+   "nino": "Luciana Herrera",
+   "id_examen": "vr1BCmrUtM9Z38l2s88T",
+   "seccion": "vocabulario",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-17T09:37:06.500000-05:00",
+   "nino": "Isabella Gómez",
+   "id_examen": "lQmPF4mzsCn0gB86czxH",
+   "seccion": "vocabulario",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-18T20:08:32-05:00",
+   "nino": "Tomás Castro",
+   "id_examen": "mAq5HFIltJWmTbROXLYO",
+   "seccion": "vocabulario",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-21T16:38:04-05:00",
+   "nino": "Valentina Cruz",
+   "id_examen": "yzBjTfVzemE1v4srjlj1",
+   "seccion": "vocabulario",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-22T09:09:55-05:00",
+   "nino": "Daniel Moreno",
+   "id_examen": "vThRXMM99tDtXqzRMkYb",
+   "seccion": "profesor",
+   "aciertos": 7,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-22T09:14:40-05:00",
+   "nino": "Sofía Martínez",
+   "id_examen": "8PArTLtNbZmR2gAv_TbN",
+   "seccion": "profesor",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-22T09:19:43-05:00",
+   "nino": "Sofía Martínez",
+   "id_examen": "b0EUlq7jzr_jOMEKtqCt",
+   "seccion": "vocabulario",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-22T09:24:30-05:00",
+   "nino": "Luciana Herrera",
+   "id_examen": "9NidmyBqCileoJIHPzEW",
+   "seccion": "profesor",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-22T09:29:24-05:00",
+   "nino": "Tomás Castro",
+   "id_examen": "mp1tjxcF6c15ClJf3HWK",
+   "seccion": "profesor",
+   "aciertos": 7,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-22T09:35:31.500000-05:00",
+   "nino": "Isabella Gómez",
+   "id_examen": "fbG1yyekLuBMcVFhK1iY",
+   "seccion": "profesor",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-22T09:48:46-05:00",
+   "nino": "Gabriela Vargas",
+   "id_examen": "g0VeZMPp2YojOXOBCFfM",
+   "seccion": "profesor",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-22T09:55:19-05:00",
+   "nino": "Emiliano Ruiz",
+   "id_examen": "r960TA4Gi78etobaswjU",
+   "seccion": "profesor",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-24T09:07:48.500000-05:00",
+   "nino": "Samuel Torres",
+   "id_examen": "jFEpR9xTXyUCuHuXuUW5",
+   "seccion": "profesor",
+   "aciertos": 6,
+   "total": 10,
+   "aprobado": false,
+   "primera_vez": false,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-24T09:33:30.500000-05:00",
+   "nino": "Valentina Cruz",
+   "id_examen": "5oduij4ZZD83LYU3-XKe",
+   "seccion": "profesor",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-25T17:48:35-05:00",
+   "nino": "Gabriela Vargas",
+   "id_examen": "8wPzas3I3EUghi0Zye1C",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-26T19:45:00-05:00",
+   "nino": "Mateo Rojas",
+   "id_examen": "rJs-e-hR6mo6ZQ3iLoeS",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-27T11:38:32-05:00",
+   "nino": "Luciana Herrera",
+   "id_examen": "ri-CC66m5y7Ohct_CEzT",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-27T22:38:52-05:00",
+   "nino": "Isabella Gómez",
+   "id_examen": "3pwulRPTnvW3zIv3k3C7",
+   "seccion": "vocabulario",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-28T18:50:34-05:00",
+   "nino": "Sofía Martínez",
+   "id_examen": "-7KY4woC5mStgSHrL0DQ",
+   "seccion": "gramatica",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-09-29T09:16:06.500000-05:00",
+   "nino": "Samuel Torres",
+   "id_examen": "jFEpR9xTXyUCuHuXuUW5",
+   "seccion": "profesor",
+   "aciertos": 7,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-29T09:19:56.500000-05:00",
+   "nino": "Mateo Rojas",
+   "id_examen": "0RHzA_7g9tmhMlhlGRK8",
+   "seccion": "profesor",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-29T09:27:55-05:00",
+   "nino": "Santiago Díaz",
+   "id_examen": "8bVSV1ZF8hGUozHtAj4A",
+   "seccion": "profesor",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-09-29T09:35:50.500000-05:00",
+   "nino": "Mariana López",
+   "id_examen": "IqT9u1H4JjYTleGTvHaF",
+   "seccion": "profesor",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": true
+  },
+  {
+   "fecha": "2026-10-01T09:11:59-05:00",
+   "nino": "Valentina Cruz",
+   "id_examen": "YOsdtlXkCOg63QMAnSaI",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-01T19:16:59-05:00",
+   "nino": "Mateo Rojas",
+   "id_examen": "vHSWMVoUkgUN3svZwN7Y",
+   "seccion": "gramatica",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-04T10:56:37-05:00",
+   "nino": "Luciana Herrera",
+   "id_examen": "dD30RR1I5hWOY5Mok3rU",
+   "seccion": "gramatica",
+   "aciertos": 7,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-06T09:23:56-05:00",
+   "nino": "Mariana López",
+   "id_examen": "bRp_aFsrHDTpHQVIzir1",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-06T09:28:42-05:00",
+   "nino": "Mateo Rojas",
+   "id_examen": "ba1IOieIVZLjYjjQt8lo",
+   "seccion": "vocabulario",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-06T09:46:05-05:00",
+   "nino": "Luciana Herrera",
+   "id_examen": "L09TeJ75VOmpU1Nxw7LZ",
+   "seccion": "vocabulario",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-07T18:43:11-05:00",
+   "nino": "Sofía Martínez",
+   "id_examen": "YdW6Y2ijN6B1d8nl8Ezv",
+   "seccion": "gramatica",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-08T09:11:02-05:00",
+   "nino": "Isabella Gómez",
+   "id_examen": "wcEt8kYbCmAXWQbaTfyC",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-08T09:22:06-05:00",
+   "nino": "Tomás Castro",
+   "id_examen": "FRojwntwRvg3ngO5BeCm",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-08T09:27:25-05:00",
+   "nino": "Gabriela Vargas",
+   "id_examen": "waSpaSIfYb5-pJi5-7EJ",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-08T09:40:03-05:00",
+   "nino": "Valentina Cruz",
+   "id_examen": "yN_XoHzmLxdLdony9d_G",
+   "seccion": "vocabulario",
+   "aciertos": 7,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-10T19:34:07-05:00",
+   "nino": "Sofía Martínez",
+   "id_examen": "ryYAgIBrgU5nB5yfS5h1",
+   "seccion": "gramatica",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-10T21:49:21-05:00",
+   "nino": "Isabella Gómez",
+   "id_examen": "ji3Zj5UJjlN4voPJM1pT",
+   "seccion": "gramatica",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-13T09:05:13-05:00",
+   "nino": "Valentina Cruz",
+   "id_examen": "x3kUtFltlNILVjgLFw91",
+   "seccion": "vocabulario",
+   "aciertos": 6,
+   "total": 10,
+   "aprobado": false,
+   "primera_vez": false,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-13T09:06:25-05:00",
+   "nino": "Valentina Cruz",
+   "id_examen": "x3kUtFltlNILVjgLFw91",
+   "seccion": "vocabulario",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-13T09:10:29.500000-05:00",
+   "nino": "Daniel Moreno",
+   "id_examen": "dQOD4aP_C2YeEIQWE1QL",
+   "seccion": "vocabulario",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-13T09:31:56-05:00",
+   "nino": "Luciana Herrera",
+   "id_examen": "7TQlC7iQazywgHen2-c2",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-13T09:35:10-05:00",
+   "nino": "Mateo Rojas",
+   "id_examen": "HflPfX-PVFhWCKDgA0Ma",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-13T18:41:33-05:00",
+   "nino": "Sofía Martínez",
+   "id_examen": "28hvvMQvvFvs0STbleLv",
+   "seccion": "gramatica",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-15T09:06:25-05:00",
+   "nino": "Emiliano Ruiz",
+   "id_examen": "OwseUBcaDiNgwAwoaln5",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-16T18:23:23-05:00",
+   "nino": "Sofía Martínez",
+   "id_examen": "1hj34gTSkIF-aMw56H5V",
+   "seccion": "gramatica",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-18T12:26:35-05:00",
+   "nino": "Luciana Herrera",
+   "id_examen": "uySHiZyEUhROMwnW6W6v",
+   "seccion": "gramatica",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-18T19:56:40-05:00",
+   "nino": "Mateo Rojas",
+   "id_examen": "Y6ebxGCaRuerCnnsBQT9",
+   "seccion": "vocabulario",
+   "aciertos": 7,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-19T18:40:08-05:00",
+   "nino": "Gabriela Vargas",
+   "id_examen": "CAs9MapAyFPe8tOdcCds",
+   "seccion": "vocabulario",
+   "aciertos": 8,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-20T09:06:14-05:00",
+   "nino": "Isabella Gómez",
+   "id_examen": "yCqAACFWqQvy2a-XUyud",
+   "seccion": "vocabulario",
+   "aciertos": 6,
+   "total": 10,
+   "aprobado": false,
+   "primera_vez": false,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-20T09:07:57-05:00",
+   "nino": "Isabella Gómez",
+   "id_examen": "yCqAACFWqQvy2a-XUyud",
+   "seccion": "vocabulario",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-20T18:03:48-05:00",
+   "nino": "Gabriela Vargas",
+   "id_examen": "DAhDlNNpU1OHmocvR_dX",
+   "seccion": "gramatica",
+   "aciertos": 10,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-20T19:19:29-05:00",
+   "nino": "Samuel Torres",
+   "id_examen": "B4duuF35wlohW_ZxY-j4",
+   "seccion": "vocabulario",
+   "aciertos": 7,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": false,
+   "con_premio": false
+  },
+  {
+   "fecha": "2026-10-22T09:30:52-05:00",
+   "nino": "Santiago Díaz",
+   "id_examen": "ZbEtoNPur3Al16H1lzcX",
+   "seccion": "vocabulario",
+   "aciertos": 9,
+   "total": 10,
+   "aprobado": true,
+   "primera_vez": true,
+   "en_clase": true,
+   "con_premio": false
+  }
+ ],
+ "comentarios": [
+  {
+   "fecha": "2026-08-28T15:00:00-05:00",
+   "nino": "Daniel Moreno",
+   "comentario": "Daniel necesita refuerzo: perdió 2 veces seguidas: greetings and feelings · lección 1. Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-08-28T15:00:00-05:00",
+   "nino": "Luciana Herrera",
+   "comentario": "Luciana necesita refuerzo: perdió 2 veces seguidas: my classroom · lección 2. Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-08-28T15:00:00-05:00",
+   "nino": "Tomás Castro",
+   "comentario": "Tomás necesita refuerzo: le cuesta my classroom (29 % de aciertos). Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-09-04T15:00:00-05:00",
+   "nino": "Daniel Moreno",
+   "comentario": "Daniel necesita refuerzo: precisión baja: 57 %. Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-09-04T15:00:00-05:00",
+   "nino": "Samuel Torres",
+   "comentario": "Samuel necesita refuerzo: le cuesta verbo to be (29 % de aciertos). Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-09-04T15:00:00-05:00",
+   "nino": "Valentina Cruz",
+   "comentario": "Valentina necesita refuerzo: perdió 4 veces seguidas: animales · lección 3. Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-09-11T15:00:00-05:00",
+   "nino": "Daniel Moreno",
+   "comentario": "Daniel necesita refuerzo: precisión baja: 57 %. Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-09-11T15:00:00-05:00",
+   "nino": "Emiliano Ruiz",
+   "comentario": "Emiliano necesita refuerzo: perdió 3 veces seguidas: animales · lección 2. Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-09-11T15:00:00-05:00",
+   "nino": "Samuel Torres",
+   "comentario": "Samuel necesita refuerzo: le cuesta verbo to be (29 % de aciertos). Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-09-18T15:00:00-05:00",
+   "nino": "Daniel Moreno",
+   "comentario": "Daniel necesita refuerzo: precisión baja: 59 %. Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-09-18T15:00:00-05:00",
+   "nino": "Gabriela Vargas",
+   "comentario": "Gabriela necesita refuerzo: le cuesta artículos a / an (0 % de aciertos). Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-09-18T15:00:00-05:00",
+   "nino": "Samuel Torres",
+   "comentario": "Samuel necesita refuerzo: le cuesta verbo to be (29 % de aciertos). Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-09-25T15:00:00-05:00",
+   "nino": "Daniel Moreno",
+   "comentario": "Daniel necesita refuerzo: le cuesta verbo to be (47 % de aciertos). Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-09-25T15:00:00-05:00",
+   "nino": "Samuel Torres",
+   "comentario": "Samuel necesita refuerzo: perdió 3 veces seguidas: colores · lección 1. Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-09-25T15:00:00-05:00",
+   "nino": "Tomás Castro",
+   "comentario": "Tomás necesita refuerzo: perdió 2 veces seguidas: artículos a / an · lección 1. Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-10-02T15:00:00-05:00",
+   "nino": "Daniel Moreno",
+   "comentario": "Daniel necesita refuerzo: le cuesta verbo to be (48 % de aciertos). Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-10-02T15:00:00-05:00",
+   "nino": "Samuel Torres",
+   "comentario": "Samuel necesita refuerzo: perdió 3 veces seguidas: colores · lección 1. Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-10-02T15:00:00-05:00",
+   "nino": "Tomás Castro",
+   "comentario": "Tomás necesita refuerzo: perdió 2 veces seguidas: artículos a / an · lección 1. Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-10-09T15:00:00-05:00",
+   "nino": "Samuel Torres",
+   "comentario": "Samuel necesita refuerzo: le cuesta verbo to be (29 % de aciertos). Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-10-09T15:00:00-05:00",
+   "nino": "Tomás Castro",
+   "comentario": "Tomás necesita refuerzo: perdió 2 veces seguidas: artículos a / an · lección 1. Les sugiero practicar 10 minutos diarios en casa."
+  },
+  {
+   "fecha": "2026-10-16T15:00:00-05:00",
+   "nino": "Tomás Castro",
+   "comentario": "Tomás necesita refuerzo: perdió 2 veces seguidas: artículos a / an · lección 1. Les sugiero practicar 10 minutos diarios en casa."
+  }
+ ],
+ "padres": [
+  {
+   "fecha": "2026-08-30T19:34:00-05:00",
+   "nino": "Sofía Martínez"
+  },
+  {
+   "fecha": "2026-08-30T19:34:00-05:00",
+   "nino": "Valentina Cruz"
+  },
+  {
+   "fecha": "2026-08-30T19:55:00-05:00",
+   "nino": "Samuel Torres"
+  },
+  {
+   "fecha": "2026-08-30T19:55:00-05:00",
+   "nino": "Luciana Herrera"
+  },
+  {
+   "fecha": "2026-09-06T19:14:00-05:00",
+   "nino": "Santiago Díaz"
+  },
+  {
+   "fecha": "2026-09-06T19:14:00-05:00",
+   "nino": "Luciana Herrera"
+  },
+  {
+   "fecha": "2026-09-13T19:53:00-05:00",
+   "nino": "Sofía Martínez"
+  },
+  {
+   "fecha": "2026-09-13T19:53:00-05:00",
+   "nino": "Samuel Torres"
+  },
+  {
+   "fecha": "2026-09-13T19:53:00-05:00",
+   "nino": "Santiago Díaz"
+  },
+  {
+   "fecha": "2026-09-20T19:56:00-05:00",
+   "nino": "Sofía Martínez"
+  },
+  {
+   "fecha": "2026-09-20T19:56:00-05:00",
+   "nino": "Mateo Rojas"
+  },
+  {
+   "fecha": "2026-09-20T19:56:00-05:00",
+   "nino": "Isabella Gómez"
+  },
+  {
+   "fecha": "2026-09-20T19:56:00-05:00",
+   "nino": "Santiago Díaz"
+  },
+  {
+   "fecha": "2026-09-20T19:56:00-05:00",
+   "nino": "Mariana López"
+  },
+  {
+   "fecha": "2026-09-27T19:13:00-05:00",
+   "nino": "Sofía Martínez"
+  },
+  {
+   "fecha": "2026-09-27T19:50:00-05:00",
+   "nino": "Valentina Cruz"
+  },
+  {
+   "fecha": "2026-09-27T19:50:00-05:00",
+   "nino": "Mariana López"
+  },
+  {
+   "fecha": "2026-09-27T19:50:00-05:00",
+   "nino": "Luciana Herrera"
+  },
+  {
+   "fecha": "2026-10-04T19:09:00-05:00",
+   "nino": "Sofía Martínez"
+  },
+  {
+   "fecha": "2026-10-04T19:35:00-05:00",
+   "nino": "Mateo Rojas"
+  },
+  {
+   "fecha": "2026-10-04T19:35:00-05:00",
+   "nino": "Valentina Cruz"
+  },
+  {
+   "fecha": "2026-10-04T19:50:00-05:00",
+   "nino": "Samuel Torres"
+  },
+  {
+   "fecha": "2026-10-04T19:50:00-05:00",
+   "nino": "Isabella Gómez"
+  },
+  {
+   "fecha": "2026-10-04T19:50:00-05:00",
+   "nino": "Mariana López"
+  },
+  {
+   "fecha": "2026-10-11T19:02:00-05:00",
+   "nino": "Sofía Martínez"
+  },
+  {
+   "fecha": "2026-10-11T19:49:00-05:00",
+   "nino": "Valentina Cruz"
+  },
+  {
+   "fecha": "2026-10-11T19:49:00-05:00",
+   "nino": "Samuel Torres"
+  },
+  {
+   "fecha": "2026-10-11T19:49:00-05:00",
+   "nino": "Isabella Gómez"
+  },
+  {
+   "fecha": "2026-10-11T19:49:00-05:00",
+   "nino": "Mariana López"
+  },
+  {
+   "fecha": "2026-10-18T19:52:00-05:00",
+   "nino": "Sofía Martínez"
+  },
+  {
+   "fecha": "2026-10-18T19:52:00-05:00",
+   "nino": "Valentina Cruz"
+  },
+  {
+   "fecha": "2026-10-18T19:52:00-05:00",
+   "nino": "Isabella Gómez"
+  },
+  {
+   "fecha": "2026-10-18T19:52:00-05:00",
+   "nino": "Santiago Díaz"
+  },
+  {
+   "fecha": "2026-10-18T19:52:00-05:00",
+   "nino": "Mariana López"
+  },
+  {
+   "fecha": "2026-10-18T19:52:00-05:00",
+   "nino": "Luciana Herrera"
+  }
+ ],
+ "mundos_profe": [
+  {
+   "fecha": "2026-08-24T15:00:00-05:00",
+   "titulo": "Greetings and feelings",
+   "preguntas": 16
+  },
+  {
+   "fecha": "2026-08-24T15:00:00-05:00",
+   "titulo": "My classroom",
+   "preguntas": 16
+  },
+  {
+   "fecha": "2026-09-06T22:15:31.500000-05:00",
+   "titulo": "My family",
+   "preguntas": 16
+  },
+  {
+   "fecha": "2026-09-20T20:00:28-05:00",
+   "titulo": "Days and weather",
+   "preguntas": 16
+  }
+ ],
+ "estudiantes": [
+  {
+   "nombre": "Sofía Martínez",
+   "perfil": "Sobresaliente",
+   "id": "O5ebUciUPxuua_Q97mbn",
+   "codigo": "U3Z6N8",
+   "sesiones": [
+    {
+     "inicio": "2026-08-24T18:29:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-08-25T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-08-28T18:20:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-01T09:12:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-02T17:30:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-03T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-03T17:32:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-04T18:06:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-05T19:42:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-06T18:39:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-07T18:05:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-08T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-08T19:04:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-10T09:06:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-14T18:34:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-15T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-15T18:15:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-16T19:15:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-20T19:43:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-22T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-22T17:41:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-24T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-26T17:46:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-27T18:32:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-28T18:46:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-29T09:14:00-05:00",
+     "en_clase": true,
+     "lecciones": 0
+    },
+    {
+     "inicio": "2026-09-29T17:39:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-30T18:09:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-01T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 0
+    },
+    {
+     "inicio": "2026-10-06T09:09:00-05:00",
+     "en_clase": true,
+     "lecciones": 0
+    },
+    {
+     "inicio": "2026-10-06T19:03:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-07T18:37:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-08T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 0
+    },
+    {
+     "inicio": "2026-10-08T18:30:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-09T19:29:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-10T19:31:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-11T19:45:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-12T19:15:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-13T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 0
+    },
+    {
+     "inicio": "2026-10-13T18:35:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-14T17:01:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-15T09:12:00-05:00",
+     "en_clase": true,
+     "lecciones": 0
+    },
+    {
+     "inicio": "2026-10-15T17:39:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-16T18:19:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-17T17:07:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-19T17:33:00-05:00",
+     "en_clase": false,
+     "lecciones": 0
+    },
+    {
+     "inicio": "2026-10-20T09:13:00-05:00",
+     "en_clase": true,
+     "lecciones": 0
+    },
+    {
+     "inicio": "2026-10-20T18:21:00-05:00",
+     "en_clase": false,
+     "lecciones": 0
+    },
+    {
+     "inicio": "2026-10-22T09:12:00-05:00",
+     "en_clase": true,
+     "lecciones": 0
+    }
+   ],
+   "acudiente": true
+  },
+  {
+   "nombre": "Mateo Rojas",
+   "perfil": "Constante",
+   "id": "mVW5d0Cpfbc2d2_xnNnx",
+   "codigo": "UPSUFV",
+   "sesiones": [
+    {
+     "inicio": "2026-08-25T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-25T19:40:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-27T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-29T18:02:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-01T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-01T19:32:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-02T20:42:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-03T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-03T18:47:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-06T18:15:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-08T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-08T18:41:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-09T19:25:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-10T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-12T18:03:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-15T18:31:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-16T19:38:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-17T09:04:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-18T18:08:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-20T18:24:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-24T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-24T19:20:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-26T19:42:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-27T19:36:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-29T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-30T18:18:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-01T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-01T19:14:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-04T19:13:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-05T19:01:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-06T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-07T20:46:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-08T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-09T20:08:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-10T18:33:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-11T18:25:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-12T20:02:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-13T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-14T19:36:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-15T09:12:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-15T18:11:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-16T19:29:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-17T19:31:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-18T19:16:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-19T19:48:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-20T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-20T20:18:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-21T19:25:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-22T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    }
+   ],
+   "acudiente": true
+  },
+  {
+   "nombre": "Valentina Cruz",
+   "perfil": "Rápida pero descuidada",
+   "id": "zaCP4pjvp_WJ7PIsh245",
+   "codigo": "GJM23X",
+   "sesiones": [
+    {
+     "inicio": "2026-08-24T18:17:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-08-25T09:06:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-25T17:41:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-08-26T17:16:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-27T09:06:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-08-28T17:21:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-29T17:14:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-30T18:20:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-08-31T18:40:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-01T09:15:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-02T16:36:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-03T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-05T17:16:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-07T17:46:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-08T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-08T18:49:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-11T18:32:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-12T18:11:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-13T17:49:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-14T18:15:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-15T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-16T17:45:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-17T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-17T17:08:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-18T18:02:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-21T16:35:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-22T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-23T16:47:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-24T09:13:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-24T18:24:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-26T17:32:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-27T18:13:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-28T16:30:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-29T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-29T16:49:00-05:00",
+     "en_clase": false,
+     "lecciones": 5
+    },
+    {
+     "inicio": "2026-09-30T16:01:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-01T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-01T18:42:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-02T18:16:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-03T18:30:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-05T18:28:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-06T09:14:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-07T17:36:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-08T09:15:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-08T18:10:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-09T17:10:00-05:00",
+     "en_clase": false,
+     "lecciones": 5
+    },
+    {
+     "inicio": "2026-10-10T18:42:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-11T16:38:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-12T17:16:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-13T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-13T18:34:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-14T16:10:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-15T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-15T18:28:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-16T18:41:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-17T18:37:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-18T18:21:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-19T18:05:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-20T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-20T16:39:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-22T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    }
+   ],
+   "acudiente": true
+  },
+  {
+   "nombre": "Samuel Torres",
+   "perfil": "Con dificultades",
+   "id": "bEPg27MSp7L-iZgf4Qkw",
+   "codigo": "2PVJQJ",
+   "sesiones": [
+    {
+     "inicio": "2026-08-25T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-25T18:05:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-08-26T18:19:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-08-27T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-08-28T19:16:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-08-30T18:37:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-01T09:15:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-02T18:48:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-03T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-08T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-10T09:13:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-14T18:18:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-15T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-15T18:06:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-17T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-20T18:11:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-21T19:05:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-22T09:12:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-22T18:18:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-24T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-24T19:05:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-29T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-10-01T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-10-03T18:27:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-10-06T09:06:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-08T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-10-08T19:00:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-10-10T18:27:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-12T18:40:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-13T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-10-15T09:09:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-10-16T18:16:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-10-18T19:12:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-10-20T09:06:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-10-20T19:15:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-10-22T09:14:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    }
+   ],
+   "acudiente": true
+  },
+  {
+   "nombre": "Isabella Gómez",
+   "perfil": "Juega de noche",
+   "id": "JdOeyKaHkBRcXNUHJFrT",
+   "codigo": "TZVFKQ",
+   "sesiones": [
+    {
+     "inicio": "2026-08-25T20:19:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-27T09:09:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-08-27T21:37:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-08-28T22:25:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-08-29T21:01:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-01T09:04:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-03T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-03T20:23:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-06T22:13:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-07T22:32:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-08T20:01:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-10T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-11T22:47:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-12T21:46:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-13T20:33:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-15T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-15T22:02:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-17T09:12:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-18T21:23:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-22T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-23T20:35:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-24T09:14:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-25T20:30:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-26T20:28:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-27T22:36:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-29T09:14:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-30T20:45:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-01T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-02T20:32:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-03T22:26:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-04T21:24:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-06T09:14:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-06T20:43:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-07T22:22:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-08T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-08T21:26:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-10T21:45:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-12T22:43:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-13T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-15T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-15T21:19:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-19T22:21:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-20T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-21T22:25:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-22T09:04:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    }
+   ],
+   "acudiente": true
+  },
+  {
+   "nombre": "Santiago Díaz",
+   "perfil": "Irregular",
+   "id": "8H6WBehYmRIWdkoBZupy",
+   "codigo": "Y5M8PS",
+   "sesiones": [
+    {
+     "inicio": "2026-08-24T17:50:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-08-25T09:06:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-08-27T09:15:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-30T20:50:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-01T20:11:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-08T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-09T20:37:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-10T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-15T09:06:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-22T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-29T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-30T20:34:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-01T09:13:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-06T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-08T09:12:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-13T18:17:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-14T18:25:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-15T09:13:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-20T09:09:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-22T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    }
+   ],
+   "acudiente": true
+  },
+  {
+   "nombre": "Mariana López",
+   "perfil": "Deja de practicar en casa",
+   "id": "XQ7HNlDi5f8DkAQIS6wv",
+   "codigo": "GQ794M",
+   "sesiones": [
+    {
+     "inicio": "2026-08-25T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-25T19:44:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-27T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-01T09:04:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-03T09:14:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-05T17:33:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-06T18:09:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-08T09:15:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-08T19:35:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-09T17:48:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-10T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-10T19:33:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-11T17:14:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-17T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-22T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-29T09:13:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-01T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-06T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-13T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-15T09:15:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-20T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-22T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    }
+   ],
+   "acudiente": true
+  },
+  {
+   "nombre": "Emiliano Ruiz",
+   "perfil": "Solo en clase",
+   "id": "kd-Gw8EYWw_574P-Dar8",
+   "codigo": "S42QJZ",
+   "sesiones": [
+    {
+     "inicio": "2026-08-25T09:09:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-27T09:13:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-01T09:15:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-03T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-08T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-10T09:12:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-15T09:13:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-17T09:06:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-22T09:14:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-24T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-29T09:14:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-01T09:12:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-06T09:13:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-08T09:09:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-13T09:09:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-15T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-20T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-22T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    }
+   ],
+   "acudiente": false
+  },
+  {
+   "nombre": "Luciana Herrera",
+   "perfil": "Fines de semana",
+   "id": "6ADAYy7STTSnUccrD9OT",
+   "codigo": "SPYQWC",
+   "sesiones": [
+    {
+     "inicio": "2026-08-25T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-08-27T09:13:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-29T11:43:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-30T11:43:00-05:00",
+     "en_clase": false,
+     "lecciones": 5
+    },
+    {
+     "inicio": "2026-09-01T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-03T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 6
+    },
+    {
+     "inicio": "2026-09-05T12:17:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-06T12:50:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-08T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-10T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-12T11:15:00-05:00",
+     "en_clase": false,
+     "lecciones": 6
+    },
+    {
+     "inicio": "2026-09-13T10:13:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-15T09:09:00-05:00",
+     "en_clase": true,
+     "lecciones": 6
+    },
+    {
+     "inicio": "2026-09-17T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-19T12:22:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-20T12:06:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-22T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-24T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 5
+    },
+    {
+     "inicio": "2026-09-26T10:35:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-09-27T11:34:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-29T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-01T09:14:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-03T12:27:00-05:00",
+     "en_clase": false,
+     "lecciones": 6
+    },
+    {
+     "inicio": "2026-10-04T10:48:00-05:00",
+     "en_clase": false,
+     "lecciones": 5
+    },
+    {
+     "inicio": "2026-10-06T09:14:00-05:00",
+     "en_clase": true,
+     "lecciones": 5
+    },
+    {
+     "inicio": "2026-10-08T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-10-10T10:22:00-05:00",
+     "en_clase": false,
+     "lecciones": 5
+    },
+    {
+     "inicio": "2026-10-11T10:16:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-13T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 5
+    },
+    {
+     "inicio": "2026-10-15T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 5
+    },
+    {
+     "inicio": "2026-10-17T11:46:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-18T12:19:00-05:00",
+     "en_clase": false,
+     "lecciones": 4
+    },
+    {
+     "inicio": "2026-10-20T09:13:00-05:00",
+     "en_clase": true,
+     "lecciones": 0
+    },
+    {
+     "inicio": "2026-10-22T09:12:00-05:00",
+     "en_clase": true,
+     "lecciones": 0
+    }
+   ],
+   "acudiente": true
+  },
+  {
+   "nombre": "Tomás Castro",
+   "perfil": "Olvida el PIN",
+   "id": "PCXiecVHqXz_RM3-l-sy",
+   "codigo": "X9BZ3C",
+   "sesiones": [
+    {
+     "inicio": "2026-08-24T20:20:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-25T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-25T20:09:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-08-26T19:48:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-27T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-08-30T20:03:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-31T18:37:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-01T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-03T09:12:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-03T19:39:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-05T20:30:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-06T19:42:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-08T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-08T18:28:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-09T20:29:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-10T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-12T20:08:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-13T19:20:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-15T09:09:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-15T18:11:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-16T18:12:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-17T09:14:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-18T20:04:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-22T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-24T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-28T20:18:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-29T09:13:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-01T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-02T20:15:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-03T20:42:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-05T18:32:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-10-06T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-06T20:08:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-08T09:09:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-13T09:15:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-15T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-20T09:06:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-22T09:15:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    }
+   ],
+   "acudiente": false
+  },
+  {
+   "nombre": "Gabriela Vargas",
+   "perfil": "Promedio",
+   "id": "lu-Xy8Ef28t96bIkGARm",
+   "codigo": "C3TUJR",
+   "sesiones": [
+    {
+     "inicio": "2026-08-25T09:12:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-25T17:11:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-27T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-29T18:44:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-30T18:07:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-31T19:08:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-01T09:15:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-01T18:16:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-04T18:50:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-06T19:12:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-08T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-10T09:06:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-10T17:43:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-11T19:26:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-13T17:47:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-15T09:04:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-17T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-17T18:39:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-19T17:08:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-20T17:38:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-21T19:08:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-22T09:13:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-24T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-25T17:44:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-29T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-01T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-01T19:18:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-03T18:05:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-06T09:04:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-07T19:25:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-08T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-10T17:10:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-13T09:15:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-15T09:08:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-17T17:01:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-19T18:37:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-20T09:05:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-20T18:01:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-21T19:25:00-05:00",
+     "en_clase": false,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-22T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    }
+   ],
+   "acudiente": false
+  },
+  {
+   "nombre": "Daniel Moreno",
+   "perfil": "Con dificultades que mejora",
+   "id": "MUY1REa56CL08Rys5y-q",
+   "codigo": "39JN6P",
+   "sesiones": [
+    {
+     "inicio": "2026-08-24T19:42:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-25T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-25T20:24:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-27T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-08-27T20:00:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-08-28T20:23:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-08-29T20:22:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-08-30T18:37:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-01T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-01T18:21:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-03T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-03T20:32:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-04T18:15:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-05T18:26:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-06T19:42:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-07T18:12:00-05:00",
+     "en_clase": false,
+     "lecciones": 1
+    },
+    {
+     "inicio": "2026-09-08T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-08T18:49:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-10T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-09-13T20:15:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-15T09:02:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-17T09:09:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-17T20:24:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-18T18:14:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-19T18:09:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-22T09:04:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-22T18:40:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-23T19:46:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-24T09:04:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-25T19:10:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-26T20:20:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-27T19:29:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-09-29T09:10:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    },
+    {
+     "inicio": "2026-10-01T09:07:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-03T18:26:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-05T20:35:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-06T09:04:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-07T19:42:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-08T09:12:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-11T20:37:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-13T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-14T18:00:00-05:00",
+     "en_clase": false,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-15T09:11:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-20T09:09:00-05:00",
+     "en_clase": true,
+     "lecciones": 2
+    },
+    {
+     "inicio": "2026-10-22T09:03:00-05:00",
+     "en_clase": true,
+     "lecciones": 3
+    }
+   ],
+   "acudiente": false
+  }
+ ],
+ "docente": {
+  "id": "Z1sDYQDj4TSkgdg9PJ_Q",
+  "nombre": "Laura Méndez",
+  "usuario": "lmendez"
+ },
+ "periodo": {
+  "inicio": "2026-08-24T06:00:00-05:00",
+  "fin": "2026-10-22T10:30:00-05:00"
+ }
+}

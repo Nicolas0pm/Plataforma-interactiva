@@ -1,0 +1,108 @@
+"""Mundos «Del profe» de la simulación (datos sintéticos).
+
+Basados en los temas de inglés para 1.° y 2.° de primaria de las Orientaciones y principios
+pedagógicos del Currículo Sugerido de Inglés (Ministerio de Educación Nacional, 2016):
+saludos y emociones, el salón de clase y sus instrucciones, la familia, y los días de la
+semana y el clima. Cada mundo tiene 16 preguntas de selección múltiple (2 lecciones de 8).
+
+Cada pregunta: (emoji, enunciado, respuesta correcta, [distractores]).
+"""
+
+MUNDOS = [
+    {
+        "titulo": "Greetings and feelings",
+        "emoji": "👋",
+        "descripcion": "Saludos, despedidas y cómo me siento.",
+        "semana": 1,
+        "preguntas": [
+            ("👋", "What do you say when you arrive at school?", "Hello", ["Goodbye", "Thank you"]),
+            ("☀️", "What do you say in the morning?", "Good morning", ["Good night", "Goodbye"]),
+            ("🌙", "What do you say before going to sleep?", "Good night", ["Good morning", "Hello"]),
+            ("🙏", "How do you say «gracias»?", "Thank you", ["Please", "Sorry"]),
+            ("🙋", "How do you say «por favor»?", "Please", ["Thank you", "Hello"]),
+            ("😀", "How do you feel?", "Happy", ["Sad", "Angry"]),
+            ("😢", "How do you feel?", "Sad", ["Happy", "Tired"]),
+            ("😠", "How do you feel?", "Angry", ["Happy", "Sleepy"]),
+            ("😴", "How do you feel?", "Tired", ["Happy", "Angry"]),
+            ("😨", "How do you feel?", "Scared", ["Happy", "Hungry"]),
+            ("🧒", "What is your name?", "My name is Ana.", ["I am six.", "I am fine."]),
+            ("🙂", "How are you?", "I am fine, thank you.", ["My name is Leo.", "I am seven."]),
+            ("🎂", "How old are you?", "I am seven years old.", ["I am happy.", "Goodbye."]),
+            ("🚪", "How do you say «adiós»?", "Goodbye", ["Hello", "Please"]),
+            ("🤒", "How do you feel?", "Sick", ["Happy", "Angry"]),
+            ("😔", "How do you say «lo siento»?", "Sorry", ["Please", "Hello"]),
+        ],
+    },
+    {
+        "titulo": "My classroom",
+        "emoji": "✏️",
+        "descripcion": "Los útiles escolares y las instrucciones de la clase.",
+        "semana": 1,
+        "preguntas": [
+            ("✏️", "What is this?", "Pencil", ["Ruler", "Book"]),
+            ("📏", "What is this?", "Ruler", ["Pencil", "Chair"]),
+            ("📒", "What is this?", "Notebook", ["Backpack", "Glue"]),
+            ("🎒", "What is this?", "Backpack", ["Notebook", "Desk"]),
+            ("✂️", "What is this?", "Scissors", ["Crayon", "Eraser"]),
+            ("📚", "What is this?", "Book", ["Board", "Pencil"]),
+            ("🖍️", "What is this?", "Crayon", ["Scissors", "Ruler"]),
+            ("🪑", "What is this?", "Chair", ["Desk", "Door"]),
+            ("🧽", "How do you say «borrador»?", "Eraser", ["Glue", "Pencil"]),
+            ("🧴", "How do you say «pegante»?", "Glue", ["Eraser", "Book"]),
+            ("👩‍🏫", "How do you say «profesora»?", "Teacher", ["Student", "Mother"]),
+            ("🪑", "«Sit down» means…", "Siéntate", ["Ponte de pie", "Escucha"]),
+            ("🧍", "«Stand up» means…", "Ponte de pie", ["Siéntate", "Abre tu libro"]),
+            ("👂", "«Listen» means…", "Escucha", ["Mira", "Escribe"]),
+            ("✋", "«Raise your hand» means…", "Levanta la mano", ["Cierra la puerta", "Siéntate"]),
+            ("📖", "«Open your book» means…", "Abre tu libro", ["Cierra tu libro", "Escucha"]),
+        ],
+    },
+    {
+        "titulo": "My family",
+        "emoji": "👨‍👩‍👧",
+        "descripcion": "Los miembros de la familia.",
+        "semana": 3,
+        "preguntas": [
+            ("👩", "Who is she?", "Mother", ["Father", "Brother"]),
+            ("👨", "Who is he?", "Father", ["Sister", "Grandmother"]),
+            ("👧", "She is my…", "Sister", ["Brother", "Father"]),
+            ("👦", "He is my…", "Brother", ["Sister", "Mother"]),
+            ("👵", "She is my…", "Grandmother", ["Grandfather", "Baby"]),
+            ("👴", "He is my…", "Grandfather", ["Grandmother", "Uncle"]),
+            ("👶", "What is this?", "Baby", ["Cousin", "Aunt"]),
+            ("👩‍🦰", "How do you say «tía»?", "Aunt", ["Uncle", "Cousin"]),
+            ("🧔", "How do you say «tío»?", "Uncle", ["Aunt", "Baby"]),
+            ("🧒", "How do you say «primo»?", "Cousin", ["Uncle", "Brother"]),
+            ("👨‍👩‍👧", "How do you say «familia»?", "Family", ["Friend", "School"]),
+            ("👵", "My mother's mother is my…", "Grandmother", ["Sister", "Aunt"]),
+            ("👦", "My mother's son is my…", "Brother", ["Father", "Uncle"]),
+            ("👨‍👩‍👧", "How many people are in this family?", "Three", ["Two", "Five"]),
+            ("❤️", "«I love my family» means…", "Amo a mi familia", ["Tengo un perro", "Voy al colegio"]),
+            ("👩", "«This is my mother» means…", "Ella es mi mamá", ["Él es mi papá", "Ella es mi hermana"]),
+        ],
+    },
+    {
+        "titulo": "Days and weather",
+        "emoji": "🌦️",
+        "descripcion": "Los días de la semana y el clima.",
+        "semana": 5,
+        "preguntas": [
+            ("📅", "What day comes after Monday?", "Tuesday", ["Sunday", "Friday"]),
+            ("📅", "What day comes after Friday?", "Saturday", ["Monday", "Thursday"]),
+            ("📅", "How do you say «domingo»?", "Sunday", ["Saturday", "Monday"]),
+            ("📅", "How do you say «miércoles»?", "Wednesday", ["Thursday", "Tuesday"]),
+            ("📅", "How do you say «jueves»?", "Thursday", ["Tuesday", "Friday"]),
+            ("7️⃣", "How many days are there in a week?", "Seven", ["Five", "Ten"]),
+            ("📅", "Today is Monday. Tomorrow is…", "Tuesday", ["Sunday", "Wednesday"]),
+            ("🏫", "We do not go to school on…", "Saturday", ["Monday", "Wednesday"]),
+            ("☀️", "What's the weather like?", "It's sunny.", ["It's rainy.", "It's cold."]),
+            ("🌧️", "What's the weather like?", "It's rainy.", ["It's sunny.", "It's hot."]),
+            ("☁️", "What's the weather like?", "It's cloudy.", ["It's windy.", "It's hot."]),
+            ("🌬️", "What's the weather like?", "It's windy.", ["It's sunny.", "It's rainy."]),
+            ("🥶", "How do you say «frío»?", "Cold", ["Hot", "Rainy"]),
+            ("🥵", "How do you say «caliente»?", "Hot", ["Cold", "Cloudy"]),
+            ("☂️", "It's rainy. I need my…", "Umbrella", ["Sunglasses", "Ball"]),
+            ("🕶️", "It's sunny. I need my…", "Sunglasses", ["Umbrella", "Coat"]),
+        ],
+    },
+]

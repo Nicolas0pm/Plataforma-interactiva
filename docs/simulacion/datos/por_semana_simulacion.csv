@@ -1,0 +1,10 @@
+semana,estudiantes_activos,lecciones,lecciones_aprobadas,precision,examenes,necesitan_ayuda_viernes,progreso_promedio_viernes
+1,12,128,91,0.642,2,4,5
+2,12,140,108,0.715,16,3,11
+3,12,139,111,0.732,8,4,17
+4,12,123,99,0.726,6,4,23
+5,12,113,82,0.675,15,4,27
+6,12,126,108,0.785,8,3,33
+7,12,138,120,0.804,10,2,39
+8,12,140,120,0.758,10,1,47
+9,10,75,68,0.812,6,,
