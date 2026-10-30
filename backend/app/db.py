@@ -133,6 +133,14 @@ _CAMBIOS_DE_ESQUEMA = [
     "CREATE UNIQUE INDEX IF NOT EXISTS ux_usuarios_usuario ON usuarios (usuario)",
     # Premio cada N mundos (RF06); temario_salon y temario_global los crea create_all.
     "ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS premio_cada_mundos INTEGER NOT NULL DEFAULT 1",
+    # Máquinas: se registran solas con su MAC y se configuran desde la página (sin USB).
+    "ALTER TABLE maquinas ADD COLUMN IF NOT EXISTS mac VARCHAR(17)",
+    "ALTER TABLE maquinas ADD COLUMN IF NOT EXISTS red_actual VARCHAR(64)",
+    "ALTER TABLE maquinas ADD COLUMN IF NOT EXISTS wifi_pendiente JSONB",
+    "ALTER TABLE maquinas ADD COLUMN IF NOT EXISTS wifi_estado VARCHAR(200)",
+    "ALTER TABLE maquinas ALTER COLUMN id_docente DROP NOT NULL",
+    "DELETE FROM maquinas WHERE mac IS NULL",
+    "CREATE UNIQUE INDEX IF NOT EXISTS ux_maquinas_mac ON maquinas (mac)",
 ]
 
 

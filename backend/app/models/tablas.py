@@ -393,17 +393,23 @@ class HistorialRecompensa(Base):
 
 
 class Maquina(Base):
-    """Máquina de premios (ESP32) de un salón. El docente la vincula desde su panel por USB:
-    la API genera el `device_id` y un token propio que solo conoce la máquina (aquí se guarda
-    su hash). `ultima_conexion` se actualiza cada vez que la máquina consulta su cola."""
+    """Máquina de premios (ESP32). Se registra sola con su dirección MAC la primera vez que
+    tiene internet; su `device_id` (MAQ-XXXXXX) sale de la MAC. La clave que inventa la
+    máquina solo se guarda como hash. El docente la elige de la lista de máquinas libres
+    (`id_docente` vacío) y desde su panel le puede pedir otro WiFi (`wifi_pendiente`)."""
 
     __tablename__ = "maquinas"
+    __table_args__ = (Index("ux_maquinas_mac", "mac", unique=True),)
 
     device_id: Mapped[str] = mapped_column(String(60), primary_key=True)
-    id_docente: Mapped[str] = mapped_column(ForeignKey(_FK_USUARIO, ondelete="CASCADE"), index=True)
+    mac: Mapped[Optional[str]] = mapped_column(String(17))
+    id_docente: Mapped[Optional[str]] = mapped_column(ForeignKey(_FK_USUARIO, ondelete="SET NULL"), index=True)
     token_hash: Mapped[str] = mapped_column(String(64))
     creada_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora)
     ultima_conexion: Mapped[Optional[datetime]] = mapped_column(FechaUTC)
+    red_actual: Mapped[Optional[str]] = mapped_column(String(64))
+    wifi_pendiente: Mapped[Optional[dict]] = mapped_column(JSONTipo)
+    wifi_estado: Mapped[Optional[str]] = mapped_column(String(200))
 
 
 class Feedback(Base):

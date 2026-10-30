@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db import RutaConTransaccion, ahora, get_db
+from app.db import RutaConTransaccion, get_db
 from app.models.tablas import HistorialRecompensa
 from app.services import maquinas_service
 from app.services.auth_service import current_user, registrar_auditoria, verificar_acceso_estudiante
@@ -32,9 +32,7 @@ def cola_de_la_maquina(
     """Premios que la máquina `device_id` todavía tiene que soltar, del más antiguo al más
     nuevo. El ESP32 la consulta cada pocos segundos (con su token o el secreto compartido);
     cada consulta cuenta como señal de que la máquina está en línea."""
-    maquina = maquinas_service.autenticar(db, device_id, x_device_token, x_device_secret)
-    if maquina is not None:
-        maquina.ultima_conexion = ahora()
+    maquinas_service.autenticar(db, device_id, x_device_token, x_device_secret)
     consulta = (
         select(HistorialRecompensa)
         .where(HistorialRecompensa.device_id == device_id, HistorialRecompensa.estado == "pendiente")

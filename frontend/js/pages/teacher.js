@@ -1,4 +1,4 @@
-import { API_BASE_URL, apiFetch } from "../api.js";
+import { apiFetch } from "../api.js";
 import { emojiHtml } from "../emoji.js";
 import { cuando, esc, hora, porcentaje } from "../html.js";
 import { idiomaActual, inicializarLangToggle, t } from "../i18n.js";
@@ -60,117 +60,87 @@ document.getElementById("premio-cada").addEventListener("change", async (e) => {
 });
 
 // ---------- Máquina de premios del salón ----------
-// El docente conecta la ESP32 por USB y la página le envía (Web Serial) el WiFi del salón y
-// las credenciales que crea la API: la máquina queda funcionando en esa red. El estado se
-// refresca solo: la máquina está «en línea» si consultó sus premios hace poco.
+// Nadie toca la máquina: se registra sola en la plataforma la primera vez que tiene internet
+// (el WiFi del colegio se le da desde su propia red «Maquina-Premios») y aquí el docente la
+// elige, la prueba, le cambia el WiFi o la suelta. El estado se refresca solo: la máquina está
+// «en línea» si consultó la plataforma hace poco.
 const progreso = document.getElementById("conexion-progreso");
 
 async function refrescarEstadoMaquina() {
   try {
-    pintarEstadoMaquina(await apiFetch("/api/maquinas/estado"));
+    const estado = await apiFetch("/api/maquinas/estado");
+    pintarEstadoMaquina(estado);
+    if (!estado.vinculada) pintarDisponibles(await apiFetch("/api/maquinas/disponibles"));
   } catch {
     /* sin red: se intenta de nuevo en la próxima vuelta */
   }
 }
 
+function textoUltimaConexion(fecha) {
+  return fecha ? ` ${t("machine.last_seen").replace("{cuando}", cuando(fecha, idiomaActual()))}` : "";
+}
+
 function pintarEstadoMaquina(estado) {
   const caja = document.getElementById("maquina-estado");
-  document.getElementById("acciones-maquina").hidden = !estado.device_id;
-  if (!estado.device_id) {
+  document.getElementById("maquina-mia").hidden = !estado.vinculada;
+  document.getElementById("maquina-elegir").hidden = estado.vinculada;
+  if (!estado.vinculada) {
     caja.className = "estado-maquina";
     caja.textContent = `⚪ ${t("machine.none")}`;
-  } else if (estado.en_linea) {
+    return;
+  }
+  const red = estado.red_actual ? ` ${t("machine.network").replace("{red}", estado.red_actual)}` : "";
+  if (estado.en_linea) {
     caja.className = "estado-maquina en-linea";
-    caja.textContent = `🟢 ${t("machine.online").replace("{id}", estado.device_id)}`;
+    caja.textContent = `🟢 ${t("machine.online").replace("{id}", estado.device_id)}${red}`;
   } else {
     caja.className = "estado-maquina sin-conexion";
-    caja.textContent = `🟠 ${t("machine.offline").replace("{id}", estado.device_id)}${
-      estado.ultima_conexion ? ` ${t("machine.last_seen").replace("{cuando}", cuando(estado.ultima_conexion, idiomaActual()))}` : ""
-    }`;
+    caja.textContent = `🟠 ${t("machine.offline").replace("{id}", estado.device_id)}${textoUltimaConexion(estado.ultima_conexion)}`;
   }
+  if (estado.wifi_pendiente) progreso.textContent = `⏳ ${t("machine.wifi_waiting").replace("{red}", estado.wifi_pendiente.ssid)}`;
+  else if (estado.wifi_estado) progreso.textContent = `⚠️ ${estado.wifi_estado}`;
 }
 
-/** Lee líneas JSON de la ESP32 hasta que `listo(mensaje)` sea verdadero o pase `ms`. */
-async function esperarMensaje(lector, listo, ms) {
-  const fin = Date.now() + ms;
-  let resto = "";
-  const decodificador = new TextDecoder();
-  while (Date.now() < fin) {
-    const lectura = await Promise.race([lector.read(), new Promise((r) => setTimeout(() => r(null), fin - Date.now()))]);
-    if (!lectura || lectura.done) break;
-    resto += decodificador.decode(lectura.value, { stream: true });
-    const lineas = resto.split("\n");
-    resto = lineas.pop();
-    for (const linea of lineas) {
-      try {
-        const mensaje = JSON.parse(linea.trim());
-        if (listo(mensaje)) return mensaje;
-      } catch {
-        /* texto que no es JSON (arranque del ESP32): se ignora */
-      }
-    }
+function pintarDisponibles(maquinas) {
+  const lista = document.getElementById("lista-maquinas");
+  if (!maquinas.length) {
+    lista.innerHTML = `<li class="hint">${esc(t("machine.none_available"))}</li>`;
+    return;
   }
-  return null;
+  lista.innerHTML = maquinas
+    .map(
+      (m) => `<li>
+        <span>${m.en_linea ? "🟢" : "⚪"} <strong>${esc(m.device_id)}</strong>
+          <span class="hint">${m.en_linea ? esc(t("machine.available_online")) : esc(textoUltimaConexion(m.ultima_conexion))}</span></span>
+        <button type="button" data-usar="${esc(m.device_id)}">${esc(t("machine.use"))}</button>
+      </li>`,
+    )
+    .join("");
 }
 
-document.getElementById("form-conectar").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  if (!("serial" in navigator)) {
-    progreso.textContent = `⚠️ ${t("machine.no_serial")}`;
-    return;
-  }
-  const boton = document.getElementById("btn-conectar");
-  let puerto;
+document.getElementById("lista-maquinas").addEventListener("click", async (e) => {
+  const boton = e.target.closest("[data-usar]");
+  if (!boton) return;
   try {
-    puerto = await navigator.serial.requestPort(); // el navegador pregunta qué dispositivo USB usar
-  } catch {
-    progreso.textContent = `ℹ️ ${t("machine.port_cancelled")}`;
-    return;
-  }
-  boton.disabled = true;
-  let lector;
-  try {
-    await puerto.open({ baudRate: 115200 });
-    lector = puerto.readable.getReader();
-    progreso.textContent = `⏳ ${t("machine.step_detect")}`;
-    // Al abrir el puerto la ESP32 se reinicia y avisa su estado; se espera un momento.
-    await esperarMensaje(lector, (m) => m.evento === "estado", 4000);
-
-    progreso.textContent = `⏳ ${t("machine.step_link")}`;
-    const maquina = await apiFetch("/api/maquinas/vincular", { method: "POST" });
-    const config = {
-      cmd: "config",
-      ssid: document.getElementById("wifi-ssid").value.trim(),
-      password: document.getElementById("wifi-pass").value,
-      api: API_BASE_URL,
-      device_id: maquina.device_id,
-      token: maquina.token,
-    };
-    const escritor = puerto.writable.getWriter();
-    await escritor.write(new TextEncoder().encode(`${JSON.stringify(config)}\n`));
-    escritor.releaseLock();
-
-    progreso.textContent = `⏳ ${t("machine.step_wifi")}`;
-    const respuesta = await esperarMensaje(lector, (m) => ["wifi_ok", "wifi_error", "error"].includes(m.evento), 30000);
-    if (!respuesta) throw new Error(t("machine.no_answer"));
-    if (respuesta.evento !== "wifi_ok") throw new Error(respuesta.detalle || t("machine.wifi_failed"));
-    document.getElementById("wifi-pass").value = "";
-    progreso.textContent = `✅ ${t("machine.done")}`;
-    await refrescarEstadoMaquina();
+    pintarEstadoMaquina(await apiFetch("/api/maquinas/vincular", { method: "POST", body: { device_id: boton.dataset.usar } }));
+    progreso.textContent = `✅ ${t("machine.linked")}`;
   } catch (err) {
     progreso.textContent = `⚠️ ${err.message}`;
-    await refrescarEstadoMaquina();
-  } finally {
-    try {
-      if (lector) {
-        await lector.cancel();
-        lector.releaseLock();
-      }
-      await puerto.close();
-    } catch {
-      /* el puerto ya estaba cerrado */
-    }
-    boton.disabled = false;
+    refrescarEstadoMaquina();
+  }
+});
+
+document.getElementById("form-wifi").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const estado = await apiFetch("/api/maquinas/wifi", {
+      method: "POST",
+      body: { ssid: document.getElementById("wifi-ssid").value.trim(), password: document.getElementById("wifi-pass").value },
+    });
+    document.getElementById("wifi-pass").value = "";
+    pintarEstadoMaquina(estado);
+  } catch (err) {
+    progreso.textContent = `⚠️ ${err.message}`;
   }
 });
 

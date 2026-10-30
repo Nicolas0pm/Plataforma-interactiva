@@ -2188,3 +2188,43 @@ button.pequeno {
   width: auto;
   margin-top: 0;
 }
+
+.lista-maquinas {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+}
+
+.lista-maquinas li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.lista-maquinas li button {
+  width: auto;
+  margin-top: 0;
+  padding: 0.5rem 1rem;
+}
+
+.ayuda-maquina {
+  margin-top: 0.75rem;
+}
+
+.ayuda-maquina summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#maquina-elegir[hidden],
+#maquina-mia[hidden] {
+  display: none;
+}
+
+#maquina-mia .conectar-maquina h3,
+#maquina-elegir h3 {
+  margin-top: 0;
+}
