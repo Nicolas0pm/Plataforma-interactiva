@@ -27,18 +27,18 @@ Se trabaja sobre una copia, así que la base original de la simulación no cambi
 
 | Estudiante | Código | PIN | Acudiente |
 |---|---|---|---|
-| Sofía Martínez | U3Z6N8 | 4826 | acudiente01 |
-| Mateo Rojas | UPSUFV | 5830 | acudiente02 |
-| Valentina Cruz | GJM23X | 7149 | acudiente03 |
-| Samuel Torres | 2PVJQJ | 3958 | acudiente04 |
-| Isabella Gómez | TZVFKQ | 6207 | acudiente05 |
-| Santiago Díaz | Y5M8PS | 8415 | acudiente06 |
-| Mariana López | GQ794M | 2693 | acudiente07 |
-| Emiliano Ruiz | S42QJZ | 9071 | — |
-| Luciana Herrera | SPYQWC | 1538 | acudiente09 |
-| Tomás Castro | X9BZ3C | 4762 | — |
-| Gabriela Vargas | C3TUJR | 3184 | — |
-| Daniel Moreno | 39JN6P | 6529 | — |
+| Sofía Martínez | 46BBNP | 4826 | acudiente01 |
+| Mateo Rojas | 5J53WG | 5830 | acudiente02 |
+| Valentina Cruz | 8PSBWK | 7149 | acudiente03 |
+| Samuel Torres | 792JC2 | 3958 | acudiente04 |
+| Isabella Gómez | XWAGKW | 6207 | acudiente05 |
+| Santiago Díaz | KQ3Q6B | 8415 | acudiente06 |
+| Mariana López | TJWP57 | 2693 | acudiente07 |
+| Emiliano Ruiz | A8DE96 | 9071 | — |
+| Luciana Herrera | Y4CVMU | 1538 | acudiente09 |
+| Tomás Castro | F8GPTQ | 4762 | — |
+| Gabriela Vargas | JH9JGN | 3184 | — |
+| Daniel Moreno | TVNDJ9 | 6529 | — |
 
 Máquina de premios simulada: `aula-2b`, secreto `secreto-simulacion`.
 

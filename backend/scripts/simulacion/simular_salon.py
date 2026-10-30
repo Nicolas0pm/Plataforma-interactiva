@@ -6,8 +6,9 @@ Una docente y 12 estudiantes ficticios usan la plataforma desde el 24 de agosto 
 reloj controlado por freezegun para que cada acción quede con su fecha simulada. Todo se
 guarda en una base SQLite aparte: nunca toca la base de producción.
 
-- La docente crea 4 mundos «Del profe» (ver `mundos_profe.py`), registra la máquina del
-  salón, elige «examen cada 2 mundos», cambia y oculta preguntas del temario y cada viernes
+- La docente sigue un plan de 8 semanas y publica 16 mundos «Del profe», 2 cada lunes (ver
+  `mundos_profe.py`), registra la máquina del
+  salón, elige «examen cada 4 mundos», cambia y oculta preguntas del temario y cada viernes
   revisa su panel y deja comentarios a quien necesita ayuda.
 - Hay clase de inglés martes y jueves de 9:00 a 10:00: ahí los niños juegan los mundos del
   profe y presentan sus exámenes. En casa juegan vocabulario y gramática, cada uno con su
@@ -170,7 +171,7 @@ with freeze_time(local(INICIO, 6).astimezone(timezone.utc)) as reloj:
     ir_a(local(INICIO, 15))
     token_docente = sesion_docente()
     api("PUT", f"/api/usuarios/docente/{docente['id_usuario']}/dispensador", token_docente, {"device_id": "aula-2b"})
-    api("PUT", f"/api/usuarios/docente/{docente['id_usuario']}/premio", token_docente, {"cada_mundos": 2})
+    api("PUT", f"/api/usuarios/docente/{docente['id_usuario']}/premio", token_docente, {"cada_mundos": 4})
     # Cambia el enunciado de una pregunta del temario y oculta otra, solo para su salón.
     animals = api("GET", "/api/temario/salon/animals/preguntas", token_docente).json()
     primera = animals["lecciones"][0]["preguntas"][0]
@@ -179,7 +180,7 @@ with freeze_time(local(INICIO, 6).astimezone(timezone.utc)) as reloj:
          "respuesta_correcta": primera["respuesta_correcta"]})
     api("PATCH", f"/api/temario/salon/preguntas/{animals['lecciones'][1]['preguntas'][7]['id_actividad']}",
         token_docente, {"activo": False})
-    anotar("eventos", fecha=ahora_sim, quien="docente", que="configura máquina, examen cada 2 mundos y edita el temario")
+    anotar("eventos", fecha=ahora_sim, quien="docente", que="configura máquina, examen cada 4 mundos y edita el temario")
 
     def crear_mundo(m):
         token = sesion_docente()

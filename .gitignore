@@ -25,3 +25,6 @@ docs/*.pdf
 .firebase/
 firebase-debug.log
 *.log
+
+# Cuentas de la simulación en producción (contraseñas)
+docs/simulacion/produccion/cuentas_produccion.json
