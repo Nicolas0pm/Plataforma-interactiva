@@ -26,6 +26,7 @@ from app.services.auth_service import (
     verificar_credenciales,
     verificar_password,
 )
+from app.services import maquinas_service
 from app.services.estudiantes_service import normalizar_codigo, verificar_codigo_y_pin
 from app.services.progreso_service import calcular_nivel, puntos_para_siguiente_nivel
 
@@ -218,11 +219,7 @@ def asignar_dispensador(
     docente = db.get(Usuario, id_docente)
     if docente is None:
         raise HTTPException(404, "Docente no encontrado")
-    docente.device_id_aula = device_id
-    estudiantes = _estudiantes_de(db, id_docente)
-    for estudiante in estudiantes:
-        estudiante.device_id = device_id
-    n = len(estudiantes)
+    n = maquinas_service.asignar_dispensador(db, docente, device_id)
     registrar_auditoria(db, tipo="dispensador_asignado", actor=usuario["id_usuario"], detalle={"device_id": device_id, "estudiantes": n})
     return {"device_id": device_id, "estudiantes": n}
 

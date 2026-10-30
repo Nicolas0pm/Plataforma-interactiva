@@ -2148,3 +2148,43 @@ button.pequeno {
   flex-wrap: wrap;
   gap: 0.35rem;
 }
+
+/* Docente: conexión de la máquina de premios (USB + WiFi) */
+.estado-maquina {
+  padding: 0.6rem 0.9rem;
+  border-radius: 12px;
+  background: var(--fondo-punto);
+  font-weight: 600;
+}
+
+.estado-maquina.en-linea {
+  background: var(--exito-suave);
+  color: var(--exito-texto);
+}
+
+.estado-maquina.sin-conexion {
+  background: var(--pendiente-chip);
+  color: var(--pendiente-texto);
+}
+
+.conectar-maquina {
+  margin-top: 0.75rem;
+  padding: 0.9rem;
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: 12px;
+}
+
+.acciones-maquina {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.acciones-maquina[hidden] {
+  display: none;
+}
+
+.acciones-maquina button {
+  width: auto;
+  margin-top: 0;
+}

@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import get_settings
 from app.db import SesionLocal, crear_tablas
-from app.routers import actividades, auditoria, coordinador, examenes, feedback, lecciones, mundos, recompensas, temario, tienda, usuarios
+from app.routers import actividades, auditoria, coordinador, examenes, feedback, lecciones, maquinas, mundos, recompensas, temario, tienda, usuarios
 from app.services.auth_service import registrar_auditoria
 from app.services.lecciones_service import sembrar_temario, temario_cargado
 from app.services.limites import TamanoMaximo, limitar_por_ip
@@ -69,6 +69,7 @@ app.include_router(temario.router)
 app.include_router(tienda.router)
 app.include_router(feedback.router)
 app.include_router(recompensas.router)
+app.include_router(maquinas.router)
 app.include_router(coordinador.router)
 app.include_router(auditoria.router)
 

@@ -392,6 +392,20 @@ class HistorialRecompensa(Base):
         return datos
 
 
+class Maquina(Base):
+    """Máquina de premios (ESP32) de un salón. El docente la vincula desde su panel por USB:
+    la API genera el `device_id` y un token propio que solo conoce la máquina (aquí se guarda
+    su hash). `ultima_conexion` se actualiza cada vez que la máquina consulta su cola."""
+
+    __tablename__ = "maquinas"
+
+    device_id: Mapped[str] = mapped_column(String(60), primary_key=True)
+    id_docente: Mapped[str] = mapped_column(ForeignKey(_FK_USUARIO, ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64))
+    creada_en: Mapped[datetime] = mapped_column(FechaUTC, default=ahora)
+    ultima_conexion: Mapped[Optional[datetime]] = mapped_column(FechaUTC)
+
+
 class Feedback(Base):
     __tablename__ = "feedback"
 

@@ -58,12 +58,21 @@
     <div class="card">
       <h2>🎁 <span data-i18n="machine.title">Máquina de premios del salón</span></h2>
       <p class="hint" data-i18n="machine.hint"></p>
-      <form id="form-maquina" class="fila-form">
-        <label for="maquina-id" class="sr-only" data-i18n="machine.id">ID de la máquina</label>
-        <input id="maquina-id" type="text" maxlength="60" placeholder="aula-101" autocomplete="off" />
-        <button type="submit" data-i18n="machine.save">Guardar</button>
+      <p class="estado-maquina" id="maquina-estado" role="status"></p>
+      <!-- Conexión: la página le pasa a la ESP32, por USB (Web Serial), el WiFi del salón y sus credenciales -->
+      <form id="form-conectar" class="conectar-maquina">
+        <p class="hint" data-i18n="machine.usb_hint"></p>
+        <label for="wifi-ssid" data-i18n="machine.wifi_name">Nombre de la red WiFi</label>
+        <input id="wifi-ssid" type="text" maxlength="32" autocomplete="off" required />
+        <label for="wifi-pass" data-i18n="machine.wifi_pass">Contraseña del WiFi</label>
+        <input id="wifi-pass" type="password" maxlength="64" autocomplete="off" />
+        <button type="submit" id="btn-conectar" data-i18n="machine.connect">🔌 Conectar máquina por USB</button>
       </form>
-      <p class="hint" id="maquina-estado" role="status"></p>
+      <p class="hint" id="conexion-progreso" role="status" aria-live="polite"></p>
+      <div class="acciones-maquina" id="acciones-maquina" hidden>
+        <button type="button" id="btn-probar" data-i18n="machine.test">🧪 Probar máquina</button>
+        <button type="button" id="btn-desvincular" class="secundario" data-i18n="machine.unlink">Desvincular</button>
+      </div>
       <!-- RF06: cada cuántos mundos completados se entrega el premio -->
       <form id="form-premio" class="fila-form premio-cada">
         <label for="premio-cada" data-i18n="machine.every">Examen cada</label>

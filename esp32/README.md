@@ -1,87 +1,65 @@
-# Integración futura con ESP32
+# Máquina de premios (ESP32)
 
-Esta carpeta es un placeholder para cuando llegues a la fase de hardware. La
-arquitectura ya está pensada para esto (ver [`../docs/architecture.md`](../docs/architecture.md)),
-así que cuando la retomes no deberías tener que rediseñar nada del backend/base de datos.
+Programa de la máquina dispensadora: [`esp32.ino`](esp32.ino). Usa una ESP32, un driver
+A4988 y un motor paso a paso NEMA 17 que gira el tambor y suelta un juguete.
 
-## Idea general
+## Conexiones
 
-1. Cada dispensador físico tiene un `device_id` único (ej. `"aula-101"`). El docente lo
-   asigna a su salón desde su panel, y queda en la columna `device_id` de sus estudiantes
-   (ver `docs/data-model.md`).
-2. Cuando un estudiante completa un mundo, la API crea una fila en `historial_recompensas`
-   con `estado = 'pendiente'` y ese `device_id` (`app/services/recompensas_service.py`).
-   Esas filas pendientes son la **cola** de la máquina.
-3. El ESP32 pregunta cada pocos segundos por su cola, por HTTPS:
+| ESP32 | A4988 |
+|---|---|
+| GPIO 4 | STEP |
+| GPIO 5 | DIR |
+| GPIO 18 | EN (LOW = encendido; en reposo queda apagado, sin zumbido ni calor) |
 
-   ```
-   GET /api/recompensas/cola/{device_id}
-   X-Device-Secret: <DEVICE_SHARED_SECRET>
-   ```
+Un premio = 200 pasos en 2 segundos (una vuelta del tambor).
 
-   Respuesta: `[{"id_historial": "...", "id_usuario": "...", "comando": "dispensar", ...}]`
-   (del premio más antiguo al más nuevo; `[]` si no hay nada).
-4. Por cada premio activa el servomotor/dispensador y confirma:
+## Cargar el programa (una sola vez)
 
-   ```
-   POST /api/recompensas/{id_historial}/confirmar-entrega
-   X-Device-Secret: <DEVICE_SHARED_SECRET>
-   ```
+1. Arduino IDE con el núcleo **esp32** de Espressif y la librería **ArduinoJson** (versión 7).
+2. Abrir la carpeta `esp32/` (el archivo se llama igual que la carpeta, como pide Arduino).
+3. Elegir la placa (por ejemplo, *ESP32 Dev Module*) y el puerto, y pulsar **Subir**.
 
-   El premio queda como `"entregada"` y sale de la cola, así que no se vuelve a soltar
-   aunque la máquina se reinicie.
+El programa no lleva el WiFi ni contraseñas escritos: se configuran desde la plataforma.
 
-No hace falta ninguna librería especial: solo WiFi y HTTPS, que el ESP32 trae (`WiFi.h`,
-`HTTPClient.h`) más `ArduinoJson` para leer la respuesta.
+## Conectarla desde el panel del docente
 
-## Esqueleto de referencia (pseudocódigo Arduino/C++)
+1. Conectar la máquina al computador con el cable USB.
+2. En el panel del docente, recuadro **Máquina de premios del salón**, escribir el nombre y la
+   contraseña del WiFi del salón y pulsar **Conectar máquina por USB** (Chrome o Edge en un
+   computador, porque usa Web Serial).
+3. El navegador pide elegir el dispositivo USB. La página registra la máquina en la API, le
+   envía el WiFi, la dirección de la API, su identificador (`maq-…`) y su token, y espera a
+   que se conecte. La máquina guarda todo en su memoria: sirve en cualquier red y, si se
+   cambia de salón o de WiFi, basta con conectarla otra vez.
+4. Desconectar el cable. El recuadro muestra si la máquina está **en línea** y tiene el botón
+   **Probar máquina**, que hace girar el motor una vez.
 
-```cpp
-// esp32/firmware/main.ino (a crear cuando llegues a esta fase)
-#include <WiFi.h>
-#include <HTTPClient.h>
-#include <ArduinoJson.h>
+## Cómo entrega los premios
 
-#define WIFI_SSID "..."
-#define WIFI_PASSWORD "..."
-#define API "https://plataforma-ingles-kids-api.onrender.com"
-#define DEVICE_ID "aula-101"
-#define DEVICE_SECRET "..."   // el DEVICE_SHARED_SECRET del backend (Render → Environment)
+Cada 3 segundos la máquina pregunta a la API si tiene premios para soltar, con su token:
 
-void setup() {
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  while (WiFi.status() != WL_CONNECTED) delay(500);
-}
-
-void loop() {
-  HTTPClient http;
-  http.begin(String(API) + "/api/recompensas/cola/" + DEVICE_ID);
-  http.addHeader("X-Device-Secret", DEVICE_SECRET);
-  if (http.GET() == 200) {
-    JsonDocument cola;
-    deserializeJson(cola, http.getString());
-    for (JsonObject premio : cola.as<JsonArray>()) {
-      // activar el servo/motor del dispensador
-      HTTPClient confirmar;
-      confirmar.begin(String(API) + "/api/recompensas/" + premio["id_historial"].as<String>() + "/confirmar-entrega");
-      confirmar.addHeader("X-Device-Secret", DEVICE_SECRET);
-      confirmar.POST("");
-      confirmar.end();
-    }
-  }
-  http.end();
-  delay(5000);  // vuelve a preguntar en 5 segundos
-}
+```
+GET  /api/recompensas/cola/{device_id}                   X-Device-Token: <token>
+POST /api/recompensas/{id_historial}/confirmar-entrega   X-Device-Id: <device_id>, X-Device-Token: <token>
 ```
 
-> El plan gratis de Render "duerme" la API tras 15 minutos sin uso: la primera consulta del
-> día puede tardar ~50 s. Mientras la máquina esté preguntando cada 5 s, la API no se duerme
-> (y eso gasta horas del plan gratis: 750 al mes alcanzan para un servicio encendido todo el mes).
+Por cada premio gira el motor y confirma la entrega, así no lo vuelve a soltar aunque se
+reinicie. Cada consulta le sirve al panel para saber que la máquina está en línea.
 
-## Cuando llegues a esta fase, necesitarás
+La API guarda solo el hash del token. Si se vuelve a conectar la máquina o se desvincula
+desde el panel, el token anterior deja de servir. Sigue aceptándose el secreto compartido
+`DEVICE_SHARED_SECRET` (cabecera `X-Device-Secret`) para una máquina configurada a mano.
 
-- [ ] Definir el mecanismo físico (servomotor, solenoide, etc.)
-- [ ] Cablear el ESP32 con el actuador y una fuente de alimentación adecuada
-- [ ] Configurar `DEVICE_SHARED_SECRET` en el backend y en el firmware
-- [ ] Probar el flujo completo: lección terminada → mundo completado → premio en la cola →
-      ESP32 lo recibe → dispensa → confirma entrega → se refleja en el panel de docente/padres
+## Mensajes por el puerto serie
+
+115200 baudios, una línea JSON por mensaje. Sirven para depurar con el monitor serie:
+
+| Envío | Qué hace |
+|---|---|
+| `{"cmd":"estado"}` | Responde si está configurada, su `device_id`, la red y su IP |
+| `{"cmd":"probar"}` | Gira el motor una vez sin pasar por la API |
+| `{"cmd":"olvidar"}` | Borra el WiFi y las credenciales guardadas |
+| `{"cmd":"config", ...}` | Lo que envía el panel del docente al conectarla |
+
+> La API gratuita de Render se duerme tras 15 minutos sin uso; mientras la máquina esté
+> encendida pregunta cada 3 segundos y la mantiene despierta.

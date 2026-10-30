@@ -2,20 +2,12 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.config import get_settings
-from app.db import RutaConTransaccion, get_db
+from app.db import RutaConTransaccion, ahora, get_db
 from app.models.tablas import HistorialRecompensa
+from app.services import maquinas_service
 from app.services.auth_service import current_user, registrar_auditoria, verificar_acceso_estudiante
 
 router = APIRouter(prefix="/api/recompensas", tags=["recompensas"], route_class=RutaConTransaccion)
-_settings = get_settings()
-
-
-def _exigir_secreto_dispositivo(x_device_secret: str | None = Header(default=None)) -> None:
-    """La máquina de premios (ESP32) no tiene cuenta de usuario: se autentica con el
-    secreto compartido `DEVICE_SHARED_SECRET` (ver esp32/README.md)."""
-    if not _settings.device_shared_secret or x_device_secret != _settings.device_shared_secret:
-        raise HTTPException(401, "Secreto de dispositivo inválido o no configurado")
 
 
 @router.get("/estudiante/{id_usuario}")
@@ -30,11 +22,19 @@ def recompensas_de_estudiante(id_usuario: str, usuario: dict = Depends(current_u
     return [r.a_dict() for r in db.scalars(consulta)]
 
 
-@router.get("/cola/{device_id}", dependencies=[Depends(_exigir_secreto_dispositivo)])
-def cola_de_la_maquina(device_id: str, db: Session = Depends(get_db)):
+@router.get("/cola/{device_id}")
+def cola_de_la_maquina(
+    device_id: str,
+    x_device_token: str | None = Header(default=None),
+    x_device_secret: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+):
     """Premios que la máquina `device_id` todavía tiene que soltar, del más antiguo al más
-    nuevo. El ESP32 la consulta cada pocos segundos; cada premio sale de la cola cuando la
-    máquina confirma su entrega."""
+    nuevo. El ESP32 la consulta cada pocos segundos (con su token o el secreto compartido);
+    cada consulta cuenta como señal de que la máquina está en línea."""
+    maquina = maquinas_service.autenticar(db, device_id, x_device_token, x_device_secret)
+    if maquina is not None:
+        maquina.ultima_conexion = ahora()
     consulta = (
         select(HistorialRecompensa)
         .where(HistorialRecompensa.device_id == device_id, HistorialRecompensa.estado == "pendiente")
@@ -47,12 +47,19 @@ def cola_de_la_maquina(device_id: str, db: Session = Depends(get_db)):
     ]
 
 
-@router.post("/{id_historial}/confirmar-entrega", dependencies=[Depends(_exigir_secreto_dispositivo)])
-def confirmar_entrega(id_historial: str, db: Session = Depends(get_db)):
+@router.post("/{id_historial}/confirmar-entrega")
+def confirmar_entrega(
+    id_historial: str,
+    x_device_id: str | None = Header(default=None),
+    x_device_token: str | None = Header(default=None),
+    x_device_secret: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+):
     """El ESP32 confirma que soltó el juguete: el premio sale de su cola y ya no se vuelve
-    a entregar aunque la máquina se reinicie."""
+    a entregar aunque la máquina se reinicie. Con token, solo puede confirmar sus premios."""
+    maquina = maquinas_service.autenticar(db, x_device_id or "", x_device_token, x_device_secret)
     recompensa = db.get(HistorialRecompensa, id_historial)
-    if recompensa is None:
+    if recompensa is None or (maquina is not None and recompensa.device_id != maquina.device_id):
         raise HTTPException(404, "Recompensa no encontrada")
     recompensa.estado = "entregada"
     registrar_auditoria(db, tipo="recompensa_entregada", actor="esp32", detalle={"id_historial": id_historial})
